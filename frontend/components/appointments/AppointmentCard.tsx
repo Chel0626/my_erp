@@ -175,7 +175,7 @@ export function AppointmentCard({
           </Button>
         )}
 
-        {/* Ações sempre disponíveis (exceto para concluídos) */}
+        {/* Ações sempre disponíveis (exceto para concluídos e cancelados) */}
         {appointment.status !== 'concluido' && appointment.status !== 'cancelado' && (
           <>
             {onEdit && (
@@ -190,7 +190,7 @@ export function AppointmentCard({
               </Button>
             )}
 
-            {onCancel && appointment.status !== 'cancelado' && (
+            {onCancel && (
               <Button
                 size="sm"
                 variant="outline"
