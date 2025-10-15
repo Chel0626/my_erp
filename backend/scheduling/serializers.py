@@ -2,6 +2,7 @@
 Serializers do módulo de Agendamentos
 """
 from rest_framework import serializers
+from django.db import IntegrityError
 from .models import Service, Appointment
 from core.serializers import UserSerializer
 
@@ -21,7 +22,22 @@ class ServiceSerializer(serializers.ModelSerializer):
         """Adiciona o tenant automaticamente"""
         request = self.context.get('request')
         validated_data['tenant'] = request.user.tenant
-        return super().create(validated_data)
+        
+        try:
+            return super().create(validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError({
+                'name': 'Já existe um serviço com este nome.'
+            })
+
+    def update(self, instance, validated_data):
+        """Atualiza serviço com validação de nome único"""
+        try:
+            return super().update(instance, validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError({
+                'name': 'Já existe um serviço com este nome.'
+            })
 
 
 class AppointmentSerializer(serializers.ModelSerializer):

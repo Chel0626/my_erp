@@ -99,9 +99,22 @@ export default function ServicesPage() {
       }
       setShowDialog(false);
       setEditingService(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar serviço:', error);
-      alert('Erro ao salvar serviço. Tente novamente.');
+      
+      // Extrai mensagem de erro do backend
+      let errorMessage = 'Erro ao salvar serviço. Tente novamente.';
+      
+      if (error?.response?.data?.name) {
+        // Erro de validação do campo 'name'
+        errorMessage = error.response.data.name[0];
+      } else if (error?.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(`❌ ${errorMessage}`);
     }
   };
 
