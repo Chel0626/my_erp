@@ -10,7 +10,7 @@ interface AuthContextType {
   tenant: Tenant | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string, companyName: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, companyName: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signup = async (email: string, password: string, name: string, companyName: string) => {
+  const signup = async (name: string, email: string, password: string, companyName: string) => {
     try {
       const data = await authApi.signup({
         email,
