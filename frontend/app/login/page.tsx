@@ -18,15 +18,20 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📝 Form submetido', { email, password: '***' });
     setError('');
     setLoading(true);
 
     try {
+      console.log('🔐 Chamando função login...');
       await login(email, password);
+      console.log('✅ Login concluído com sucesso!');
     } catch (err: any) {
+      console.error('❌ Erro capturado no handleSubmit:', err);
       setError(err.message || 'Erro ao fazer login');
     } finally {
       setLoading(false);
+      console.log('🏁 handleSubmit finalizado');
     }
   };
 
