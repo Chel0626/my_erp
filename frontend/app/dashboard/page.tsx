@@ -31,9 +31,13 @@ export default function DashboardPage() {
     queryFn: () => api.get('/scheduling/services/').then(res => res.data),
   });
 
+  // Garantir que appointments é um array
+  const appointmentsList = Array.isArray(appointments) ? appointments : [];
+  const servicesList = Array.isArray(services) ? services : [];
+
   // Calcular KPIs
   const today = new Date().toISOString().split('T')[0];
-  const todayAppointments = appointments.filter(apt => apt.start_time.split('T')[0] === today);
+  const todayAppointments = appointmentsList.filter(apt => apt.start_time.split('T')[0] === today);
   const confirmedToday = todayAppointments.filter(apt => apt.status === 'confirmado').length;
   const completedToday = todayAppointments.filter(apt => apt.status === 'concluido').length;
   const cancelledToday = todayAppointments.filter(apt => apt.status === 'cancelado').length;
@@ -42,12 +46,12 @@ export default function DashboardPage() {
   const todayRevenue = todayAppointments
     .filter(apt => apt.status === 'concluido')
     .reduce((sum, apt) => {
-      const service = services.find(s => s.id === apt.service);
+      const service = servicesList.find(s => s.id === apt.service);
       return sum + (service ? parseFloat(service.price) : 0);
     }, 0);
 
   // Próximos agendamentos
-  const upcomingAppointments = appointments
+  const upcomingAppointments = appointmentsList
     .filter(apt => apt.status === 'confirmado' && apt.start_time >= new Date().toISOString())
     .sort((a, b) => a.start_time.localeCompare(b.start_time))
     .slice(0, 5);
@@ -152,7 +156,7 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{services.length}</div>
+            <div className="text-2xl font-bold">{servicesList.length}</div>
             <p className="text-xs text-muted-foreground">
               Disponíveis para agendamento
             </p>
@@ -177,7 +181,7 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-3">
               {upcomingAppointments.map((appointment) => {
-                const service = services.find(s => s.id === appointment.service);
+                const service = servicesList.find(s => s.id === appointment.service);
                 return (
                   <div
                     key={appointment.id}
