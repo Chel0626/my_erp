@@ -50,6 +50,19 @@ const getStatusColor = (status: string): string => {
   return statusColors[status] || statusColors['marcado'];
 };
 
+// Função para obter selo/badge de status
+const getStatusBadge = (status: string): string => {
+  const badges: Record<string, string> = {
+    'marcado': '📅',
+    'confirmado': '✅',
+    'em_atendimento': '⏱️',
+    'concluido': '✔️',
+    'cancelado': '❌',
+    'falta': '⚠️',
+  };
+  return badges[status] || '📅';
+};
+
 export default function AppointmentCalendar({
   appointments,
   services,
@@ -70,18 +83,11 @@ export default function AppointmentCalendar({
   const events = appointments.map(appointment => {
     const service = services.find(s => s.id === appointment.service);
     const serviceColor = service ? serviceColorMap.get(service.id) : '#6b7280'; // gray-500 como fallback
+    const statusBadge = getStatusBadge(appointment.status);
     
-    // Cor principal: Serviço
-    // Borda: Indicador de status (mais grossa para status importantes)
-    const statusBorderStyle = appointment.status === 'cancelado' ? '4px solid #ef4444' : // red-500
-                              appointment.status === 'concluido' ? '4px solid #10b981' : // green-500
-                              appointment.status === 'em_atendimento' ? '4px solid #f59e0b' : // amber-500
-                              appointment.status === 'confirmado' ? '3px solid #3b82f6' : // blue-500
-                              '2px solid transparent';
-
     return {
       id: appointment.id,
-      title: `${appointment.customer_name} - ${service?.name || 'Serviço'}`,
+      title: `${statusBadge} ${appointment.customer_name} - ${service?.name || 'Serviço'}`,
       start: appointment.start_time,
       end: appointment.end_time,
       backgroundColor: serviceColor,
@@ -90,7 +96,7 @@ export default function AppointmentCalendar({
       extendedProps: {
         appointment,
         service,
-        statusBorderStyle,
+        status: appointment.status,
       },
     };
   });
@@ -110,16 +116,6 @@ export default function AppointmentCalendar({
   const handleEventDrop = (info: any) => {
     if (onEventDrop) {
       onEventDrop(info.event.id, info.event.start);
-    }
-  };
-
-  // Aplica estilos customizados aos eventos após renderização
-  const handleEventDidMount = (info: any) => {
-    const statusBorderStyle = info.event.extendedProps.statusBorderStyle;
-    if (statusBorderStyle && info.el) {
-      // Encontra o elemento .fc-event
-      const eventEl = info.el.querySelector('.fc-event') || info.el;
-      eventEl.style.border = statusBorderStyle;
     }
   };
 
@@ -197,47 +193,36 @@ export default function AppointmentCalendar({
         </div>
       </div>
 
-      {/* Legenda de Status (Bordas) */}
+      {/* Legenda de Status (Selos) */}
       <div className="bg-white border rounded-lg p-4">
-        <h3 className="text-sm font-semibold mb-3">Indicadores de Status</h3>
+        <h3 className="text-sm font-semibold mb-3">Selos de Status</h3>
         <p className="text-xs text-muted-foreground mb-3">
-          A cor do evento indica o serviço. O status é mostrado por:
+          A cor do evento indica o serviço. O selo no início indica o status:
         </p>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-4 rounded" style={{ 
-              backgroundColor: '#6b7280', 
-              border: '4px solid #ef4444' 
-            }} />
-            <span className="text-sm text-gray-700">Cancelado (borda vermelha)</span>
+            <span className="text-lg">📅</span>
+            <span className="text-sm text-gray-700">Marcado</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-4 rounded" style={{ 
-              backgroundColor: '#6b7280', 
-              border: '4px solid #10b981' 
-            }} />
-            <span className="text-sm text-gray-700">Concluído (borda verde)</span>
+            <span className="text-lg">✅</span>
+            <span className="text-sm text-gray-700">Confirmado</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-4 rounded" style={{ 
-              backgroundColor: '#6b7280', 
-              border: '4px solid #f59e0b' 
-            }} />
-            <span className="text-sm text-gray-700">Em Atendimento (borda amarela)</span>
+            <span className="text-lg">⏱️</span>
+            <span className="text-sm text-gray-700">Em Atendimento</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-4 rounded" style={{ 
-              backgroundColor: '#6b7280', 
-              border: '3px solid #3b82f6' 
-            }} />
-            <span className="text-sm text-gray-700">Confirmado (borda azul)</span>
+            <span className="text-lg">✔️</span>
+            <span className="text-sm text-gray-700">Concluído</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-4 rounded" style={{ 
-              backgroundColor: '#6b7280', 
-              border: '2px solid transparent' 
-            }} />
-            <span className="text-sm text-gray-700">Marcado (sem borda)</span>
+            <span className="text-lg">❌</span>
+            <span className="text-sm text-gray-700">Cancelado</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">⚠️</span>
+            <span className="text-sm text-gray-700">Falta</span>
           </div>
         </div>
       </div>
@@ -271,7 +256,6 @@ export default function AppointmentCalendar({
           dateClick={handleDateClick}
           editable={true}
           eventDrop={handleEventDrop}
-          eventDidMount={handleEventDidMount}
           eventResizableFromStart={true}
           nowIndicator={true}
           weekends={true}
@@ -291,11 +275,21 @@ export default function AppointmentCalendar({
           }}
           eventContent={(arg) => {
             return (
-              <div className="fc-event-main-frame p-1">
-                <div className="fc-event-time text-xs font-semibold">
+              <div className="fc-event-main-frame" style={{ padding: '2px 4px' }}>
+                <div className="fc-event-time" style={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: '600',
+                  marginBottom: '1px'
+                }}>
                   {arg.timeText}
                 </div>
-                <div className="fc-event-title text-xs truncate">
+                <div className="fc-event-title" style={{ 
+                  fontSize: '0.75rem',
+                  fontWeight: '500',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>
                   {arg.event.title}
                 </div>
               </div>
@@ -354,13 +348,32 @@ export default function AppointmentCalendar({
         .fc .fc-event {
           cursor: pointer;
           border-radius: 4px;
-          padding: 2px;
+          padding: 2px 4px;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
         
         .fc .fc-event:hover {
-          opacity: 0.85;
+          opacity: 0.9;
           transform: scale(1.02);
           transition: all 0.2s ease;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Melhor contraste para texto em eventos */
+        .fc .fc-event-main {
+          color: #ffffff !important;
+        }
+
+        .fc .fc-event-time,
+        .fc .fc-event-title {
+          color: #ffffff !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+          font-weight: 500;
+        }
+
+        .fc .fc-daygrid-event {
+          padding: 2px 4px;
         }
 
         /* Corrige overflow de texto no calendário mensal */
