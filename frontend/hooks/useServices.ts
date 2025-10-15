@@ -43,7 +43,8 @@ export function useServices(activeOnly = false) {
         ? '/scheduling/services/active/' 
         : '/scheduling/services/';
       const response = await api.get(endpoint);
-      return response.data;
+      // DRF retorna {count, next, previous, results}
+      return response.data.results || response.data;
     },
   });
 }
