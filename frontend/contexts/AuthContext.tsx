@@ -66,10 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await authApi.login(email, password);
       console.log('✅ Login bem-sucedido, dados recebidos:', data);
       
-      // Salva tokens
+      // Salva tokens no localStorage
       localStorage.setItem('access_token', data.access);
       localStorage.setItem('refresh_token', data.refresh);
-      console.log('💾 Tokens salvos no localStorage');
+      
+      // Salva também nos cookies para o middleware funcionar
+      document.cookie = `access_token=${data.access}; path=/; max-age=3600`; // 1 hora
+      document.cookie = `refresh_token=${data.refresh}; path=/; max-age=86400`; // 24 horas
+      console.log('💾 Tokens salvos no localStorage e cookies');
 
       // Carrega dados do usuário
       console.log('👤 Carregando dados do usuário...');
@@ -94,9 +98,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         company_name: companyName,
       });
 
-      // Salva tokens
+      // Salva tokens no localStorage
       localStorage.setItem('access_token', data.tokens.access);
       localStorage.setItem('refresh_token', data.tokens.refresh);
+      
+      // Salva também nos cookies para o middleware funcionar
+      document.cookie = `access_token=${data.tokens.access}; path=/; max-age=3600`;
+      document.cookie = `refresh_token=${data.tokens.refresh}; path=/; max-age=86400`;
 
       // Define usuário e tenant
       setUser(data.user);
@@ -111,9 +119,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    // Limpa tokens
+    // Limpa tokens do localStorage
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    
+    // Limpa cookies
+    document.cookie = 'access_token=; path=/; max-age=0';
+    document.cookie = 'refresh_token=; path=/; max-age=0';
     
     // Limpa estado
     setUser(null);
