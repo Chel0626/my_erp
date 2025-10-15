@@ -9,6 +9,7 @@ import {
   Scissors, 
   Users, 
   UserCircle,
+  DollarSign,
   LogOut,
   Menu,
   X
@@ -29,6 +30,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Agenda', href: '/dashboard/appointments', icon: Calendar },
   { name: 'Serviços', href: '/dashboard/services', icon: Scissors },
+  { name: 'Financeiro', href: '/dashboard/financial', icon: DollarSign },
   { name: 'Equipe', href: '/dashboard/team', icon: Users },
   { name: 'Clientes', href: '/dashboard/clients', icon: UserCircle },
 ];
