@@ -69,20 +69,28 @@ export default function AppointmentCalendar({
   // Converte appointments para eventos do FullCalendar
   const events = appointments.map(appointment => {
     const service = services.find(s => s.id === appointment.service);
-    const backgroundColor = getStatusColor(appointment.status);
-    const borderColor = service ? serviceColorMap.get(service.id) : backgroundColor;
+    const serviceColor = service ? serviceColorMap.get(service.id) : '#6b7280'; // gray-500 como fallback
+    
+    // Cor principal: Serviço
+    // Borda: Indicador de status (mais grossa para status importantes)
+    const statusBorderStyle = appointment.status === 'cancelado' ? '4px solid #ef4444' : // red-500
+                              appointment.status === 'concluido' ? '4px solid #10b981' : // green-500
+                              appointment.status === 'em_atendimento' ? '4px solid #f59e0b' : // amber-500
+                              appointment.status === 'confirmado' ? '3px solid #3b82f6' : // blue-500
+                              '2px solid transparent';
 
     return {
       id: appointment.id,
       title: `${appointment.customer_name} - ${service?.name || 'Serviço'}`,
       start: appointment.start_time,
       end: appointment.end_time,
-      backgroundColor,
-      borderColor,
+      backgroundColor: serviceColor,
+      borderColor: serviceColor,
       textColor: '#ffffff',
       extendedProps: {
         appointment,
         service,
+        statusBorderStyle,
       },
     };
   });
@@ -102,6 +110,16 @@ export default function AppointmentCalendar({
   const handleEventDrop = (info: any) => {
     if (onEventDrop) {
       onEventDrop(info.event.id, info.event.start);
+    }
+  };
+
+  // Aplica estilos customizados aos eventos após renderização
+  const handleEventDidMount = (info: any) => {
+    const statusBorderStyle = info.event.extendedProps.statusBorderStyle;
+    if (statusBorderStyle && info.el) {
+      // Encontra o elemento .fc-event
+      const eventEl = info.el.querySelector('.fc-event') || info.el;
+      eventEl.style.border = statusBorderStyle;
     }
   };
 
@@ -165,7 +183,7 @@ export default function AppointmentCalendar({
 
       {/* Legenda de Serviços */}
       <div className="bg-white border rounded-lg p-4">
-        <h3 className="text-sm font-semibold mb-3">Serviços</h3>
+        <h3 className="text-sm font-semibold mb-3">Cores dos Serviços</h3>
         <div className="flex flex-wrap gap-3">
           {services.map((service) => (
             <div key={service.id} className="flex items-center gap-2">
@@ -179,29 +197,47 @@ export default function AppointmentCalendar({
         </div>
       </div>
 
-      {/* Legenda de Status */}
+      {/* Legenda de Status (Bordas) */}
       <div className="bg-white border rounded-lg p-4">
-        <h3 className="text-sm font-semibold mb-3">Status dos Agendamentos</h3>
-        <div className="flex flex-wrap gap-3">
+        <h3 className="text-sm font-semibold mb-3">Indicadores de Status</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          A cor do evento indica o serviço. O status é mostrado por:
+        </p>
+        <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: getStatusColor('marcado') }} />
-            <span className="text-sm text-gray-700">Marcado</span>
+            <div className="w-8 h-4 rounded" style={{ 
+              backgroundColor: '#6b7280', 
+              border: '4px solid #ef4444' 
+            }} />
+            <span className="text-sm text-gray-700">Cancelado (borda vermelha)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: getStatusColor('confirmado') }} />
-            <span className="text-sm text-gray-700">Confirmado</span>
+            <div className="w-8 h-4 rounded" style={{ 
+              backgroundColor: '#6b7280', 
+              border: '4px solid #10b981' 
+            }} />
+            <span className="text-sm text-gray-700">Concluído (borda verde)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: getStatusColor('em_atendimento') }} />
-            <span className="text-sm text-gray-700">Em Atendimento</span>
+            <div className="w-8 h-4 rounded" style={{ 
+              backgroundColor: '#6b7280', 
+              border: '4px solid #f59e0b' 
+            }} />
+            <span className="text-sm text-gray-700">Em Atendimento (borda amarela)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: getStatusColor('concluido') }} />
-            <span className="text-sm text-gray-700">Concluído</span>
+            <div className="w-8 h-4 rounded" style={{ 
+              backgroundColor: '#6b7280', 
+              border: '3px solid #3b82f6' 
+            }} />
+            <span className="text-sm text-gray-700">Confirmado (borda azul)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: getStatusColor('cancelado') }} />
-            <span className="text-sm text-gray-700">Cancelado</span>
+            <div className="w-8 h-4 rounded" style={{ 
+              backgroundColor: '#6b7280', 
+              border: '2px solid transparent' 
+            }} />
+            <span className="text-sm text-gray-700">Marcado (sem borda)</span>
           </div>
         </div>
       </div>
@@ -235,6 +271,7 @@ export default function AppointmentCalendar({
           dateClick={handleDateClick}
           editable={true}
           eventDrop={handleEventDrop}
+          eventDidMount={handleEventDidMount}
           eventResizableFromStart={true}
           nowIndicator={true}
           weekends={true}
@@ -316,13 +353,14 @@ export default function AppointmentCalendar({
         
         .fc .fc-event {
           cursor: pointer;
-          border-width: 2px;
-          border-style: solid;
-          border-left-width: 4px;
+          border-radius: 4px;
+          padding: 2px;
         }
         
         .fc .fc-event:hover {
-          opacity: 0.9;
+          opacity: 0.85;
+          transform: scale(1.02);
+          transition: all 0.2s ease;
         }
 
         /* Corrige overflow de texto no calendário mensal */
