@@ -26,8 +26,8 @@ export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: 
     customer_name: '',
     customer_phone: '',
     customer_email: '',
-    service: '',
-    professional: '',
+    service_id: '',
+    professional_id: '',
     start_time: '',
     notes: '',
   });
@@ -56,8 +56,8 @@ export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: 
         customer_name: appointment.customer_name,
         customer_phone: appointment.customer_phone || '',
         customer_email: appointment.customer_email || '',
-        service: appointment.service,
-        professional: appointment.professional,
+        service_id: appointment.service,
+        professional_id: appointment.professional,
         start_time: formatDateTime(appointment.start_time),
         notes: appointment.notes || '',
       });
@@ -71,12 +71,12 @@ export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: 
       newErrors.customer_name = 'Nome do cliente é obrigatório';
     }
 
-    if (!formData.service) {
-      newErrors.service = 'Selecione um serviço';
+    if (!formData.service_id) {
+      newErrors.service_id = 'Selecione um serviço';
     }
 
-    if (!formData.professional) {
-      newErrors.professional = 'Selecione um profissional';
+    if (!formData.professional_id) {
+      newErrors.professional_id = 'Selecione um profissional';
     }
 
     if (!formData.start_time) {
@@ -168,14 +168,14 @@ export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: 
 
       {/* Serviço */}
       <div className="space-y-2">
-        <Label htmlFor="service">
+        <Label htmlFor="service_id">
           Serviço <span className="text-red-500">*</span>
         </Label>
         <select
-          id="service"
-          value={formData.service}
-          onChange={(e) => handleChange('service', e.target.value)}
-          className={`flex h-10 w-full rounded-md border ${errors.service ? 'border-red-500' : 'border-input'} bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
+          id="service_id"
+          value={formData.service_id}
+          onChange={(e) => handleChange('service_id', e.target.value)}
+          className={`flex h-10 w-full rounded-md border ${errors.service_id ? 'border-red-500' : 'border-input'} bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
         >
           <option value="">Selecione um serviço</option>
           {services.map((service) => (
@@ -184,25 +184,25 @@ export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: 
             </option>
           ))}
         </select>
-        {errors.service && (
-          <p className="text-sm text-red-500">{errors.service}</p>
+        {errors.service_id && (
+          <p className="text-sm text-red-500">{errors.service_id}</p>
         )}
       </div>
 
       {/* Profissional (temporário - depois integraremos com API de users) */}
       <div className="space-y-2">
-        <Label htmlFor="professional">
+        <Label htmlFor="professional_id">
           Profissional <span className="text-red-500">*</span>
         </Label>
         <Input
-          id="professional"
-          value={formData.professional}
-          onChange={(e) => handleChange('professional', e.target.value)}
+          id="professional_id"
+          value={formData.professional_id}
+          onChange={(e) => handleChange('professional_id', e.target.value)}
           placeholder="ID do profissional (temporário)"
-          className={errors.professional ? 'border-red-500' : ''}
+          className={errors.professional_id ? 'border-red-500' : ''}
         />
-        {errors.professional && (
-          <p className="text-sm text-red-500">{errors.professional}</p>
+        {errors.professional_id && (
+          <p className="text-sm text-red-500">{errors.professional_id}</p>
         )}
         <p className="text-xs text-muted-foreground">
           Por enquanto, use o ID do usuário do profissional
