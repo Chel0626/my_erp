@@ -12,6 +12,7 @@ import { ptBR } from 'date-fns/locale';
 
 interface AppointmentCardProps {
   appointment: Appointment;
+  onView?: (appointment: Appointment) => void;
   onEdit?: (appointment: Appointment) => void;
   onDelete?: (appointment: Appointment) => void;
   onConfirm?: (id: string) => void;
@@ -31,6 +32,7 @@ const statusConfig = {
 
 export function AppointmentCard({
   appointment,
+  onView,
   onEdit,
   onDelete,
   onConfirm,
@@ -57,7 +59,10 @@ export function AppointmentCard({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card 
+      className={`hover:shadow-lg transition-shadow ${onView ? 'cursor-pointer' : ''}`}
+      onClick={() => onView && onView(appointment)}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -143,7 +148,10 @@ export function AppointmentCard({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onConfirm(appointment.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onConfirm(appointment.id);
+            }}
             className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
           >
             <CheckCircle className="h-4 w-4 mr-1" />
@@ -155,7 +163,10 @@ export function AppointmentCard({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onStart(appointment.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onStart(appointment.id);
+            }}
             className="flex-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
           >
             <PlayCircle className="h-4 w-4 mr-1" />
@@ -167,7 +178,10 @@ export function AppointmentCard({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onComplete(appointment.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onComplete(appointment.id);
+            }}
             className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
           >
             <CheckCircle className="h-4 w-4 mr-1" />
@@ -182,7 +196,10 @@ export function AppointmentCard({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => onEdit(appointment)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(appointment);
+                }}
                 className="flex-1"
               >
                 <Pencil className="h-4 w-4 mr-1" />
@@ -194,7 +211,10 @@ export function AppointmentCard({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => onCancel(appointment.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel(appointment.id);
+                }}
                 className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <XCircle className="h-4 w-4 mr-1" />
@@ -209,7 +229,10 @@ export function AppointmentCard({
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => onDelete(appointment)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(appointment);
+            }}
             className="text-red-600 hover:text-red-700 hover:bg-red-50"
           >
             <Trash2 className="h-4 w-4" />

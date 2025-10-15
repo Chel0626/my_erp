@@ -37,6 +37,8 @@ export default function AppointmentsPage() {
   const [deletingAppointment, setDeletingAppointment] = useState<Appointment | null>(null);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar'); // Nova: view mode
   const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Nova: data selecionada
+  const [viewingAppointment, setViewingAppointment] = useState<Appointment | null>(null); // Nova: visualizar detalhes
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false); // Nova: dialog de detalhes
   
   // Filtros
   const [filters, setFilters] = useState<AppointmentFilters>({});
@@ -64,6 +66,21 @@ export default function AppointmentsPage() {
   };
   
   const handleCreateClick = () => handleCreate();
+
+  const handleView = (appointment: Appointment) => {
+    setViewingAppointment(appointment);
+    setShowDetailsDialog(true);
+  };
+
+  const handleEditFromDetails = () => {
+    if (viewingAppointment) {
+      setShowDetailsDialog(false);
+      setEditingAppointment(viewingAppointment);
+      setViewingAppointment(null);
+      setSelectedDate(null);
+      setShowDialog(true);
+    }
+  };
 
   const handleEdit = (appointment: Appointment) => {
     setEditingAppointment(appointment);
@@ -316,7 +333,7 @@ export default function AppointmentsPage() {
         <AppointmentCalendar
           appointments={appointmentsList}
           services={Array.isArray(services) ? services : []}
-          onEventClick={handleEdit}
+          onEventClick={handleView}
           onDateClick={handleCreate}
           onEventDrop={async (appointmentId: string, newStart: Date) => {
             try {
@@ -356,6 +373,7 @@ export default function AppointmentsPage() {
                   <AppointmentCard
                     key={appointment.id}
                     appointment={appointment}
+                    onView={handleView}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onConfirm={handleConfirm}
@@ -395,6 +413,131 @@ export default function AppointmentsPage() {
             }}
             isLoading={isSubmitting}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Visualizar Detalhes */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Agendamento</DialogTitle>
+            <DialogDescription>
+              Informações completas do agendamento
+            </DialogDescription>
+          </DialogHeader>
+          
+          {viewingAppointment && (
+            <div className="space-y-4">
+              {/* Cliente */}
+              <div>
+                <Label className="text-sm font-semibold text-muted-foreground">Cliente</Label>
+                <p className="text-base mt-1">{viewingAppointment.customer_name}</p>
+              </div>
+
+              {/* Contatos */}
+              <div className="grid grid-cols-2 gap-4">
+                {viewingAppointment.customer_phone && (
+                  <div>
+                    <Label className="text-sm font-semibold text-muted-foreground">Telefone</Label>
+                    <p className="text-sm mt-1">{viewingAppointment.customer_phone}</p>
+                  </div>
+                )}
+                {viewingAppointment.customer_email && (
+                  <div>
+                    <Label className="text-sm font-semibold text-muted-foreground">E-mail</Label>
+                    <p className="text-sm mt-1">{viewingAppointment.customer_email}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Serviço */}
+              <div>
+                <Label className="text-sm font-semibold text-muted-foreground">Serviço</Label>
+                <p className="text-base mt-1">
+                  {viewingAppointment.service_details?.name || viewingAppointment.service}
+                </p>
+                {viewingAppointment.service_details?.price && (
+                  <p className="text-sm text-muted-foreground">
+                    R$ {viewingAppointment.service_details.price} • {viewingAppointment.service_details.duration_minutes} min
+                  </p>
+                )}
+              </div>
+
+              {/* Profissional */}
+              <div>
+                <Label className="text-sm font-semibold text-muted-foreground">Profissional</Label>
+                <p className="text-base mt-1">
+                  {viewingAppointment.professional_details?.name || viewingAppointment.professional}
+                </p>
+              </div>
+
+              {/* Data e Hora */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-semibold text-muted-foreground">Início</Label>
+                  <p className="text-sm mt-1">
+                    {new Date(viewingAppointment.start_time).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-semibold text-muted-foreground">Término</Label>
+                  <p className="text-sm mt-1">
+                    {new Date(viewingAppointment.end_time).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div>
+                <Label className="text-sm font-semibold text-muted-foreground">Status</Label>
+                <div className="mt-1">
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                    viewingAppointment.status === 'marcado' ? 'bg-blue-100 text-blue-800' :
+                    viewingAppointment.status === 'confirmado' ? 'bg-green-100 text-green-800' :
+                    viewingAppointment.status === 'em_atendimento' ? 'bg-yellow-100 text-yellow-800' :
+                    viewingAppointment.status === 'concluido' ? 'bg-gray-100 text-gray-800' :
+                    viewingAppointment.status === 'cancelado' ? 'bg-red-100 text-red-800' :
+                    'bg-orange-100 text-orange-800'
+                  }`}>
+                    {viewingAppointment.status === 'marcado' ? 'Marcado' :
+                     viewingAppointment.status === 'confirmado' ? 'Confirmado' :
+                     viewingAppointment.status === 'em_atendimento' ? 'Em Atendimento' :
+                     viewingAppointment.status === 'concluido' ? 'Concluído' :
+                     viewingAppointment.status === 'cancelado' ? 'Cancelado' :
+                     'Falta'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Observações */}
+              {viewingAppointment.notes && (
+                <div>
+                  <Label className="text-sm font-semibold text-muted-foreground">Observações</Label>
+                  <p className="text-sm mt-1 text-muted-foreground">{viewingAppointment.notes}</p>
+                </div>
+              )}
+
+              {/* Botões de Ação */}
+              <div className="flex gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowDetailsDialog(false);
+                    setViewingAppointment(null);
+                  }}
+                  className="flex-1"
+                >
+                  Fechar
+                </Button>
+                <Button
+                  onClick={handleEditFromDetails}
+                  className="flex-1"
+                >
+                  Editar Agendamento
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

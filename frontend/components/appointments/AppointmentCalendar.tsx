@@ -324,6 +324,41 @@ export default function AppointmentCalendar({
         .fc .fc-event:hover {
           opacity: 0.9;
         }
+
+        /* Corrige overflow de texto no calendário mensal */
+        .fc .fc-daygrid-event {
+          white-space: normal;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          position: relative;
+          z-index: 1;
+        }
+
+        .fc .fc-daygrid-event-harness {
+          margin-bottom: 2px;
+        }
+
+        .fc .fc-daygrid-day-events {
+          margin-bottom: 0;
+        }
+
+        .fc .fc-event-main {
+          overflow: hidden;
+        }
+
+        .fc .fc-event-title {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: block;
+        }
+
+        .fc .fc-event-time {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: block;
+        }
         
         .fc .fc-daygrid-day-number {
           padding: 0.5rem;
