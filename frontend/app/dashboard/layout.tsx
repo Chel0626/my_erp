@@ -27,10 +27,10 @@ import { useState } from 'react';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Agenda', href: '/agenda', icon: Calendar },
-  { name: 'Serviços', href: '/services', icon: Scissors },
-  { name: 'Equipe', href: '/team', icon: Users },
-  { name: 'Clientes', href: '/clients', icon: UserCircle },
+  { name: 'Agenda', href: '/dashboard/appointments', icon: Calendar },
+  { name: 'Serviços', href: '/dashboard/services', icon: Scissors },
+  { name: 'Equipe', href: '/dashboard/team', icon: Users },
+  { name: 'Clientes', href: '/dashboard/clients', icon: UserCircle },
 ];
 
 export default function DashboardLayout({
@@ -100,9 +100,9 @@ export default function DashboardLayout({
                     <p className="text-sm font-medium">{user?.name}</p>
                     <p className="text-xs text-muted-foreground">{user?.email}</p>
                     <p className="text-xs text-muted-foreground capitalize">
-                      {user?.role === 'owner' ? 'Proprietário' : 
-                       user?.role === 'admin' ? 'Administrador' : 
-                       user?.role === 'professional' ? 'Profissional' : 'Cliente'}
+                      {user?.role === 'admin' ? 'Administrador' : 
+                       user?.role === 'barbeiro' ? 'Barbeiro' : 
+                       user?.role === 'caixa' ? 'Caixa' : 'Atendente'}
                     </p>
                   </div>
                 </DropdownMenuLabel>
