@@ -37,11 +37,17 @@ export default function ServicesPage() {
   const deleteMutation = useDeleteService();
   const patchMutation = usePatchService();
 
-  // Filtro de busca
-  const filteredServices = services.filter(service =>
-    service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Debug: verificar o que está vindo
+  console.log('📊 Services data:', services);
+  console.log('📊 Is Array?', Array.isArray(services));
+
+  // Filtro de busca - garantir que services é array
+  const filteredServices = Array.isArray(services) 
+    ? services.filter(service =>
+        service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
 
   // Handlers
   const handleCreate = () => {
