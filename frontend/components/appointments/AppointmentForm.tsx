@@ -14,12 +14,13 @@ import { Loader2 } from 'lucide-react';
 
 interface AppointmentFormProps {
   appointment?: Appointment;
+  initialDate?: Date | null;
   onSubmit: (data: CreateAppointmentInput) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
 
-export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: AppointmentFormProps) {
+export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, isLoading }: AppointmentFormProps) {
   const { data: services = [] } = useServices(true); // Apenas serviços ativos
   
   const [formData, setFormData] = useState<CreateAppointmentInput>({
@@ -34,24 +35,24 @@ export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: 
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Preenche form se estiver editando
+  // Formata datetime para input datetime-local
+  const formatDateTime = (date: Date | string) => {
+    try {
+      const d = typeof date === 'string' ? new Date(date) : date;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch {
+      return '';
+    }
+  };
+
+  // Preenche form se estiver editando OU se tiver data inicial
   useEffect(() => {
     if (appointment) {
-      // Formata datetime para input datetime-local
-      const formatDateTime = (dateString: string) => {
-        try {
-          const date = new Date(dateString);
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          const hours = String(date.getHours()).padStart(2, '0');
-          const minutes = String(date.getMinutes()).padStart(2, '0');
-          return `${year}-${month}-${day}T${hours}:${minutes}`;
-        } catch {
-          return '';
-        }
-      };
-
       setFormData({
         customer_name: appointment.customer_name,
         customer_phone: appointment.customer_phone || '',
@@ -61,8 +62,14 @@ export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: 
         start_time: formatDateTime(appointment.start_time),
         notes: appointment.notes || '',
       });
+    } else if (initialDate) {
+      // Se tiver data inicial (clicou no calendário), preenche apenas a data
+      setFormData(prev => ({
+        ...prev,
+        start_time: formatDateTime(initialDate),
+      }));
     }
-  }, [appointment]);
+  }, [appointment, initialDate]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};

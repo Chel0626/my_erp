@@ -5,7 +5,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Calendar as CalendarIcon, Filter, AlertCircle } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Filter, AlertCircle, LayoutGrid, CalendarDays } from 'lucide-react';
 import {
   useAppointments,
   useCreateAppointment,
@@ -19,8 +19,10 @@ import {
   CreateAppointmentInput,
   AppointmentFilters,
 } from '@/hooks/useAppointments';
+import { useServices } from '@/hooks/useServices';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { AppointmentForm } from '@/components/appointments/AppointmentForm';
+import AppointmentCalendar from '@/components/appointments/AppointmentCalendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -33,6 +35,8 @@ export default function AppointmentsPage() {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingAppointment, setDeletingAppointment] = useState<Appointment | null>(null);
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar'); // Nova: view mode
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Nova: data selecionada
   
   // Filtros
   const [filters, setFilters] = useState<AppointmentFilters>({});
@@ -40,6 +44,7 @@ export default function AppointmentsPage() {
 
   // Queries e Mutations
   const { data: appointments = [], isLoading, error, refetch } = useAppointments(filters);
+  const { data: services = [] } = useServices(true); // Serviços para o calendário
   const createMutation = useCreateAppointment();
   const updateMutation = useUpdateAppointment();
   const deleteMutation = useDeleteAppointment();
@@ -52,13 +57,17 @@ export default function AppointmentsPage() {
   const appointmentsList = Array.isArray(appointments) ? appointments : [];
 
   // Handlers
-  const handleCreate = () => {
+  const handleCreate = (date?: Date) => {
     setEditingAppointment(null);
+    setSelectedDate(date || null);
     setShowDialog(true);
   };
+  
+  const handleCreateClick = () => handleCreate();
 
   const handleEdit = (appointment: Appointment) => {
     setEditingAppointment(appointment);
+    setSelectedDate(null);
     setShowDialog(true);
   };
 
@@ -178,6 +187,28 @@ export default function AppointmentsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {/* Toggle de visualização */}
+          <div className="flex border rounded-md">
+            <Button
+              variant={viewMode === 'calendar' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('calendar')}
+              className="rounded-r-none"
+            >
+              <CalendarDays className="mr-2 h-4 w-4" />
+              Calendário
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="rounded-l-none"
+            >
+              <LayoutGrid className="mr-2 h-4 w-4" />
+              Lista
+            </Button>
+          </div>
+          
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
@@ -185,7 +216,7 @@ export default function AppointmentsPage() {
             <Filter className="mr-2 h-4 w-4" />
             Filtros
           </Button>
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreateClick}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Agendamento
           </Button>
@@ -272,7 +303,7 @@ export default function AppointmentsPage() {
               : 'Comece criando seu primeiro agendamento'}
           </p>
           {Object.keys(filters).length === 0 && (
-            <Button onClick={handleCreate}>
+            <Button onClick={handleCreateClick}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Primeiro Agendamento
             </Button>
@@ -280,8 +311,39 @@ export default function AppointmentsPage() {
         </div>
       )}
 
+      {/* Visualização de Calendário */}
+      {!isLoading && appointmentsList.length > 0 && viewMode === 'calendar' && (
+        <AppointmentCalendar
+          appointments={appointmentsList}
+          services={Array.isArray(services) ? services : []}
+          onEventClick={handleEdit}
+          onDateClick={handleCreate}
+          onEventDrop={async (appointmentId: string, newStart: Date) => {
+            try {
+              // Encontra o appointment completo pelo ID
+              const appointment = appointmentsList.find(a => a.id === appointmentId);
+              if (!appointment) return;
+
+              await updateMutation.mutateAsync({
+                id: appointment.id,
+                customer_name: appointment.customer_name,
+                customer_phone: appointment.customer_phone,
+                customer_email: appointment.customer_email,
+                service_id: appointment.service_details?.id || appointment.service,
+                professional_id: appointment.professional_details?.id || appointment.professional,
+                start_time: newStart.toISOString(),
+                notes: appointment.notes,
+              });
+            } catch (error) {
+              console.error('Erro ao reagendar:', error);
+              alert('Erro ao reagendar agendamento.');
+            }
+          }}
+        />
+      )}
+
       {/* Lista de Agendamentos (Agrupados por Data) */}
-      {!isLoading && appointmentsList.length > 0 && (
+      {!isLoading && appointmentsList.length > 0 && viewMode === 'list' && (
         <div className="space-y-6">
           {Object.entries(groupedAppointments).map(([date, dayAppointments]) => (
             <div key={date} className="space-y-3">
@@ -324,10 +386,12 @@ export default function AppointmentsPage() {
           
           <AppointmentForm
             appointment={editingAppointment || undefined}
+            initialDate={selectedDate}
             onSubmit={handleSubmit}
             onCancel={() => {
               setShowDialog(false);
               setEditingAppointment(null);
+              setSelectedDate(null);
             }}
             isLoading={isSubmitting}
           />
