@@ -12,7 +12,8 @@ import {
   DollarSign,
   LogOut,
   Menu,
-  X
+  X,
+  Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -31,6 +32,7 @@ const navigation = [
   { name: 'Agenda', href: '/dashboard/appointments', icon: Calendar },
   { name: 'Serviços', href: '/dashboard/services', icon: Scissors },
   { name: 'Clientes', href: '/dashboard/customers', icon: UserCircle },
+  { name: 'Produtos', href: '/dashboard/products', icon: Package },
   { name: 'Financeiro', href: '/dashboard/financial', icon: DollarSign },
   { name: 'Equipe', href: '/dashboard/team', icon: Users },
 ];
