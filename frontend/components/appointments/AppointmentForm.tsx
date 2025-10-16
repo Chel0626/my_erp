@@ -7,6 +7,8 @@
 import { useState, useEffect } from 'react';
 import { Appointment, CreateAppointmentInput } from '@/hooks/useAppointments';
 import { useServices } from '@/hooks/useServices';
+import { CustomerSelector } from './CustomerSelector';
+import { QuickCreateCustomer } from './QuickCreateCustomer';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -34,6 +36,13 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Estados para controle de cliente
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  
+  // Estado para preço (opcional, override do preço do serviço)
+  const [customPrice, setCustomPrice] = useState<string>('');
 
   // Formata datetime para input datetime-local
   const formatDateTime = (date: Date | string) => {
@@ -62,6 +71,16 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
         start_time: formatDateTime(appointment.start_time),
         notes: appointment.notes || '',
       });
+      
+      // Se tiver customer_id, preenche
+      if (appointment.customer_id) {
+        setSelectedCustomerId(appointment.customer_id);
+      }
+      
+      // Se tiver price customizado, preenche
+      if (appointment.price) {
+        setCustomPrice(appointment.price.toString());
+      }
     } else if (initialDate) {
       // Se tiver data inicial (clicou no calendário), preenche apenas a data
       setFormData(prev => ({
@@ -74,8 +93,9 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.customer_name.trim()) {
-      newErrors.customer_name = 'Nome do cliente é obrigatório';
+    // Valida se tem customer_id OU customer_name
+    if (!selectedCustomerId && !formData.customer_name?.trim()) {
+      newErrors.customer_name = 'Selecione ou digite o nome do cliente';
     }
 
     if (!formData.service_id) {
@@ -108,11 +128,28 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
       return;
     }
 
-    // Converte para formato ISO antes de enviar
-    const submitData = {
-      ...formData,
+    // Prepara dados para envio
+    const submitData: CreateAppointmentInput = {
+      service_id: formData.service_id,
+      professional_id: formData.professional_id,
       start_time: new Date(formData.start_time).toISOString(),
+      notes: formData.notes,
     };
+    
+    // Se tiver customer_id selecionado, envia FK
+    if (selectedCustomerId) {
+      submitData.customer_id = selectedCustomerId;
+    } else {
+      // Caso contrário, envia dados manuais
+      submitData.customer_name = formData.customer_name;
+      submitData.customer_phone = formData.customer_phone;
+      submitData.customer_email = formData.customer_email;
+    }
+    
+    // Se tiver preço customizado, envia
+    if (customPrice && parseFloat(customPrice) > 0) {
+      submitData.price = parseFloat(customPrice);
+    }
 
     onSubmit(submitData);
   };
@@ -128,50 +165,111 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
       });
     }
   };
+  
+  // Handler quando cliente é selecionado
+  const handleCustomerSelect = (customerId?: string, customerData?: { name: string; phone: string; email?: string }) => {
+    setSelectedCustomerId(customerId || null);
+    
+    if (customerId && customerData) {
+      // Preenche dados do cliente selecionado
+      setFormData(prev => ({
+        ...prev,
+        customer_name: customerData.name,
+        customer_phone: customerData.phone || '',
+        customer_email: customerData.email || '',
+      }));
+    } else {
+      // Limpa dados se desselecionou
+      setFormData(prev => ({
+        ...prev,
+        customer_name: '',
+        customer_phone: '',
+        customer_email: '',
+      }));
+    }
+    
+    // Limpa erro
+    if (errors.customer_name) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.customer_name;
+        return newErrors;
+      });
+    }
+  };
+  
+  // Handler quando novo cliente é criado
+  const handleQuickCreateSuccess = (newCustomerId: string) => {
+    setSelectedCustomerId(newCustomerId);
+    // O CustomerSelector vai buscar novamente e selecionar automaticamente
+  };
+  
+  // Pré-preenche preço quando serviço é selecionado
+  useEffect(() => {
+    if (formData.service_id && !customPrice) {
+      const selectedService = services.find(s => s.id === formData.service_id);
+      if (selectedService) {
+        setCustomPrice(selectedService.price);
+      }
+    }
+  }, [formData.service_id, services, customPrice]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Nome do Cliente */}
+      {/* Seletor de Cliente */}
       <div className="space-y-2">
-        <Label htmlFor="customer_name">
-          Nome do Cliente <span className="text-red-500">*</span>
+        <Label>
+          Cliente <span className="text-red-500">*</span>
         </Label>
-        <Input
-          id="customer_name"
-          value={formData.customer_name}
-          onChange={(e) => handleChange('customer_name', e.target.value)}
-          placeholder="Ex: João Silva"
-          className={errors.customer_name ? 'border-red-500' : ''}
+        <CustomerSelector
+          value={selectedCustomerId || undefined}
+          onChange={handleCustomerSelect}
+          onCreateNew={() => setShowQuickCreate(true)}
         />
         {errors.customer_name && (
           <p className="text-sm text-red-500">{errors.customer_name}</p>
         )}
       </div>
+      
+      {/* Campos Manuais (apenas se não tiver cliente selecionado) */}
+      {!selectedCustomerId && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="customer_name">Ou digite o nome</Label>
+            <Input
+              id="customer_name"
+              value={formData.customer_name || ''}
+              onChange={(e) => handleChange('customer_name', e.target.value)}
+              placeholder="Ex: João Silva"
+              className={errors.customer_name ? 'border-red-500' : ''}
+            />
+          </div>
 
-      {/* Telefone e Email (lado a lado) */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="customer_phone">Telefone</Label>
-          <Input
-            id="customer_phone"
-            type="tel"
-            value={formData.customer_phone}
-            onChange={(e) => handleChange('customer_phone', e.target.value)}
-            placeholder="(11) 99999-9999"
-          />
-        </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="customer_phone">Telefone</Label>
+              <Input
+                id="customer_phone"
+                type="tel"
+                value={formData.customer_phone || ''}
+                onChange={(e) => handleChange('customer_phone', e.target.value)}
+                placeholder="(11) 99999-9999"
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="customer_email">Email</Label>
-          <Input
-            id="customer_email"
-            type="email"
-            value={formData.customer_email}
-            onChange={(e) => handleChange('customer_email', e.target.value)}
-            placeholder="cliente@email.com"
-          />
-        </div>
-      </div>
+            <div className="space-y-2">
+              <Label htmlFor="customer_email">Email</Label>
+              <Input
+                id="customer_email"
+                type="email"
+                value={formData.customer_email || ''}
+                onChange={(e) => handleChange('customer_email', e.target.value)}
+                placeholder="cliente@email.com"
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Serviço */}
       <div className="space-y-2">
@@ -194,6 +292,29 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
         {errors.service_id && (
           <p className="text-sm text-red-500">{errors.service_id}</p>
         )}
+      </div>
+      
+      {/* Preço (opcional - override do preço do serviço) */}
+      <div className="space-y-2">
+        <Label htmlFor="custom_price">
+          Preço Cobrado
+        </Label>
+        <div className="relative">
+          <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">R$</span>
+          <Input
+            id="custom_price"
+            type="number"
+            step="0.01"
+            min="0"
+            value={customPrice}
+            onChange={(e) => setCustomPrice(e.target.value)}
+            placeholder="0,00"
+            className="pl-10"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Deixe em branco para usar o preço padrão do serviço
+        </p>
       </div>
 
       {/* Profissional (temporário - depois integraremos com API de users) */}
@@ -273,6 +394,13 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
           )}
         </Button>
       </div>
+      
+      {/* Dialog de Criação Rápida de Cliente */}
+      <QuickCreateCustomer
+        open={showQuickCreate}
+        onOpenChange={setShowQuickCreate}
+        onSuccess={handleQuickCreateSuccess}
+      />
     </form>
   );
 }

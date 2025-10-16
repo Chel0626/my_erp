@@ -30,9 +30,9 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Agenda', href: '/dashboard/appointments', icon: Calendar },
   { name: 'Serviços', href: '/dashboard/services', icon: Scissors },
+  { name: 'Clientes', href: '/dashboard/customers', icon: UserCircle },
   { name: 'Financeiro', href: '/dashboard/financial', icon: DollarSign },
   { name: 'Equipe', href: '/dashboard/team', icon: Users },
-  { name: 'Clientes', href: '/dashboard/clients', icon: UserCircle },
 ];
 
 export default function DashboardLayout({

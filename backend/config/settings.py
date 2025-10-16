@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "core",
     "scheduling",
     "financial",
+    "customers",
 ]
 
 MIDDLEWARE = [

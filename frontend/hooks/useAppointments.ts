@@ -7,9 +7,20 @@ import api from '@/lib/api';
 
 export interface Appointment {
   id: string;
+  // Cliente
+  customer?: string;  // ID do customer (FK)
+  customer_id?: string;
   customer_name: string;
   customer_phone: string;
   customer_email: string;
+  customer_full_info?: {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+    tag: 'VIP' | 'REGULAR' | 'NOVO' | 'INATIVO';
+  };
+  // Serviço e Profissional
   service: string;
   service_details?: {
     id: string;
@@ -23,8 +34,14 @@ export interface Appointment {
     name: string;
     email: string;
   };
+  // Horários
   start_time: string;
   end_time: string;
+  // Preço e Pagamento
+  price?: number;
+  final_price?: number;
+  is_paid?: boolean;
+  // Status e Notas
   status: 'marcado' | 'confirmado' | 'em_atendimento' | 'concluido' | 'cancelado' | 'falta';
   notes: string;
   created_at: string;
@@ -32,12 +49,16 @@ export interface Appointment {
 }
 
 export interface CreateAppointmentInput {
-  customer_name: string;
+  // Cliente - ou ID ou dados manuais
+  customer_id?: string;
+  customer_name?: string;
   customer_phone?: string;
   customer_email?: string;
+  // Agendamento
   service_id: string;
   professional_id: string;
   start_time: string;
+  price?: number;
   notes?: string;
 }
 

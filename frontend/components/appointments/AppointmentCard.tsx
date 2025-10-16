@@ -6,9 +6,10 @@ import { Appointment } from '@/hooks/useAppointments';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, User, Scissors, Phone, Mail, CheckCircle, XCircle, PlayCircle, Pencil, Trash2 } from 'lucide-react';
+import { Calendar, Clock, User, Scissors, Phone, Mail, CheckCircle, XCircle, PlayCircle, Pencil, Trash2, DollarSign, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import Link from 'next/link';
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -68,26 +69,53 @@ export function AppointmentCard({
           <div className="flex-1">
             <CardTitle className="text-lg flex items-center gap-2">
               <User className="h-5 w-5 text-muted-foreground" />
-              {appointment.customer_name}
+              {appointment.customer_full_info?.id ? (
+                <Link 
+                  href={`/customers/${appointment.customer_full_info.id}`}
+                  className="hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {appointment.customer_name}
+                </Link>
+              ) : (
+                <span>{appointment.customer_name}</span>
+              )}
             </CardTitle>
           </div>
-          <Badge className={`${statusInfo.color} border`}>
-            {statusInfo.label}
-          </Badge>
+          <div className="flex gap-2">
+            {appointment.is_paid && (
+              <Badge className="bg-green-100 text-green-800 border border-green-200">
+                <CreditCard className="h-3 w-3 mr-1" />
+                Pago
+              </Badge>
+            )}
+            <Badge className={`${statusInfo.color} border`}>
+              {statusInfo.label}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3 pb-3">
-        {/* Serviço */}
+        {/* Serviço e Preço */}
         <div className="flex items-center gap-2 text-sm">
           <Scissors className="h-4 w-4 text-muted-foreground" />
           <span className="font-medium">{appointment.service_details?.name || 'Serviço'}</span>
-          {appointment.service_details?.price && (
-            <span className="text-green-600 ml-auto">
-              R$ {parseFloat(appointment.service_details.price).toFixed(2)}
+          {appointment.final_price !== undefined && (
+            <span className="text-green-600 ml-auto font-semibold flex items-center gap-1">
+              <DollarSign className="h-4 w-4" />
+              R$ {parseFloat(appointment.final_price.toString()).toFixed(2)}
             </span>
           )}
         </div>
+        
+        {/* Mostra se preço foi customizado */}
+        {appointment.price && appointment.service_details?.price && 
+         parseFloat(appointment.price.toString()) !== parseFloat(appointment.service_details.price) && (
+          <div className="text-xs text-muted-foreground pl-6">
+            Preço padrão: R$ {parseFloat(appointment.service_details.price).toFixed(2)}
+          </div>
+        )}
 
         {/* Profissional */}
         {appointment.professional_details && (

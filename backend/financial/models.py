@@ -42,6 +42,16 @@ class Transaction(models.Model):
         ('receita', 'Receita'),
         ('despesa', 'Despesa'),
     ]
+    
+    CATEGORY_CHOICES = [
+        ('servico', 'Serviço'),
+        ('produto', 'Produto'),
+        ('salario', 'Salário'),
+        ('aluguel', 'Aluguel'),
+        ('fornecedor', 'Fornecedor'),
+        ('imposto', 'Imposto'),
+        ('outro', 'Outro'),
+    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tenant = models.ForeignKey(
@@ -55,6 +65,12 @@ class Transaction(models.Model):
         max_length=10,
         choices=TRANSACTION_TYPES,
         verbose_name="Tipo"
+    )
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default='outro',
+        verbose_name="Categoria"
     )
     description = models.CharField(max_length=255, verbose_name="Descrição")
     amount = models.DecimalField(
