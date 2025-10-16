@@ -188,6 +188,11 @@ export default function CommissionsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Comissões</h1>
         <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <a href="/dashboard/commissions/rules">
+              Gerenciar Regras
+            </a>
+          </Button>
           {selectedCommissions.length > 0 && (
             <Button onClick={() => setPaymentDialogOpen(true)}>
               Marcar como Pagas ({selectedCommissions.length})
