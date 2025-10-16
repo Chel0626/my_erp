@@ -159,10 +159,3 @@ class Appointment(TenantAwareModel):
     def is_paid(self):
         """Verifica se existe transação vinculada"""
         return self.transactions.exists()
-
-        # Calcula end_time baseado na duração do serviço
-        if self.service and self.start_time and not self.end_time:
-            from datetime import timedelta
-            self.end_time = self.start_time + timedelta(minutes=self.service.duration_minutes)
-        
-        super().save(*args, **kwargs)
