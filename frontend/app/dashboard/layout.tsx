@@ -13,7 +13,8 @@ import {
   LogOut,
   Menu,
   X,
-  Package
+  Package,
+  Percent
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -33,6 +34,7 @@ const navigation = [
   { name: 'Serviços', href: '/dashboard/services', icon: Scissors },
   { name: 'Clientes', href: '/dashboard/customers', icon: UserCircle },
   { name: 'Produtos', href: '/dashboard/products', icon: Package },
+  { name: 'Comissões', href: '/dashboard/commissions', icon: Percent },
   { name: 'Financeiro', href: '/dashboard/financial', icon: DollarSign },
   { name: 'Equipe', href: '/dashboard/team', icon: Users },
 ];
