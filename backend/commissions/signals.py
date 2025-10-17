@@ -90,6 +90,6 @@ def create_commission_on_appointment_completion(sender, instance, created, **kwa
         service_price=service_price,
         commission_percentage=commission_percentage,
         commission_amount=commission_amount,
-        date=instance.date,
+        date=instance.start_time.date(),
         status="pending",
     )

@@ -13,7 +13,7 @@ class CommissionRuleSerializer(serializers.ModelSerializer):
     """Serializer for commission rules."""
 
     professional_name = serializers.CharField(
-        source="professional.get_full_name", read_only=True
+        source="professional.name", read_only=True
     )
     service_name = serializers.CharField(source="service.name", read_only=True)
 
@@ -83,11 +83,11 @@ class CommissionSerializer(serializers.ModelSerializer):
     """Serializer for commissions."""
 
     professional_name = serializers.CharField(
-        source="professional.get_full_name", read_only=True
+        source="professional.name", read_only=True
     )
     service_name = serializers.CharField(source="service.name", read_only=True)
     paid_by_name = serializers.CharField(
-        source="paid_by.get_full_name", read_only=True, allow_null=True
+        source="paid_by.name", read_only=True, allow_null=True
     )
     status_display = serializers.CharField(source="get_status_display", read_only=True)
 

@@ -70,7 +70,7 @@ class CommissionRule(TenantAwareModel):
     def __str__(self):
         parts = []
         if self.professional:
-            parts.append(f"Professional: {self.professional.get_full_name()}")
+            parts.append(f"Professional: {self.professional.name}")
         if self.service:
             parts.append(f"Service: {self.service.name}")
         parts.append(f"{self.commission_percentage}%")
@@ -177,7 +177,7 @@ class Commission(TenantAwareModel):
 
     def __str__(self):
         return (
-            f"{self.professional.get_full_name()} - "
+            f"{self.professional.name} - "
             f"{self.service.name} - "
             f"R$ {self.commission_amount} ({self.get_status_display()})"
         )
