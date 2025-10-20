@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   Package,
-  Percent
+  Percent,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -36,6 +37,7 @@ const navigation = [
   { name: 'Produtos', href: '/dashboard/products', icon: Package },
   { name: 'Comissões', href: '/dashboard/commissions', icon: Percent },
   { name: 'Financeiro', href: '/dashboard/financial', icon: DollarSign },
+  { name: 'Relatórios', href: '/dashboard/reports', icon: BarChart3 },
   { name: 'Equipe', href: '/dashboard/team', icon: Users },
 ];
 

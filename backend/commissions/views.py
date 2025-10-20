@@ -193,6 +193,82 @@ class CommissionViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(summary)
         return Response(serializer.data)
 
+    @action(detail=False, methods=["get"])
+    def professional_performance(self, request):
+        """
+        Get commission performance by professional.
+        Returns aggregated data: total commissions, paid, pending, etc.
+        Query params: date_from, date_to
+        """
+        from core.models import User
+        
+        # Obter parâmetros
+        date_from = request.query_params.get("date_from")
+        date_to = request.query_params.get("date_to")
+        
+        queryset = self.filter_queryset(self.queryset)
+        
+        # Filtrar por período se fornecido
+        if date_from and date_to:
+            try:
+                date_from_obj = datetime.strptime(date_from, "%Y-%m-%d").date()
+                date_to_obj = datetime.strptime(date_to, "%Y-%m-%d").date()
+                queryset = queryset.filter(date__gte=date_from_obj, date__lte=date_to_obj)
+            except ValueError:
+                return Response(
+                    {"error": "Invalid date format. Use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        
+        # Buscar todos os profissionais do tenant
+        professionals = User.objects.filter(tenant=request.user.tenant)
+        
+        result = []
+        for professional in professionals:
+            # Comissões do profissional
+            prof_commissions = queryset.filter(professional=professional)
+            
+            total_commissions = prof_commissions.count()
+            
+            # Agregar por status
+            aggregates = prof_commissions.aggregate(
+                total_paid=Sum("commission_amount", filter=Q(status="paid"), default=Decimal("0.00")),
+                total_pending=Sum("commission_amount", filter=Q(status="pending"), default=Decimal("0.00")),
+                total_cancelled=Sum("commission_amount", filter=Q(status="cancelled"), default=Decimal("0.00")),
+                count_paid=Count("id", filter=Q(status="paid")),
+                count_pending=Count("id", filter=Q(status="pending")),
+                count_cancelled=Count("id", filter=Q(status="cancelled")),
+            )
+            
+            # Taxa de conclusão (pago vs total)
+            completion_rate = 0
+            if total_commissions > 0:
+                completion_rate = (aggregates["count_paid"] / total_commissions) * 100
+            
+            result.append({
+                "professional_id": str(professional.id),
+                "professional_name": professional.name,
+                "professional_email": professional.email,
+                "total_commissions": total_commissions,
+                "count_paid": aggregates["count_paid"],
+                "count_pending": aggregates["count_pending"],
+                "count_cancelled": aggregates["count_cancelled"],
+                "total_paid": float(aggregates["total_paid"]),
+                "total_pending": float(aggregates["total_pending"]),
+                "total_cancelled": float(aggregates["total_cancelled"]),
+                "completion_rate": round(completion_rate, 2),
+                "total_amount": float(
+                    aggregates["total_paid"] 
+                    + aggregates["total_pending"] 
+                    + aggregates["total_cancelled"]
+                ),
+            })
+        
+        # Ordenar por total pago (maior para menor)
+        result.sort(key=lambda x: x["total_paid"], reverse=True)
+        
+        return Response(result)
+
     @action(detail=False, methods=["post"])
     def mark_as_paid(self, request):
         """Mark multiple commissions as paid."""

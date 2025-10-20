@@ -118,6 +118,79 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = ProductSummarySerializer(summary)
         return Response(serializer.data)
     
+    @action(detail=False, methods=['get'])
+    def best_selling(self, request):
+        """
+        GET /api/inventory/products/best_selling/
+        Retorna produtos mais vendidos com estatísticas
+        Query params: 
+        - limit (default: 10)
+        - date_from, date_to (optional)
+        """
+        from financial.models import Transaction
+        from django.db.models import Sum, Count
+        
+        # Parâmetros
+        limit = int(request.query_params.get('limit', 10))
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        
+        # Base query de transações (apenas saídas/vendas)
+        transactions = Transaction.objects.filter(
+            tenant=request.user.tenant,
+            transaction_type='saida'
+        )
+        
+        # Filtrar por período se fornecido
+        if date_from:
+            transactions = transactions.filter(date__gte=date_from)
+        if date_to:
+            transactions = transactions.filter(date__lte=date_to)
+        
+        # Buscar movimentações de saída relacionadas às transações
+        from .models import StockMovement
+        
+        movements = StockMovement.objects.filter(
+            tenant=request.user.tenant,
+            movement_type='saida',
+            transaction__in=transactions
+        )
+        
+        # Filtrar por período se fornecido
+        if date_from:
+            movements = movements.filter(created_at__date__gte=date_from)
+        if date_to:
+            movements = movements.filter(created_at__date__lte=date_to)
+        
+        # Agregar por produto
+        product_stats = movements.values(
+            'product__id',
+            'product__name',
+            'product__sku',
+            'product__sale_price',
+            'product__stock_quantity'
+        ).annotate(
+            total_quantity_sold=Sum('quantity'),
+            total_sales_count=Count('id'),
+            total_revenue=Sum(F('quantity') * F('product__sale_price'), output_field=DecimalField())
+        ).order_by('-total_quantity_sold')[:limit]
+        
+        # Formatar resposta
+        result = []
+        for stat in product_stats:
+            result.append({
+                'product_id': stat['product__id'],
+                'product_name': stat['product__name'],
+                'sku': stat['product__sku'],
+                'sale_price': float(stat['product__sale_price']),
+                'current_stock': stat['product__stock_quantity'],
+                'total_quantity_sold': stat['total_quantity_sold'],
+                'total_sales_count': stat['total_sales_count'],
+                'total_revenue': float(stat['total_revenue'] or 0),
+            })
+        
+        return Response(result)
+    
     @action(detail=True, methods=['post'])
     def add_stock(self, request, pk=None):
         """

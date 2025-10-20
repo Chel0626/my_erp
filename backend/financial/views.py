@@ -165,6 +165,120 @@ class TransactionViewSet(viewsets.ModelViewSet):
         
         return Response(results)
 
+    @action(detail=False, methods=['get'])
+    def revenue_chart(self, request):
+        """
+        Retorna dados para gráfico de receita ao longo do tempo
+        Query params: start_date, end_date, period (day|week|month)
+        """
+        from datetime import datetime, timedelta
+        from django.db.models import Count
+        from django.db.models.functions import TruncDate, TruncWeek, TruncMonth
+        
+        # Obter parâmetros
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        period = request.query_params.get('period', 'day')  # day, week, month
+        
+        # Padrão: últimos 30 dias
+        if not start_date or not end_date:
+            end_date = timezone.now().date()
+            start_date = end_date - timedelta(days=30)
+        
+        # Filtrar transações de receita
+        queryset = self.get_queryset().filter(
+            type='receita',
+            date__gte=start_date,
+            date__lte=end_date
+        )
+        
+        # Agrupar por período
+        if period == 'month':
+            data = queryset.annotate(
+                period=TruncMonth('date')
+            ).values('period').annotate(
+                total=Sum('amount'),
+                count=Count('id')
+            ).order_by('period')
+        elif period == 'week':
+            data = queryset.annotate(
+                period=TruncWeek('date')
+            ).values('period').annotate(
+                total=Sum('amount'),
+                count=Count('id')
+            ).order_by('period')
+        else:  # day
+            data = queryset.annotate(
+                period=TruncDate('date')
+            ).values('period').annotate(
+                total=Sum('amount'),
+                count=Count('id')
+            ).order_by('period')
+        
+        return Response({
+            'start_date': start_date,
+            'end_date': end_date,
+            'period': period,
+            'data': list(data)
+        })
+
+    @action(detail=False, methods=['get'])
+    def expense_chart(self, request):
+        """
+        Retorna dados para gráfico de despesas ao longo do tempo
+        Query params: start_date, end_date, period (day|week|month)
+        """
+        from datetime import datetime, timedelta
+        from django.db.models import Count
+        from django.db.models.functions import TruncDate, TruncWeek, TruncMonth
+        
+        # Obter parâmetros
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        period = request.query_params.get('period', 'day')
+        
+        # Padrão: últimos 30 dias
+        if not start_date or not end_date:
+            end_date = timezone.now().date()
+            start_date = end_date - timedelta(days=30)
+        
+        # Filtrar transações de despesa
+        queryset = self.get_queryset().filter(
+            type='despesa',
+            date__gte=start_date,
+            date__lte=end_date
+        )
+        
+        # Agrupar por período
+        if period == 'month':
+            data = queryset.annotate(
+                period=TruncMonth('date')
+            ).values('period').annotate(
+                total=Sum('amount'),
+                count=Count('id')
+            ).order_by('period')
+        elif period == 'week':
+            data = queryset.annotate(
+                period=TruncWeek('date')
+            ).values('period').annotate(
+                total=Sum('amount'),
+                count=Count('id')
+            ).order_by('period')
+        else:  # day
+            data = queryset.annotate(
+                period=TruncDate('date')
+            ).values('period').annotate(
+                total=Sum('amount'),
+                count=Count('id')
+            ).order_by('period')
+        
+        return Response({
+            'start_date': start_date,
+            'end_date': end_date,
+            'period': period,
+            'data': list(data)
+        })
+
 
 class CashFlowViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet para visualização de Fluxo de Caixa"""
