@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "customers",
     "inventory",
     "commissions",
+    "notifications",
 ]
 
 MIDDLEWARE = [
