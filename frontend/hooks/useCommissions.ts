@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api-client";
+import { api } from "@/lib/api";
 
 // Types
 export interface CommissionRule {
@@ -80,7 +80,7 @@ export function useCommissionRules() {
   return useQuery<CommissionRule[]>({
     queryKey: ["commission-rules"],
     queryFn: async () => {
-      const response = await apiClient.get("/commissions/rules/");
+      const response = await api.get("/commissions/rules/");
       return response.data;
     },
   });
@@ -90,7 +90,7 @@ export function useActiveCommissionRules() {
   return useQuery<CommissionRule[]>({
     queryKey: ["commission-rules", "active"],
     queryFn: async () => {
-      const response = await apiClient.get("/commissions/rules/active/");
+      const response = await api.get("/commissions/rules/active/");
       return response.data;
     },
   });
@@ -100,7 +100,7 @@ export function useCommissionRulesByProfessional(professionalId: number | null) 
   return useQuery<CommissionRule[]>({
     queryKey: ["commission-rules", "by-professional", professionalId],
     queryFn: async () => {
-      const response = await apiClient.get("/commissions/rules/by_professional/", {
+      const response = await api.get("/commissions/rules/by_professional/", {
         params: { professional_id: professionalId },
       });
       return response.data;
@@ -114,7 +114,7 @@ export function useCreateCommissionRule() {
 
   return useMutation({
     mutationFn: async (data: CreateCommissionRuleData) => {
-      const response = await apiClient.post("/commissions/rules/", data);
+      const response = await api.post("/commissions/rules/", data);
       return response.data;
     },
     onSuccess: () => {
@@ -134,7 +134,7 @@ export function useUpdateCommissionRule() {
       id: number;
       data: Partial<CreateCommissionRuleData>;
     }) => {
-      const response = await apiClient.patch(`/commissions/rules/${id}/`, data);
+      const response = await api.patch(`/commissions/rules/${id}/`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -148,7 +148,7 @@ export function useDeleteCommissionRule() {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      await apiClient.delete(`/commissions/rules/${id}/`);
+      await api.delete(`/commissions/rules/${id}/`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["commission-rules"] });
@@ -162,7 +162,7 @@ export function useCommissions(filters?: CommissionFilters) {
   return useQuery<Commission[]>({
     queryKey: ["commissions", filters],
     queryFn: async () => {
-      const response = await apiClient.get("/commissions/", {
+      const response = await api.get("/commissions/", {
         params: filters,
       });
       return response.data;
@@ -174,7 +174,7 @@ export function usePendingCommissions() {
   return useQuery<Commission[]>({
     queryKey: ["commissions", "pending"],
     queryFn: async () => {
-      const response = await apiClient.get("/commissions/pending/");
+      const response = await api.get("/commissions/pending/");
       return response.data;
     },
   });
@@ -184,7 +184,7 @@ export function useCommissionsByProfessional(professionalId: number | null) {
   return useQuery<Commission[]>({
     queryKey: ["commissions", "by-professional", professionalId],
     queryFn: async () => {
-      const response = await apiClient.get("/commissions/by_professional/", {
+      const response = await api.get("/commissions/by_professional/", {
         params: { professional_id: professionalId },
       });
       return response.data;
@@ -197,7 +197,7 @@ export function useCommissionsByPeriod(dateFrom?: string, dateTo?: string) {
   return useQuery<Commission[]>({
     queryKey: ["commissions", "by-period", dateFrom, dateTo],
     queryFn: async () => {
-      const response = await apiClient.get("/commissions/by_period/", {
+      const response = await api.get("/commissions/by_period/", {
         params: { date_from: dateFrom, date_to: dateTo },
       });
       return response.data;
@@ -210,7 +210,7 @@ export function useCommissionSummary(filters?: CommissionFilters) {
   return useQuery<CommissionSummary>({
     queryKey: ["commissions", "summary", filters],
     queryFn: async () => {
-      const response = await apiClient.get("/commissions/summary/", {
+      const response = await api.get("/commissions/summary/", {
         params: filters,
       });
       return response.data;
@@ -223,7 +223,7 @@ export function useCreateCommission() {
 
   return useMutation({
     mutationFn: async (data: CreateCommissionData) => {
-      const response = await apiClient.post("/commissions/", data);
+      const response = await api.post("/commissions/", data);
       return response.data;
     },
     onSuccess: () => {
@@ -243,7 +243,7 @@ export function useMarkCommissionsAsPaid() {
       commission_ids: number[];
       notes?: string;
     }) => {
-      const response = await apiClient.post("/commissions/mark_as_paid/", {
+      const response = await api.post("/commissions/mark_as_paid/", {
         commission_ids,
         notes,
       });
@@ -260,7 +260,7 @@ export function useCancelCommission() {
 
   return useMutation({
     mutationFn: async ({ id, notes }: { id: number; notes?: string }) => {
-      const response = await apiClient.post(`/commissions/${id}/cancel/`, {
+      const response = await api.post(`/commissions/${id}/cancel/`, {
         notes,
       });
       return response.data;

@@ -105,7 +105,8 @@ export interface CustomerFilters {
 const customersApi = {
   list: async (filters?: CustomerFilters): Promise<CustomerListItem[]> => {
     const { data } = await api.get('/customers/', { params: filters });
-    return data;
+    // DRF retorna {results: [...]} quando há paginação
+    return Array.isArray(data) ? data : data.results || [];
   },
 
   get: async (id: string): Promise<Customer> => {
