@@ -81,7 +81,7 @@ export function useCommissionRules() {
     queryKey: ["commission-rules"],
     queryFn: async () => {
       const response = await api.get("/commissions/rules/");
-      return response.data;
+      return response.data.results || response.data;
     },
   });
 }
@@ -91,7 +91,7 @@ export function useActiveCommissionRules() {
     queryKey: ["commission-rules", "active"],
     queryFn: async () => {
       const response = await api.get("/commissions/rules/active/");
-      return response.data;
+      return response.data.results || response.data;
     },
   });
 }

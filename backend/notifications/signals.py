@@ -70,10 +70,10 @@ def notify_appointment_status_change(sender, instance, **kwargs):
 @receiver(post_save, sender=Transaction)
 def notify_payment_received(sender, instance, created, **kwargs):
     """
-    Cria notificação quando um pagamento é recebido (entrada).
+    Cria notificação quando um pagamento é recebido (receita).
     Notifica todos os usuários do tenant.
     """
-    if created and instance.transaction_type == 'entrada':
+    if created and instance.type == 'receita':
         # Buscar todos os usuários do tenant
         from core.models import User
         users = User.objects.filter(tenant=instance.tenant)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -58,11 +58,24 @@ export default function CommissionsPage() {
   const [selectedCommissions, setSelectedCommissions] = useState<number[]>([]);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentNotes, setPaymentNotes] = useState("");
+  const [professionals, setProfessionals] = useState<Array<{id: number, name: string}>>([]);
 
   const { data: commissions = [], isLoading } = useCommissions(filters);
   const { data: summary } = useCommissionSummary(filters);
   const markAsPaidMutation = useMarkCommissionsAsPaid();
   const cancelMutation = useCancelCommission();
+
+  // Buscar lista de profissionais únicos das comissões
+  useEffect(() => {
+    if (commissions.length > 0) {
+      const uniquePros = Array.from(
+        new Map(
+          commissions.map((c) => [c.professional, { id: c.professional, name: c.professional_name }])
+        ).values()
+      );
+      setProfessionals(uniquePros);
+    }
+  }, [commissions]);
 
   const handleSelectCommission = (id: number, checked: boolean) => {
     setSelectedCommissions((prev) =>
@@ -265,7 +278,7 @@ export default function CommissionsPage() {
             Filtros
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
+        <CardContent className="grid gap-4 md:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
             <Select
@@ -285,6 +298,31 @@ export default function CommissionsPage() {
                 <SelectItem value="pending">Pendentes</SelectItem>
                 <SelectItem value="paid">Pagas</SelectItem>
                 <SelectItem value="cancelled">Canceladas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="professional">Profissional</Label>
+            <Select
+              value={filters.professional?.toString() || "all"}
+              onValueChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  professional: value === "all" ? undefined : parseInt(value),
+                }))
+              }
+            >
+              <SelectTrigger id="professional">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {professionals.map((pro) => (
+                  <SelectItem key={pro.id} value={pro.id.toString()}>
+                    {pro.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

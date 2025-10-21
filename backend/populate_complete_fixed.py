@@ -391,10 +391,14 @@ def main():
     
     # Obtem o tenant
     try:
-        tenant = Tenant.objects.get(name='Barbearia do Joao')
+        # Busca o primeiro tenant disponivel (geralmente e o unico)
+        tenant = Tenant.objects.first()
+        if not tenant:
+            print("\nERRO: Nenhum tenant encontrado no banco!")
+            return
         print(f"\nTenant encontrado: {tenant.name}")
-    except Tenant.DoesNotExist:
-        print("\nERRO: Tenant 'Barbearia do Joao' nao encontrado!")
+    except Exception as e:
+        print(f"\nERRO ao buscar tenant: {e}")
         return
     
     # Obtem profissionais do tenant
