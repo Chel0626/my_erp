@@ -330,33 +330,35 @@ export default function AppointmentsPage() {
 
       {/* Visualização de Calendário */}
       {!isLoading && appointmentsList.length > 0 && viewMode === 'calendar' && (
-        <AppointmentCalendar
-          appointments={appointmentsList}
-          services={Array.isArray(services) ? services : []}
-          onEventClick={handleView}
-          onDateClick={handleCreate}
-          onEventDrop={async (appointmentId: string, newStart: Date) => {
-            try {
-              // Encontra o appointment completo pelo ID
-              const appointment = appointmentsList.find(a => a.id === appointmentId);
-              if (!appointment) return;
+        <div className="calendar-wrapper">
+          <AppointmentCalendar
+            appointments={appointmentsList}
+            services={Array.isArray(services) ? services : []}
+            onEventClick={handleView}
+            onDateClick={handleCreate}
+            onEventDrop={async (appointmentId: string, newStart: Date) => {
+              try {
+                // Encontra o appointment completo pelo ID
+                const appointment = appointmentsList.find(a => a.id === appointmentId);
+                if (!appointment) return;
 
-              await updateMutation.mutateAsync({
-                id: appointment.id,
-                customer_name: appointment.customer_name,
-                customer_phone: appointment.customer_phone,
-                customer_email: appointment.customer_email,
-                service_id: appointment.service_details?.id || appointment.service,
-                professional_id: appointment.professional_details?.id || appointment.professional,
-                start_time: newStart.toISOString(),
-                notes: appointment.notes,
-              });
-            } catch (error) {
-              console.error('Erro ao reagendar:', error);
-              alert('Erro ao reagendar agendamento.');
-            }
-          }}
-        />
+                await updateMutation.mutateAsync({
+                  id: appointment.id,
+                  customer_name: appointment.customer_name,
+                  customer_phone: appointment.customer_phone,
+                  customer_email: appointment.customer_email,
+                  service_id: appointment.service_details?.id || appointment.service,
+                  professional_id: appointment.professional_details?.id || appointment.professional,
+                  start_time: newStart.toISOString(),
+                  notes: appointment.notes,
+                });
+              } catch (error) {
+                console.error('Erro ao reagendar:', error);
+                alert('Erro ao reagendar agendamento.');
+              }
+            }}
+          />
+        </div>
       )}
 
       {/* Lista de Agendamentos (Agrupados por Data) */}

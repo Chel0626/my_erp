@@ -46,12 +46,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
     professional_details = UserSerializer(source='professional', read_only=True)
     
     # Campos do cliente (read-only, vêm do FK customer ou direto)
-    customer_id = serializers.UUIDField(source='customer.id', read_only=True, allow_null=True)
+    customer_id = serializers.SerializerMethodField()
     customer_full_info = serializers.SerializerMethodField()
     
     # Preço e status de pagamento
-    final_price = serializers.DecimalField(source='get_final_price', max_digits=10, decimal_places=2, read_only=True)
-    is_paid = serializers.BooleanField(source='is_paid', read_only=True)
+    final_price = serializers.SerializerMethodField()
+    is_paid = serializers.SerializerMethodField()
     
     class Meta:
         model = Appointment
@@ -63,6 +63,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'end_time', 'created_at', 'updated_at', 'customer_id', 'customer_full_info', 'final_price', 'is_paid']
     
+    def get_customer_id(self, obj):
+        """Retorna ID do cliente se vinculado"""
+        return str(obj.customer.id) if obj.customer else None
+
     def get_customer_full_info(self, obj):
         """Retorna informações completas do cliente se vinculado"""
         if obj.customer:
@@ -74,6 +78,20 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 'tag': obj.customer.tag,
             }
         return None
+
+    def get_final_price(self, obj):
+        """Retorna preço final do agendamento"""
+        try:
+            return obj.get_final_price()
+        except Exception:
+            return obj.price if hasattr(obj, 'price') and obj.price else 0
+
+    def get_is_paid(self, obj):
+        """Retorna se o agendamento está pago"""
+        try:
+            return obj.is_paid()
+        except Exception:
+            return False
 
     def validate(self, data):
         """

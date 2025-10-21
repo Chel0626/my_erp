@@ -4,7 +4,6 @@ Serializers do módulo Financeiro
 from rest_framework import serializers
 from django.db import IntegrityError
 from .models import PaymentMethod, Transaction, CashFlow
-from scheduling.serializers import AppointmentSerializer
 
 
 class PaymentMethodSerializer(serializers.ModelSerializer):
@@ -40,7 +39,7 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
 class TransactionSerializer(serializers.ModelSerializer):
     """Serializer para Transaction"""
     payment_method_details = PaymentMethodSerializer(source='payment_method', read_only=True)
-    appointment_details = AppointmentSerializer(source='appointment', read_only=True)
+    appointment_details = serializers.SerializerMethodField()
     created_by_name = serializers.CharField(source='created_by.email', read_only=True)
     
     class Meta:
@@ -73,6 +72,17 @@ class TransactionSerializer(serializers.ModelSerializer):
                 })
         
         return data
+
+    def get_appointment_details(self, obj):
+        """Retorna detalhes básicos do agendamento se houver"""
+        if obj.appointment:
+            return {
+                'id': str(obj.appointment.id),
+                'customer_name': obj.appointment.customer_name,
+                'start_time': obj.appointment.start_time.isoformat() if obj.appointment.start_time else None,
+                'status': obj.appointment.status,
+            }
+        return None
 
     def create(self, validated_data):
         """Adiciona o tenant e created_by automaticamente"""
