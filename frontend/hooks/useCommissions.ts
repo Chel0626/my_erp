@@ -165,7 +165,7 @@ export function useCommissions(filters?: CommissionFilters) {
       const response = await api.get("/commissions/", {
         params: filters,
       });
-      return response.data;
+      return response.data.results || response.data;
     },
   });
 }
@@ -175,7 +175,7 @@ export function usePendingCommissions() {
     queryKey: ["commissions", "pending"],
     queryFn: async () => {
       const response = await api.get("/commissions/pending/");
-      return response.data;
+      return response.data.results || response.data;
     },
   });
 }
