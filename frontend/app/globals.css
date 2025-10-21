@@ -1,3 +1,9 @@
+/* FullCalendar Styles - Must be first */
+@import '@fullcalendar/core/main.css';
+@import '@fullcalendar/daygrid/main.css';
+@import '@fullcalendar/timegrid/main.css';
+@import '@fullcalendar/list/main.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -60,12 +66,7 @@
   }
 }
 
-/* FullCalendar Styles */
-@import '@fullcalendar/core/main.css';
-@import '@fullcalendar/daygrid/main.css';
-@import '@fullcalendar/timegrid/main.css';
-@import '@fullcalendar/list/main.css';
-
+/* Calendar wrapper styles */
 .calendar-wrapper {
   width: 100%;
   min-height: 600px;
