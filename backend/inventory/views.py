@@ -93,30 +93,42 @@ class ProductViewSet(viewsets.ModelViewSet):
         GET /api/inventory/products/summary/
         Retorna resumo estatístico do inventário
         """
-        queryset = self.get_queryset()
-        
-        summary = {
-            'total_products': queryset.count(),
-            'active_products': queryset.filter(is_active=True).count(),
-            'low_stock_products': queryset.filter(
-                is_active=True,
-                stock_quantity__lte=F('min_stock'),
-                stock_quantity__gt=0
-            ).count(),
-            'out_of_stock_products': queryset.filter(
-                is_active=True,
-                stock_quantity=0
-            ).count(),
-            'total_stock_value': queryset.aggregate(
+        try:
+            queryset = self.get_queryset()
+            
+            # Calcula valor total do estoque
+            stock_value_result = queryset.aggregate(
                 total=Coalesce(
                     Sum(F('stock_quantity') * F('cost_price'), output_field=DecimalField()),
-                    0
+                    0.0
                 )
-            )['total']
-        }
-        
-        serializer = ProductSummarySerializer(summary)
-        return Response(serializer.data)
+            )
+            
+            summary = {
+                'total_products': queryset.count(),
+                'active_products': queryset.filter(is_active=True).count(),
+                'low_stock_products': queryset.filter(
+                    is_active=True,
+                    stock_quantity__lte=F('min_stock'),
+                    stock_quantity__gt=0
+                ).count(),
+                'out_of_stock_products': queryset.filter(
+                    is_active=True,
+                    stock_quantity=0
+                ).count(),
+                'total_stock_value': stock_value_result.get('total') or 0
+            }
+            
+            serializer = ProductSummarySerializer(summary)
+            return Response(serializer.data)
+        except Exception as e:
+            # Log do erro para debug
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Erro ao gerar resumo: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=False, methods=['get'])
     def best_selling(self, request):
@@ -204,31 +216,39 @@ class ProductViewSet(viewsets.ModelViewSet):
             "notes": "Compra do fornecedor X"
         }
         """
-        product = self.get_object()
-        
-        # Cria movimentação de entrada
-        data = {
-            'product': product.id,
-            'movement_type': 'entrada',
-            'quantity': request.data.get('quantity'),
-            'reason': request.data.get('reason', 'compra'),
-            'notes': request.data.get('notes', '')
-        }
-        
-        serializer = CreateStockMovementSerializer(
-            data=data,
-            context={'request': request}
-        )
-        
-        if serializer.is_valid():
-            serializer.save()
+        try:
+            product = self.get_object()
             
-            # Retorna produto atualizado
-            product.refresh_from_db()
-            product_serializer = ProductSerializer(product)
-            return Response(product_serializer.data)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Cria movimentação de entrada
+            data = {
+                'product': product.id,
+                'movement_type': 'entrada',
+                'quantity': request.data.get('quantity'),
+                'reason': request.data.get('reason', 'compra'),
+                'notes': request.data.get('notes', '')
+            }
+            
+            serializer = CreateStockMovementSerializer(
+                data=data,
+                context={'request': request}
+            )
+            
+            if serializer.is_valid():
+                serializer.save()
+                
+                # Retorna produto atualizado
+                product.refresh_from_db()
+                product_serializer = ProductSerializer(product)
+                return Response(product_serializer.data)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Erro ao adicionar estoque: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def remove_stock(self, request, pk=None):
@@ -243,31 +263,39 @@ class ProductViewSet(viewsets.ModelViewSet):
             "notes": "Produto danificado"
         }
         """
-        product = self.get_object()
-        
-        # Cria movimentação de saída
-        data = {
-            'product': product.id,
-            'movement_type': 'saida',
-            'quantity': request.data.get('quantity'),
-            'reason': request.data.get('reason', 'ajuste'),
-            'notes': request.data.get('notes', '')
-        }
-        
-        serializer = CreateStockMovementSerializer(
-            data=data,
-            context={'request': request}
-        )
-        
-        if serializer.is_valid():
-            serializer.save()
+        try:
+            product = self.get_object()
             
-            # Retorna produto atualizado
-            product.refresh_from_db()
-            product_serializer = ProductSerializer(product)
-            return Response(product_serializer.data)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Cria movimentação de saída
+            data = {
+                'product': product.id,
+                'movement_type': 'saida',
+                'quantity': request.data.get('quantity'),
+                'reason': request.data.get('reason', 'ajuste'),
+                'notes': request.data.get('notes', '')
+            }
+            
+            serializer = CreateStockMovementSerializer(
+                data=data,
+                context={'request': request}
+            )
+            
+            if serializer.is_valid():
+                serializer.save()
+                
+                # Retorna produto atualizado
+                product.refresh_from_db()
+                product_serializer = ProductSerializer(product)
+                return Response(product_serializer.data)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': f'Erro ao remover estoque: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class StockMovementViewSet(viewsets.ModelViewSet):
