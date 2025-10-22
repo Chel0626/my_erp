@@ -14,7 +14,7 @@ export interface User {
   name: string;
   tenant: string;
   tenant_name?: string;
-  role: 'admin' | 'barbeiro' | 'caixa' | 'atendente';
+  role: 'admin' | 'barbeiro' | 'caixa' | 'atendente' | 'superadmin';
   is_active: boolean;
   created_at: string;
 }
