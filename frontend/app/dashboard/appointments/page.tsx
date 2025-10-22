@@ -142,6 +142,8 @@ export default function AppointmentsPage() {
 
   const handleSubmit = async (data: CreateAppointmentInput) => {
     try {
+      console.log('📤 Enviando dados do agendamento:', data);
+      
       if (editingAppointment) {
         await updateMutation.mutateAsync({
           id: editingAppointment.id,
@@ -153,14 +155,19 @@ export default function AppointmentsPage() {
       setShowDialog(false);
       setEditingAppointment(null);
     } catch (error: any) {
-      console.error('Erro ao salvar agendamento:', error);
+      console.error('❌ Erro ao salvar agendamento:', error);
+      console.error('📋 Detalhes do erro:', error?.response?.data);
       
       let errorMessage = 'Erro ao salvar agendamento. Tente novamente.';
       
       if (error?.response?.data) {
         const errors = error.response.data;
+        console.error('🔍 Estrutura do erro:', errors);
+        
         if (typeof errors === 'object') {
-          errorMessage = Object.values(errors).flat().join(', ');
+          errorMessage = Object.entries(errors)
+            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .join('\n');
         } else if (typeof errors === 'string') {
           errorMessage = errors;
         }
