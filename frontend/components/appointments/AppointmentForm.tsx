@@ -35,10 +35,13 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
   const { data: services = [] } = useServices(true); // Apenas serviços ativos
   
   // Busca lista de usuários (profissionais)
-  const { data: users = [] } = useQuery({
+  const { data: usersData } = useQuery({
     queryKey: ['users'],
     queryFn: userApi.list,
   });
+  
+  // Garante que users é array
+  const users = Array.isArray(usersData) ? usersData : (usersData as any)?.results || [];
   
   const [formData, setFormData] = useState<CreateAppointmentInput>({
     customer_name: '',
