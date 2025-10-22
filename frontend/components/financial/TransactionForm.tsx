@@ -43,7 +43,7 @@ export default function TransactionForm({ transaction, onSubmit, onCancel, isLoa
     }
   }, [transaction]);
 
-  const handleChange = (field: keyof CreateTransactionInput, value: any) => {
+  const handleChange = (field: keyof CreateTransactionInput, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Limpa erro do campo ao digitar
     if (errors[field]) {

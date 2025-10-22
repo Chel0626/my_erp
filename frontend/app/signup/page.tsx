@@ -47,8 +47,9 @@ export default function SignUpPage() {
 
     try {
       await signup(formData.name, formData.email, formData.password, formData.tenantName);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao criar conta');
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setError(error.message || 'Erro ao criar conta');
     } finally {
       setLoading(false);
     }

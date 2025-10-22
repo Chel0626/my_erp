@@ -66,7 +66,7 @@ export default function TeamPage() {
     queryKey: ['team-members'],
     queryFn: async () => {
       const { data } = await api.get<TeamMember[]>('/core/users/');
-      return Array.isArray(data) ? data : (data as any).results || [];
+      return Array.isArray(data) ? data : (data as { results?: TeamMember[] }).results || [];
     },
   });
 
@@ -87,10 +87,11 @@ export default function TeamPage() {
       
       setShowDialog(false);
       setFormData({ email: '', name: '', phone: '', password: '' });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { error?: string } } };
       toast({
         title: 'Erro ao adicionar membro',
-        description: error.response?.data?.error || 'Erro ao adicionar membro da equipe.',
+        description: axiosError.response?.data?.error || 'Erro ao adicionar membro da equipe.',
         variant: 'destructive',
       });
     }

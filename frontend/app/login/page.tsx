@@ -26,9 +26,10 @@ export default function LoginPage() {
       console.log('🔐 Chamando função login...');
       await login(email, password);
       console.log('✅ Login concluído com sucesso!');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string };
       console.error('❌ Erro capturado no handleSubmit:', err);
-      setError(err.message || 'Erro ao fazer login');
+      setError(error.message || 'Erro ao fazer login');
     } finally {
       setLoading(false);
       console.log('🏁 handleSubmit finalizado');

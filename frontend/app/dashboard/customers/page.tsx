@@ -11,9 +11,9 @@ import {
   useCreateCustomer,
   useActivateCustomer,
   useDeactivateCustomer,
-  useDeleteCustomer,
   useCustomerSummary,
   CustomerFilters,
+  Customer,
 } from '@/hooks/useCustomers';
 import { CustomerCard } from '@/components/customers/CustomerCard';
 import { CustomerForm } from '@/components/customers/CustomerForm';
@@ -36,11 +36,9 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   Plus,
   Search,
@@ -64,7 +62,6 @@ export default function CustomersPage() {
   const createCustomer = useCreateCustomer();
   const activateCustomer = useActivateCustomer();
   const deactivateCustomer = useDeactivateCustomer();
-  const deleteCustomer = useDeleteCustomer();
 
   // Handlers
   const handleSearch = (value: string) => {
@@ -72,19 +69,15 @@ export default function CustomersPage() {
     if (value.trim()) {
       setFilters((prev) => ({ ...prev, search: value }));
     } else {
-      setFilters((prev) => {
-        const { search, ...rest } = prev;
-        return rest;
-      });
+      const { search: _, ...rest } = filters;
+      setFilters(rest);
     }
   };
 
   const handleFilterTag = (value: string) => {
     if (value === 'all') {
-      setFilters((prev) => {
-        const { tag, ...rest } = prev;
-        return rest;
-      });
+      const { tag: _, ...rest } = filters;
+      setFilters(rest);
     } else {
       setFilters((prev) => ({
         ...prev,
@@ -95,10 +88,8 @@ export default function CustomersPage() {
 
   const handleFilterActive = (value: string) => {
     if (value === 'all') {
-      setFilters((prev) => {
-        const { is_active, ...rest } = prev;
-        return rest;
-      });
+      const { is_active: _, ...rest } = filters;
+      setFilters(rest);
     } else {
       setFilters((prev) => ({
         ...prev,
@@ -123,7 +114,7 @@ export default function CustomersPage() {
     deactivateCustomer.mutate(id);
   };
 
-  const handleCreateSubmit = (data: any) => {
+  const handleCreateSubmit = (data: Partial<Customer>) => {
     createCustomer.mutate(data, {
       onSuccess: () => {
         setShowCreateDialog(false);

@@ -99,19 +99,20 @@ export default function ServicesPage() {
       }
       setShowDialog(false);
       setEditingService(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { name?: string[]; detail?: string } }; message?: string };
       console.error('Erro ao salvar serviço:', error);
       
       // Extrai mensagem de erro do backend
       let errorMessage = 'Erro ao salvar serviço. Tente novamente.';
       
-      if (error?.response?.data?.name) {
+      if (axiosError?.response?.data?.name) {
         // Erro de validação do campo 'name'
-        errorMessage = error.response.data.name[0];
-      } else if (error?.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
-      } else if (error?.message) {
-        errorMessage = error.message;
+        errorMessage = axiosError.response.data.name[0];
+      } else if (axiosError?.response?.data?.detail) {
+        errorMessage = axiosError.response.data.detail;
+      } else if (axiosError?.message) {
+        errorMessage = axiosError.message;
       }
       
       alert(`❌ ${errorMessage}`);

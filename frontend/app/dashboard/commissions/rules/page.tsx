@@ -137,10 +137,11 @@ export default function CommissionRulesPage() {
         });
       }
       handleCloseDialog();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { error?: string } } };
       toast({
         title: "Erro ao salvar regra",
-        description: error.response?.data?.error || "Erro ao processar a solicitação.",
+        description: axiosError.response?.data?.error || "Erro ao processar a solicitação.",
         variant: "destructive",
       });
     }
@@ -157,10 +158,11 @@ export default function CommissionRulesPage() {
       });
       setDeleteDialogOpen(false);
       setDeletingRule(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { error?: string } } };
       toast({
         title: "Erro ao excluir regra",
-        description: error.response?.data?.error || "Erro ao excluir.",
+        description: axiosError.response?.data?.error || "Erro ao excluir.",
         variant: "destructive",
       });
     }

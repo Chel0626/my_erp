@@ -105,7 +105,7 @@ export function QuickCreateCustomer({ open, onOpenChange, onSuccess }: QuickCrea
             <Label htmlFor="tag">Categoria</Label>
             <Select
               value={formData.tag}
-              onValueChange={(value: any) => setFormData({ ...formData, tag: value })}
+              onValueChange={(value: 'VIP' | 'REGULAR' | 'NOVO' | 'INATIVO') => setFormData({ ...formData, tag: value })}
             >
               <SelectTrigger>
                 <SelectValue />

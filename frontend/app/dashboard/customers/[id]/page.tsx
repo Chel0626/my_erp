@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Appointment } from '@/hooks/useAppointments';
 import {
   useCustomer,
   useCustomerStats,
@@ -14,6 +15,7 @@ import {
   useActivateCustomer,
   useDeactivateCustomer,
   useDeleteCustomer,
+  Customer,
 } from '@/hooks/useCustomers';
 import { CustomerForm } from '@/components/customers/CustomerForm';
 import { CustomerStats } from '@/components/customers/CustomerStats';
@@ -123,7 +125,7 @@ export default function CustomerDetailPage({
     .substring(0, 2)
     .toUpperCase();
 
-  const handleUpdateSubmit = (data: any) => {
+  const handleUpdateSubmit = (data: Partial<Customer>) => {
     updateCustomer.mutate(
       { id: params.id, ...data },
       {
@@ -338,11 +340,11 @@ export default function CustomerDetailPage({
         <TabsContent value="appointments">
           {appointments && appointments.length > 0 ? (
             <div className="space-y-4">
-              {appointments.map((appointment: any) => (
+              {appointments.map((appointment: Appointment) => (
                 <Card key={appointment.id}>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center justify-between">
-                      <span>{appointment.service_name}</span>
+                      <span>{appointment.service_details?.name || 'Serviço não especificado'}</span>
                       <Badge>{appointment.status}</Badge>
                     </CardTitle>
                   </CardHeader>
@@ -401,8 +403,8 @@ export default function CustomerDetailPage({
                       <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-green-600">
                           R$ {appointments
-                            .filter((a: any) => a.status === 'concluido' && a.final_price)
-                            .reduce((sum: number, a: any) => sum + parseFloat(a.final_price || '0'), 0)
+                            .filter((a: Appointment) => a.status === 'concluido' && a.final_price)
+                            .reduce((sum: number, a: Appointment) => sum + parseFloat(a.final_price || '0'), 0)
                             .toFixed(2)}
                         </div>
                         <p className="text-xs text-muted-foreground">Total Gasto</p>
@@ -411,7 +413,7 @@ export default function CustomerDetailPage({
                     <Card>
                       <CardContent className="pt-6">
                         <div className="text-2xl font-bold">
-                          {appointments.filter((a: any) => a.status === 'concluido').length}
+                          {appointments.filter((a: Appointment) => a.status === 'concluido').length}
                         </div>
                         <p className="text-xs text-muted-foreground">Serviços Concluídos</p>
                       </CardContent>
@@ -420,9 +422,9 @@ export default function CustomerDetailPage({
                       <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-orange-600">
                           R$ {appointments
-                            .filter((a: any) => a.status === 'concluido' && a.final_price)
-                            .reduce((sum: number, a: any) => sum + parseFloat(a.final_price || '0'), 0) / 
-                            Math.max(appointments.filter((a: any) => a.status === 'concluido').length, 1) || 0}
+                            .filter((a: Appointment) => a.status === 'concluido' && a.final_price)
+                            .reduce((sum: number, a: Appointment) => sum + parseFloat(a.final_price || '0'), 0) / 
+                            Math.max(appointments.filter((a: Appointment) => a.status === 'concluido').length, 1) || 0}
                         </div>
                         <p className="text-xs text-muted-foreground">Ticket Médio</p>
                       </CardContent>
@@ -432,8 +434,8 @@ export default function CustomerDetailPage({
                   <div className="space-y-2">
                     <h3 className="font-semibold">Transações</h3>
                     {appointments
-                      .filter((a: any) => a.status === 'concluido' && a.final_price)
-                      .map((appointment: any) => (
+                      .filter((a: Appointment) => a.status === 'concluido' && a.final_price)
+                      .map((appointment: Appointment) => (
                         <div
                           key={appointment.id}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"

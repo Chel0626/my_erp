@@ -48,8 +48,8 @@ export function StatusDistributionChart({ data, total }: StatusDistributionChart
   }));
 
   // Custom label para mostrar percentual
-  const renderLabel = (entry: any) => {
-    return `${entry.percentage.toFixed(1)}%`;
+  const renderLabel = (props: { percentage: number }) => {
+    return `${props.percentage.toFixed(1)}%`;
   };
 
   return (

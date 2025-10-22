@@ -196,10 +196,11 @@ export default function ProductsPage() {
         });
       }
       setShowProductDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
       toast({
         title: 'Erro',
-        description: error.response?.data?.message || 'Ocorreu um erro ao salvar o produto.',
+        description: axiosError.response?.data?.message || 'Ocorreu um erro ao salvar o produto.',
         variant: 'destructive',
       });
     }
@@ -231,10 +232,11 @@ export default function ProductsPage() {
         });
       }
       setShowStockDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
       toast({
         title: 'Erro',
-        description: error.response?.data?.message || 'Ocorreu um erro ao atualizar o estoque.',
+        description: axiosError.response?.data?.message || 'Ocorreu um erro ao atualizar o estoque.',
         variant: 'destructive',
       });
     }
@@ -250,10 +252,11 @@ export default function ProductsPage() {
         description: 'O produto foi removido do inventário.',
       });
       setShowDeleteDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
       toast({
         title: 'Erro',
-        description: error.response?.data?.message || 'Ocorreu um erro ao deletar o produto.',
+        description: axiosError.response?.data?.message || 'Ocorreu um erro ao deletar o produto.',
         variant: 'destructive',
       });
     }
@@ -410,7 +413,7 @@ export default function ProductsPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map(product => (
+          {products.map((product: Product) => (
             <ProductCard
               key={product.id}
               product={product}

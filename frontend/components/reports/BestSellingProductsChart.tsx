@@ -75,7 +75,17 @@ export function BestSellingProductsChart({ data, isLoading }: BestSellingProduct
   };
 
   // Custom Tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { 
+    active?: boolean; 
+    payload?: Array<{ payload: { 
+      fullName: string; 
+      quantity: number; 
+      total_revenue: string;
+      sales: number;
+      revenue: number;
+      stock: number;
+    } }> 
+  }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (

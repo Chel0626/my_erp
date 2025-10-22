@@ -22,10 +22,10 @@ export interface PDFReportData {
   tenantName: string;
   reportTitle: string;
   period: { start: string; end: string };
-  revenue?: { data: any[] };
-  status?: { total: number; data: any[] };
-  topServices?: any[];
-  professionals?: any[];
+  revenue?: { data: Array<Record<string, string | number>> };
+  status?: { total: number; data: Array<Record<string, string | number>> };
+  topServices?: Array<Record<string, string | number>>;
+  professionals?: Array<Record<string, string | number>>;
 }
 
 export function exportReportToPDF(data: PDFReportData) {
@@ -64,14 +64,14 @@ export function exportReportToPDF(data: PDFReportData) {
       head: [['Status', 'Quantidade', 'Percentual']],
       body: data.status.data.map((item) => [
         item.status_display,
-        item.count.toString(),
-        `${item.percentage.toFixed(2)}%`,
+        (item.count as number).toString(),
+        `${(item.percentage as number).toFixed(2)}%`,
       ]),
       theme: 'grid',
       headStyles: { fillColor: [59, 130, 246] },
     });
 
-    yPos = (doc as any).lastAutoTable.finalY + 10;
+    yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
   }
 
   // Top Serviços
@@ -86,14 +86,14 @@ export function exportReportToPDF(data: PDFReportData) {
       head: [['Serviço', 'Agendamentos', 'Receita']],
       body: data.topServices.map((item) => [
         item.service_name,
-        item.appointments_count.toString(),
-        formatCurrency(parseFloat(item.total_revenue)),
+        (item.appointments_count as number).toString(),
+        formatCurrency(parseFloat(item.total_revenue as string)),
       ]),
       theme: 'grid',
       headStyles: { fillColor: [59, 130, 246] },
     });
 
-    yPos = (doc as any).lastAutoTable.finalY + 10;
+    yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
   }
 
   // Nova página se necessário
@@ -114,10 +114,10 @@ export function exportReportToPDF(data: PDFReportData) {
       head: [['Profissional', 'Agendamentos', 'Concluídos', 'Taxa', 'Receita']],
       body: data.professionals.map((item) => [
         item.professional_name,
-        item.total_appointments.toString(),
-        item.completed.toString(),
-        `${item.completion_rate.toFixed(1)}%`,
-        formatCurrency(item.total_revenue),
+        (item.total_appointments as number).toString(),
+        (item.completed as number).toString(),
+        `${(item.completion_rate as number).toFixed(1)}%`,
+        formatCurrency(item.total_revenue as number),
       ]),
       theme: 'grid',
       headStyles: { fillColor: [59, 130, 246] },
@@ -125,7 +125,7 @@ export function exportReportToPDF(data: PDFReportData) {
   }
 
   // Footer
-  const pageCount = (doc as any).internal.getNumberOfPages();
+  const pageCount = (doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
@@ -148,10 +148,10 @@ export function exportReportToPDF(data: PDFReportData) {
 export interface ExcelReportData {
   tenantName: string;
   period: { start: string; end: string };
-  revenue?: { data: any[] };
-  status?: { total: number; data: any[] };
-  topServices?: any[];
-  professionals?: any[];
+  revenue?: { data: Array<Record<string, string | number>> };
+  status?: { total: number; data: Array<Record<string, string | number>> };
+  topServices?: Array<Record<string, string | number>>;
+  professionals?: Array<Record<string, string | number>>;
 }
 
 export function exportReportToExcel(data: ExcelReportData) {
@@ -254,12 +254,12 @@ export function exportReportToExcel(data: ExcelReportData) {
 // ==================== EXCEL SIMPLES (Tabela única) ====================
 
 export function exportTableToExcel(
-  data: any[],
+  data: Record<string, unknown>[],
   columns: { header: string; key: string }[],
   fileName: string
 ) {
   // Criar dados para o Excel
-  const excelData = [columns.map((col) => col.header)];
+  const excelData: unknown[][] = [columns.map((col) => col.header)];
 
   data.forEach((row) => {
     const rowData = columns.map((col) => row[col.key]);

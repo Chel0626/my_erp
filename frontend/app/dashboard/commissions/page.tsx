@@ -8,7 +8,6 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Calendar,
   User,
   Filter,
 } from "lucide-react";
@@ -116,10 +115,11 @@ export default function CommissionsPage() {
       setSelectedCommissions([]);
       setPaymentDialogOpen(false);
       setPaymentNotes("");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { error?: string } } };
       toast({
         title: "Erro ao pagar comissões",
-        description: error.response?.data?.error || "Erro ao processar pagamento.",
+        description: axiosError.response?.data?.error || "Erro ao processar pagamento.",
         variant: "destructive",
       });
     }
@@ -143,10 +143,11 @@ export default function CommissionsPage() {
         title: "Comissão cancelada",
         description: "A comissão foi cancelada com sucesso.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { error?: string } } };
       toast({
         title: "Erro ao cancelar comissão",
-        description: error.response?.data?.error || "Erro ao cancelar.",
+        description: axiosError.response?.data?.error || "Erro ao cancelar.",
         variant: "destructive",
       });
     }
@@ -286,7 +287,7 @@ export default function CommissionsPage() {
               onValueChange={(value) =>
                 setFilters((prev) => ({
                   ...prev,
-                  status: value === "all" ? undefined : (value as any),
+                  status: value === "all" ? undefined : (value as "pending" | "paid" | "cancelled"),
                 }))
               }
             >

@@ -41,7 +41,7 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
   });
   
   // Garante que users é array
-  const users = Array.isArray(usersData) ? usersData : (usersData as any)?.results || [];
+  const users = Array.isArray(usersData) ? usersData : (usersData as { results?: unknown[] })?.results || [];
   
   const [formData, setFormData] = useState<CreateAppointmentInput>({
     customer_name: '',
@@ -354,7 +354,7 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
             <SelectValue placeholder="Selecione o profissional" />
           </SelectTrigger>
           <SelectContent>
-            {users.map((user: any) => (
+            {users.map((user: { id: string; name: string; is_staff?: boolean }) => (
               <SelectItem key={user.id} value={user.id}>
                 {user.name} {user.is_staff && '👑'}
               </SelectItem>

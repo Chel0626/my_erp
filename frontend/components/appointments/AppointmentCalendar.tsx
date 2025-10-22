@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import interactionPlugin, { EventDragStopArg, DateClickArg } from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import ptBrLocale from '@fullcalendar/core/locales/pt-br';
+import { EventClickArg, EventDropArg } from '@fullcalendar/core';
 import { Appointment } from '@/hooks/useAppointments';
 import { Service } from '@/hooks/useServices';
 
@@ -15,7 +16,7 @@ interface AppointmentCalendarProps {
   services: Service[];
   onEventClick?: (appointment: Appointment) => void;
   onDateClick?: (date: Date) => void;
-  onEventDrop?: (appointmentId: string, newStart: Date) => void;
+  onEventDrop?: (appointmentId: string, newStart: Date | null) => void;
 }
 
 // Função para gerar cores consistentes por serviço
@@ -101,19 +102,19 @@ export default function AppointmentCalendar({
     };
   });
 
-  const handleEventClick = (info: any) => {
+  const handleEventClick = (info: EventClickArg) => {
     if (onEventClick) {
-      onEventClick(info.event.extendedProps.appointment);
+      onEventClick((info.event.extendedProps as { appointment: Appointment }).appointment);
     }
   };
 
-  const handleDateClick = (info: any) => {
+  const handleDateClick = (info: DateClickArg) => {
     if (onDateClick) {
       onDateClick(info.date);
     }
   };
 
-  const handleEventDrop = (info: any) => {
+  const handleEventDrop = (info: EventDropArg) => {
     if (onEventDrop) {
       onEventDrop(info.event.id, info.event.start);
     }

@@ -73,7 +73,7 @@ export default function ReportsPage() {
   const bestSellingProducts = useBestSellingProducts(filters);
 
   // Handlers
-  const handleFilterChange = (key: keyof ReportFilters, value: any) => {
+  const handleFilterChange = (key: keyof ReportFilters, value: string | number | undefined) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -115,8 +115,8 @@ export default function ReportsPage() {
       },
       revenue: revenueChart.data,
       status: statusDistribution.data,
-      topServices: topServices.data,
-      professionals: professionalPerformance.data,
+      topServices: topServices.data as unknown as Array<Record<string, string | number>>,
+      professionals: professionalPerformance.data as unknown as Array<Record<string, string | number>>,
     });
   };
 
@@ -129,8 +129,8 @@ export default function ReportsPage() {
       },
       revenue: revenueChart.data,
       status: statusDistribution.data,
-      topServices: topServices.data,
-      professionals: professionalPerformance.data,
+      topServices: topServices.data as unknown as Array<Record<string, string | number>>,
+      professionals: professionalPerformance.data as unknown as Array<Record<string, string | number>>,
     });
   };
 

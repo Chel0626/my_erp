@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, Transaction } from '@/hooks/useTransactions';
+import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, Transaction, CreateTransactionInput, TransactionFilters as TFilters } from '@/hooks/useTransactions';
 import { useActivePaymentMethods } from '@/hooks/usePaymentMethods';
 import TransactionCard from '@/components/financial/TransactionCard';
 import TransactionForm from '@/components/financial/TransactionForm';
@@ -30,10 +30,10 @@ import { toast } from 'sonner';
 
 export default function TransactionsPage() {
   // Estados de filtros
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<TFilters>({
     start_date: '',
     end_date: '',
-    type: '' as '' | 'receita' | 'despesa',
+    type: undefined,
     payment_method: '',
   });
 
@@ -51,18 +51,22 @@ export default function TransactionsPage() {
   const updateMutation = useUpdateTransaction();
   const deleteMutation = useDeleteTransaction();
 
+  // Type helper for error handling
+  type AxiosError = { response?: { data?: { detail?: string } } };
+
   // Handlers
-  const handleCreate = async (data: any) => {
+  const handleCreate = async (data: CreateTransactionInput) => {
     try {
       await createMutation.mutateAsync(data);
       toast.success('Transação criada com sucesso!');
       setIsCreateDialogOpen(false);
-    } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Erro ao criar transação');
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
+      toast.error(axiosError.response?.data?.detail || 'Erro ao criar transação');
     }
   };
 
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (data: CreateTransactionInput) => {
     if (!selectedTransaction) return;
     
     try {
@@ -70,8 +74,9 @@ export default function TransactionsPage() {
       toast.success('Transação atualizada com sucesso!');
       setIsEditDialogOpen(false);
       setSelectedTransaction(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Erro ao atualizar transação');
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
+      toast.error(axiosError.response?.data?.detail || 'Erro ao atualizar transação');
     }
   };
 
@@ -83,8 +88,9 @@ export default function TransactionsPage() {
       toast.success('Transação deletada com sucesso!');
       setIsDeleteDialogOpen(false);
       setTransactionToDelete(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Erro ao deletar transação');
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
+      toast.error(axiosError.response?.data?.detail || 'Erro ao deletar transação');
     }
   };
 
@@ -102,7 +108,7 @@ export default function TransactionsPage() {
     setFilters({
       start_date: '',
       end_date: '',
-      type: '',
+      type: undefined,
       payment_method: '',
     });
   };
@@ -174,8 +180,8 @@ export default function TransactionsPage() {
             <Label htmlFor="type">Tipo</Label>
             <select
               id="type"
-              value={filters.type}
-              onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value as '' | 'receita' | 'despesa' }))}
+              value={filters.type || ''}
+              onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value === '' ? undefined : e.target.value as 'receita' | 'despesa' }))}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <option value="">Todos</option>

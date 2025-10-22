@@ -154,14 +154,15 @@ export default function AppointmentsPage() {
       }
       setShowDialog(false);
       setEditingAppointment(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: Record<string, unknown> } };
       console.error('❌ Erro ao salvar agendamento:', error);
-      console.error('📋 Detalhes do erro:', error?.response?.data);
+      console.error('📋 Detalhes do erro:', axiosError?.response?.data);
       
       let errorMessage = 'Erro ao salvar agendamento. Tente novamente.';
       
-      if (error?.response?.data) {
-        const errors = error.response.data;
+      if (axiosError?.response?.data) {
+        const errors = axiosError.response.data;
         console.error('🔍 Estrutura do erro:', errors);
         
         if (typeof errors === 'object') {
@@ -343,7 +344,8 @@ export default function AppointmentsPage() {
             services={Array.isArray(services) ? services : []}
             onEventClick={handleView}
             onDateClick={handleCreate}
-            onEventDrop={async (appointmentId: string, newStart: Date) => {
+            onEventDrop={async (appointmentId: string, newStart: Date | null) => {
+              if (!newStart) return;
               try {
                 // Encontra o appointment completo pelo ID
                 const appointment = appointmentsList.find(a => a.id === appointmentId);
