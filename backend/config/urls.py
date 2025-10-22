@@ -29,6 +29,10 @@ urlpatterns = [
     path("api/inventory/", include("inventory.urls")),
     path("api/commissions/", include("commissions.urls")),
     path("api/notifications/", include("notifications.urls")),
+    # Auth social
+    path("api/auth/", include("dj_rest_auth.urls")),
+    path("api/auth/registration/", include("dj_rest_auth.registration.urls")),
+    path("api/auth/social/", include("allauth.socialaccount.urls")),
 ]
 
 # Serve media files in development

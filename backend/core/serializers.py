@@ -143,8 +143,16 @@ class InviteUserSerializer(serializers.Serializer):
             user.phone = phone
             user.save()
 
-        # TODO: AÇÃO 2: Enviar email com senha temporária
-        # send_invitation_email(user, temporary_password)
+        # AÇÃO 2: Enviar email com senha temporária
+        if is_temp_password:
+            from .emails import send_invite_email
+            send_invite_email(
+                user_email=user.email,
+                user_name=user.name,
+                temporary_password=password,
+                company_name=tenant.company_name,
+                invited_by_name=request.user.name
+            )
 
         return {
             'user': user,

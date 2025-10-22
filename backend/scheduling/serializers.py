@@ -121,13 +121,43 @@ class AppointmentSerializer(serializers.ModelSerializer):
                     'customer': 'O cliente não pertence à sua empresa.'
                 })
         
-        # Se tem customer vinculado, não precisa customer_name manual
-        # (será preenchido automaticamente pelo save do model)
-        
-        # TODO: Validar disponibilidade do horário
-        # Verificar se o profissional já não tem outro agendamento no mesmo horário
+        # Valida conflito de horário
+        if 'professional' in data and 'start_time' in data:
+            self._validate_no_conflicts(data)
         
         return data
+    
+    def _validate_no_conflicts(self, data):
+        """Valida se não há conflito de horário para o profissional"""
+        professional = data['professional']
+        start_time = data['start_time']
+        service = data.get('service')
+        
+        # Calcula end_time baseado na duração do serviço
+        from datetime import timedelta
+        if service and service.duration_minutes:
+            end_time = start_time + timedelta(minutes=service.duration_minutes)
+        else:
+            end_time = start_time + timedelta(minutes=60)  # Padrão 1h
+        
+        # Query para verificar conflitos
+        conflicts_query = Appointment.objects.filter(
+            professional=professional,
+            start_time__lt=end_time,
+            end_time__gt=start_time,
+        ).exclude(
+            status__in=['cancelado', 'falta']  # Ignora agendamentos cancelados/falta
+        )
+        
+        # Se estamos editando, exclui o próprio agendamento
+        if self.instance:
+            conflicts_query = conflicts_query.exclude(pk=self.instance.pk)
+        
+        if conflicts_query.exists():
+            conflicting = conflicts_query.first()
+            raise serializers.ValidationError({
+                'start_time': f'O profissional já possui um agendamento neste horário ({conflicting.start_time.strftime("%H:%M")} - {conflicting.end_time.strftime("%H:%M")}).'
+            })
 
     def create(self, validated_data):
         """Adiciona o tenant e created_by automaticamente"""
@@ -213,8 +243,39 @@ class CreateAppointmentSerializer(serializers.Serializer):
             raise serializers.ValidationError({
                 'professional_id': 'Profissional não encontrado ou inativo.'
             })
+        
+        # Valida conflito de horário
+        self._validate_no_conflicts(data)
 
         return data
+    
+    def _validate_no_conflicts(self, data):
+        """Valida se não há conflito de horário para o profissional"""
+        professional = data['professional']
+        start_time = data['start_time']
+        service = data['service']
+        
+        # Calcula end_time baseado na duração do serviço
+        from datetime import timedelta
+        if service.duration_minutes:
+            end_time = start_time + timedelta(minutes=service.duration_minutes)
+        else:
+            end_time = start_time + timedelta(minutes=60)  # Padrão 1h
+        
+        # Query para verificar conflitos
+        conflicts = Appointment.objects.filter(
+            professional=professional,
+            start_time__lt=end_time,
+            end_time__gt=start_time,
+        ).exclude(
+            status__in=['cancelado', 'falta']  # Ignora agendamentos cancelados/falta
+        )
+        
+        if conflicts.exists():
+            conflicting = conflicts.first()
+            raise serializers.ValidationError({
+                'start_time': f'O profissional já possui um agendamento neste horário ({conflicting.start_time.strftime("%H:%M")} - {conflicting.end_time.strftime("%H:%M")}).'
+            })
 
     def create(self, validated_data):
         """Cria o agendamento"""

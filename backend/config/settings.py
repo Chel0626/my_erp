@@ -39,11 +39,21 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",  # Necessário para allauth
     # Third-party apps
     "rest_framework",
+    "rest_framework.authtoken",  # Necessário para dj-rest-auth
     "rest_framework_simplejwt",
     "corsheaders",
     "django_filters",
+    # Allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.microsoft",
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
     # Local apps
     "core",
     "scheduling",
@@ -54,6 +64,8 @@ INSTALLED_APPS = [
     "notifications",
 ]
 
+SITE_ID = 1
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",  # CORS - deve vir antes do CommonMiddleware
@@ -63,6 +75,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",  # Allauth middleware
     "core.middleware.TenantMiddleware",  # Middleware personalizado para Multi-Tenant
 ]
 
@@ -183,3 +196,63 @@ CORS_ALLOW_CREDENTIALS = True
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Email Configuration
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@myerp.com')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+# Django Allauth Configuration
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Padrão do Django
+    'allauth.account.auth_backends.AuthenticationBackend',  # Allauth
+]
+
+# Configurações do allauth
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # Nosso modelo não usa username
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # 'mandatory' para produção
+ACCOUNT_UNIQUE_EMAIL = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'optional'
+
+# Configuração de providers (chaves serão configuradas no admin)
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'APP': {
+            'client_id': config('GOOGLE_CLIENT_ID', default=''),
+            'secret': config('GOOGLE_CLIENT_SECRET', default=''),
+        }
+    },
+    'microsoft': {
+        'SCOPE': [
+            'User.Read',
+        ],
+        'APP': {
+            'client_id': config('MICROSOFT_CLIENT_ID', default=''),
+            'secret': config('MICROSOFT_CLIENT_SECRET', default=''),
+        }
+    }
+}
+
+# REST Auth
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_HTTPONLY': False,
+    'JWT_AUTH_COOKIE': 'auth-token',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
+}
