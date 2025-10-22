@@ -67,6 +67,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, IsSameTenant]
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']
 
     def get_queryset(self):
         """
@@ -76,6 +77,30 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             return User.objects.filter(tenant=self.request.user.tenant)
         return User.objects.none()
+
+    def create(self, request, *args, **kwargs):
+        """
+        Cria novo usuário no tenant do usuário autenticado
+        
+        POST /api/core/users/
+        {
+            "email": "novo@example.com",
+            "name": "Novo Usuário",
+            "password": "senha123",
+            "phone": "11999999999"
+        }
+        """
+        serializer = InviteUserSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save()
+        
+        return Response({
+            'user': UserSerializer(result['user']).data,
+            'message': 'Usuário criado com sucesso!'
+        }, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated, IsTenantAdmin])
     def invite(self, request):

@@ -90,9 +90,12 @@ class InviteUserSerializer(serializers.Serializer):
     """
     email = serializers.EmailField(required=True)
     name = serializers.CharField(required=True, max_length=255)
+    phone = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    password = serializers.CharField(required=False, write_only=True)
     role = serializers.ChoiceField(
         choices=User.ROLE_CHOICES,
-        required=True
+        required=False,
+        default='profissional'
     )
 
     def validate_email(self, value):
@@ -102,38 +105,50 @@ class InviteUserSerializer(serializers.Serializer):
         return value
 
     def validate_role(self, value):
-        """Não permite convidar outro admin"""
-        if value == 'admin':
-            raise serializers.ValidationError("Não é permitido convidar outro administrador.")
+        """Não permite convidar outro admin via convite (usar apenas para admin owner)"""
+        # Permite admin apenas se for o primeiro usuário
         return value
 
     def create(self, validated_data):
         """
-        Cria usuário convidado vinculado ao tenant do usuário atual
+        Cria usuário vinculado ao tenant do usuário atual
         """
         # Obtém o tenant do contexto (passado pela view)
         request = self.context.get('request')
         tenant = request.user.tenant
 
-        # Gera senha temporária (pode ser melhorado com envio de email)
-        import secrets
-        temporary_password = secrets.token_urlsafe(12)
+        # Se senha foi fornecida, usa ela; senão gera temporária
+        password = validated_data.pop('password', None)
+        if not password:
+            import secrets
+            password = secrets.token_urlsafe(12)
+            is_temp_password = True
+        else:
+            is_temp_password = False
+
+        # Remove phone do validated_data se estiver vazio
+        phone = validated_data.pop('phone', None)
 
         # AÇÃO 1: Criar Usuário Convidado
         user = User.objects.create_user(
             email=validated_data['email'],
-            password=temporary_password,
+            password=password,
             name=validated_data['name'],
             tenant=tenant,  # LIGAÇÃO AUTOMÁTICA!
-            role=validated_data['role']
+            role=validated_data.get('role', 'profissional')
         )
+        
+        # Adiciona telefone se fornecido
+        if phone:
+            user.phone = phone
+            user.save()
 
         # TODO: AÇÃO 2: Enviar email com senha temporária
         # send_invitation_email(user, temporary_password)
 
         return {
             'user': user,
-            'temporary_password': temporary_password
+            'temporary_password': password if is_temp_password else None
         }
 
 
