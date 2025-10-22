@@ -216,9 +216,10 @@ AUTHENTICATION_BACKENDS = [
 
 # Configurações do allauth
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # Nosso modelo não usa username
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
+# Configurações modernas do allauth (removendo deprecations)
+ACCOUNT_LOGIN_METHODS = {'email'}  # Substitui ACCOUNT_AUTHENTICATION_METHOD
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Substitui EMAIL_REQUIRED e USERNAME_REQUIRED
 ACCOUNT_EMAIL_VERIFICATION = 'optional'  # 'mandatory' para produção
 ACCOUNT_UNIQUE_EMAIL = True
 SOCIALACCOUNT_AUTO_SIGNUP = True

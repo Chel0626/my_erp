@@ -16,8 +16,8 @@
 
 ### Frontend (Next.js)
 - **Status:** ✅ RODANDO  
-- **URL:** http://localhost:3001
-- **Porta:** 3001 (3000 estava em uso)
+- **URL:** http://localhost:3000
+- **Porta:** 3000
 - **Versão:** Next.js 15.5.5 (Turbopack)
 
 ---
@@ -31,9 +31,9 @@
 
 ### ✅ Solução Aplicada
 - **Arquivo modificado:** `backend/config/settings.py`
-- **Mudança:** Adicionada porta 3001 ao `CORS_ALLOWED_ORIGINS`
-- **Antes:** `http://localhost:3000,http://localhost:3002`
-- **Depois:** `http://localhost:3000,http://localhost:3001,http://localhost:3002`
+- **Mudança 1:** Adicionada porta 3001 ao `CORS_ALLOWED_ORIGINS`
+- **Mudança 2:** Liberada porta 3000 (matou processo PID 5000)
+- **CORS atual:** `http://localhost:3000,http://localhost:3001,http://localhost:3002`
 
 ### 🎯 Resultado
 - ✅ Backend reiniciado
@@ -47,21 +47,21 @@
 
 ### 1. Acesso Normal (Tenant)
 ```
-URL: http://localhost:3001/login
+URL: http://localhost:3000/login
 Email: admin@barbearia.com
 Senha: admin123
 ```
 
 ### 2. Acesso Super Admin
 ```
-URL: http://localhost:3001/login
+URL: http://localhost:3000/login
 Email: superadmin@erp.com
 Senha: admin123
 ```
 
 Após login, acesse:
-- Tenant Dashboard: http://localhost:3001/dashboard
-- Super Admin: http://localhost:3001/superadmin
+- Tenant Dashboard: http://localhost:3000/dashboard
+- Super Admin: http://localhost:3000/superadmin
 
 ---
 
@@ -182,7 +182,7 @@ curl http://localhost:3001/
 **Os servidores estão rodando e o login está funcionando perfeitamente!**
 
 Você pode acessar:
-- 🏠 **Frontend:** http://localhost:3001
+- 🏠 **Frontend:** http://localhost:3000
 - 🔌 **Backend API:** http://localhost:8000/api
 - 📖 **Admin Django:** http://localhost:8000/admin
 

@@ -3,6 +3,7 @@ Serializers do módulo Financeiro
 """
 from rest_framework import serializers
 from django.db import IntegrityError
+from decimal import Decimal
 from .models import PaymentMethod, Transaction, CashFlow
 
 
@@ -96,7 +97,7 @@ class CreateTransactionSerializer(serializers.Serializer):
     """Serializer simplificado para criar transação"""
     type = serializers.ChoiceField(choices=['receita', 'despesa'], required=True)
     description = serializers.CharField(required=True, max_length=255)
-    amount = serializers.DecimalField(required=True, max_digits=10, decimal_places=2, min_value=0.01)
+    amount = serializers.DecimalField(required=True, max_digits=10, decimal_places=2, min_value=Decimal('0.01'))
     date = serializers.DateField(required=True)
     payment_method_id = serializers.UUIDField(required=True)
     appointment_id = serializers.UUIDField(required=False, allow_null=True)
