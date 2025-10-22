@@ -4,7 +4,7 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCustomers } from '@/hooks/useCustomers';
 import {
   Command,
@@ -52,12 +52,9 @@ export function CustomerSelector({ value, onChange, onCreateNew }: CustomerSelec
   const selectedCustomer = customers?.find((c) => c.id === value);
 
   const handleSelect = (customerId: string) => {
-    console.log('🔍 handleSelect chamado com:', customerId);
     const customer = customers?.find((c) => c.id === customerId);
-    console.log('👤 Cliente encontrado:', customer);
     
     if (customer) {
-      console.log('✅ Chamando onChange com dados do cliente');
       onChange(customerId, {
         name: customer.name,
         phone: customer.phone,
@@ -130,9 +127,7 @@ export function CustomerSelector({ value, onChange, onCreateNew }: CustomerSelec
                   <CommandItem
                     key={customer.id}
                     value={customer.id}
-                    onSelect={(currentValue) => {
-                      console.log('🖱️ CommandItem.onSelect:', currentValue);
-                      console.log('🆔 customer.id:', customer.id);
+                    onSelect={() => {
                       handleSelect(customer.id); // Passa o ID direto ao invés de usar currentValue
                     }}
                     className="flex items-center gap-2 py-2"

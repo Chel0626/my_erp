@@ -7,7 +7,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Users, TrendingUp, Award } from 'lucide-react';
+import { Users, Award } from 'lucide-react';
 
 interface ProfessionalPerformanceProps {
   data: Array<{

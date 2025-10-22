@@ -35,7 +35,6 @@ import {
   useStatusDistribution,
   useTopServices,
   useProfessionalPerformance,
-  useAppointmentsTimeline,
   useCommissionPerformance,
   useBestSellingProducts,
   ReportFilters,

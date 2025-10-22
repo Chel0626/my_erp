@@ -142,8 +142,6 @@ export default function AppointmentsPage() {
 
   const handleSubmit = async (data: CreateAppointmentInput) => {
     try {
-      console.log('📤 Enviando dados do agendamento:', data);
-      
       if (editingAppointment) {
         await updateMutation.mutateAsync({
           id: editingAppointment.id,

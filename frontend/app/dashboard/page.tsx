@@ -7,12 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Calendar, 
   DollarSign, 
-  TrendingUp, 
-  Users,
+  TrendingUp,
   Clock,
-  CheckCircle2,
-  XCircle,
-  AlertCircle
+  CheckCircle2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

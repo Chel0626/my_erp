@@ -186,14 +186,9 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
   
   // Handler quando cliente é selecionado
   const handleCustomerSelect = (customerId?: string, customerData?: { name: string; phone: string; email?: string }) => {
-    console.log('🎯 handleCustomerSelect chamado:');
-    console.log('  - customerId:', customerId);
-    console.log('  - customerData:', customerData);
-    
     setSelectedCustomerId(customerId || null);
     
     if (customerId && customerData) {
-      console.log('✅ Preenchendo dados do cliente selecionado');
       // Preenche dados do cliente selecionado
       setFormData(prev => ({
         ...prev,
@@ -202,7 +197,6 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
         customer_email: customerData.email || '',
       }));
     } else {
-      console.log('🔄 Limpando dados do cliente');
       // Limpa dados se desselecionou
       setFormData(prev => ({
         ...prev,

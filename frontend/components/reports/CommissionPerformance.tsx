@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TrendingUp, DollarSign, Award, AlertCircle } from 'lucide-react';
+import { Award, AlertCircle } from 'lucide-react';
 import { CommissionPerformance as CommissionPerformanceType } from '@/hooks/useReports';
 
 interface CommissionPerformanceProps {

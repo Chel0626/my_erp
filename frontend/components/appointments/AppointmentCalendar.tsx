@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin, { EventDragStopArg, DateClickArg } from '@fullcalendar/interaction';
+import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 import { EventClickArg, EventDropArg } from '@fullcalendar/core';
@@ -35,20 +35,6 @@ const getServiceColor = (serviceId: string, index: number): string => {
   ];
   
   return colors[index % colors.length];
-};
-
-// Função para obter cor por status
-const getStatusColor = (status: string): string => {
-  const statusColors: Record<string, string> = {
-    'marcado': '#94a3b8',      // slate-400
-    'confirmado': '#3b82f6',   // blue-500
-    'em_atendimento': '#f59e0b', // amber-500
-    'concluido': '#10b981',    // emerald-500
-    'cancelado': '#ef4444',    // red-500
-    'falta': '#6b7280',        // gray-500
-  };
-  
-  return statusColors[status] || statusColors['marcado'];
 };
 
 // Função para obter selo/badge de status
