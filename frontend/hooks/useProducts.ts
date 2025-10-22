@@ -76,7 +76,8 @@ export function useProducts(filters?: ProductFilters) {
       if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
       
       const { data } = await api.get<Product[]>(`/inventory/products/?${params.toString()}`);
-      return data;
+      // Handle paginated response
+      return Array.isArray(data) ? data : (data as any).results || [];
     },
   });
 }
