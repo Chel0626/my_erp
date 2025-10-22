@@ -22,20 +22,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
   const router = useRouter();
 
   // Carrega dados do usuário ao montar
   useEffect(() => {
-    loadUser();
-  }, []);
+    const initAuth = async () => {
+      if (isLoadingUser) return; // Evita múltiplas chamadas simultâneas
+      await loadUser();
+    };
+    initAuth();
+  }, []); // Array vazio - executa apenas uma vez
 
   const loadUser = async () => {
+    if (isLoadingUser) return; // Previne chamadas simultâneas
+    
     try {
+      setIsLoadingUser(true);
       const accessToken = localStorage.getItem('access_token');
       console.log('🔑 Token encontrado:', accessToken ? 'Sim' : 'Não');
       
       if (!accessToken) {
         setLoading(false);
+        setIsLoadingUser(false);
         return;
       }
 
@@ -55,8 +64,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Limpa tokens se houver erro
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      setUser(null);
+      setTenant(null);
     } finally {
       setLoading(false);
+      setIsLoadingUser(false);
     }
   };
 

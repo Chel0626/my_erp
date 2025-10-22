@@ -38,7 +38,7 @@ api.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     // Se erro 401 e não é retry, tenta refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
       originalRequest._retry = true;
 
       try {
@@ -54,6 +54,9 @@ api.interceptors.response.use(
 
         const { access } = response.data;
         localStorage.setItem('access_token', access);
+        
+        // Atualiza cookie também
+        document.cookie = `access_token=${access}; path=/; max-age=3600`;
 
         // Retry request original com novo token
         if (originalRequest.headers) {
@@ -64,7 +67,13 @@ api.interceptors.response.use(
         // Refresh falhou - limpa tokens e redireciona para login
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        document.cookie = 'access_token=; path=/; max-age=0';
+        document.cookie = 'refresh_token=; path=/; max-age=0';
+        
+        // Previne loops - só redireciona se não estiver já na página de login
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }
