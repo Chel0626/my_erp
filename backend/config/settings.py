@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "inventory",
     "commissions",
     "notifications",
+    "superadmin",  # Super Admin Dashboard
 ]
 
 SITE_ID = 1

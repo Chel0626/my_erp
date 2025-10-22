@@ -85,6 +85,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('barbeiro', 'Barbeiro'),
         ('caixa', 'Caixa'),
         ('atendente', 'Atendente'),
+        ('superadmin', 'Super Administrador'),  # Super admin para gerenciar todos os tenants
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
