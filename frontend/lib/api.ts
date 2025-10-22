@@ -48,7 +48,7 @@ api.interceptors.response.use(
           throw new Error('No refresh token');
         }
 
-        const response = await axios.post(`${API_URL}/auth/refresh/`, {
+        const response = await axios.post(`${API_URL}/core/auth/refresh/`, {
           refresh: refreshToken,
         });
 
@@ -77,17 +77,17 @@ api.interceptors.response.use(
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await api.post('/auth/login/', { email, password });
+    const response = await api.post('/core/auth/login/', { email, password });
     return response.data;
   },
 
   signup: async (data: { email: string; password: string; name: string; company_name: string }) => {
-    const response = await api.post('/auth/signup/', data);
+    const response = await api.post('/core/auth/signup/', data);
     return response.data;
   },
 
   getCurrentUser: async () => {
-    const response = await api.get('/users/me/');
+    const response = await api.get('/core/users/me/');
     return response.data;
   },
 };
@@ -96,7 +96,7 @@ export const authApi = {
 
 export const tenantApi = {
   getMyTenant: async () => {
-    const response = await api.get('/tenants/my_tenant/');
+    const response = await api.get('/core/tenants/my_tenant/');
     return response.data;
   },
 };
@@ -105,17 +105,17 @@ export const tenantApi = {
 
 export const userApi = {
   list: async () => {
-    const response = await api.get('/users/');
+    const response = await api.get('/core/users/');
     return response.data;
   },
 
   invite: async (data: { email: string; name: string; role: string }) => {
-    const response = await api.post('/users/invite/', data);
+    const response = await api.post('/core/users/invite/', data);
     return response.data;
   },
 
   changePassword: async (oldPassword: string, newPassword: string) => {
-    const response = await api.post('/users/change_password/', {
+    const response = await api.post('/core/users/change_password/', {
       old_password: oldPassword,
       new_password: newPassword,
     });
