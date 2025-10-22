@@ -7,11 +7,20 @@
 import { useState, useEffect } from 'react';
 import { Appointment, CreateAppointmentInput } from '@/hooks/useAppointments';
 import { useServices } from '@/hooks/useServices';
+import { useQuery } from '@tanstack/react-query';
+import { userApi } from '@/lib/api';
 import { CustomerSelector } from './CustomerSelector';
 import { QuickCreateCustomer } from './QuickCreateCustomer';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 
 interface AppointmentFormProps {
@@ -24,6 +33,12 @@ interface AppointmentFormProps {
 
 export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, isLoading }: AppointmentFormProps) {
   const { data: services = [] } = useServices(true); // Apenas serviços ativos
+  
+  // Busca lista de usuários (profissionais)
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: userApi.list,
+  });
   
   const [formData, setFormData] = useState<CreateAppointmentInput>({
     customer_name: '',
@@ -323,24 +338,29 @@ export function AppointmentForm({ appointment, initialDate, onSubmit, onCancel, 
         </p>
       </div>
 
-      {/* Profissional (temporário - depois integraremos com API de users) */}
+      {/* Profissional */}
       <div className="space-y-2">
         <Label htmlFor="professional_id">
           Profissional <span className="text-red-500">*</span>
         </Label>
-        <Input
-          id="professional_id"
+        <Select
           value={formData.professional_id}
-          onChange={(e) => handleChange('professional_id', e.target.value)}
-          placeholder="ID do profissional (temporário)"
-          className={errors.professional_id ? 'border-red-500' : ''}
-        />
+          onValueChange={(value) => handleChange('professional_id', value)}
+        >
+          <SelectTrigger className={errors.professional_id ? 'border-red-500' : ''}>
+            <SelectValue placeholder="Selecione o profissional" />
+          </SelectTrigger>
+          <SelectContent>
+            {users.map((user: any) => (
+              <SelectItem key={user.id} value={user.id}>
+                {user.name} {user.is_staff && '👑'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {errors.professional_id && (
           <p className="text-sm text-red-500">{errors.professional_id}</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Por enquanto, use o ID do usuário do profissional
-        </p>
       </div>
 
       {/* Data e Hora */}
