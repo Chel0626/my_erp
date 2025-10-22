@@ -14,6 +14,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,9 +52,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await authApi.getCurrentUser();
       setUser(userData);
 
-      // Busca dados do tenant
-      const tenantData = await tenantApi.getMyTenant();
-      setTenant(tenantData);
+      // Busca dados do tenant (apenas se não for superadmin)
+      if (userData.role !== 'superadmin') {
+        try {
+          const tenantData = await tenantApi.getMyTenant();
+          setTenant(tenantData);
+        } catch (error) {
+          console.warn('⚠️ Erro ao buscar tenant:', error);
+          // Superadmin não tem tenant, isso é normal
+          setTenant(null);
+        }
+      } else {
+        // Superadmin não tem tenant
+        setTenant(null);
+      }
     } catch (error) {
       console.error('❌ Erro ao carregar usuário:', error);
       // Limpa tokens se houver erro
@@ -82,8 +94,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Carrega dados do usuário
       await loadUser();
 
-      // Redireciona para dashboard
-      router.push('/dashboard');
+      // Busca dados do usuário para redirecionar corretamente
+      const userData = await authApi.getCurrentUser();
+
+      // Redireciona baseado no role
+      if (userData.role === 'superadmin') {
+        router.push('/superadmin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       console.error('❌ Erro no login:', error);
       throw new Error(error.response?.data?.detail || 'Erro ao fazer login');
@@ -145,6 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
+    isSuperAdmin: user?.role === 'superadmin',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
