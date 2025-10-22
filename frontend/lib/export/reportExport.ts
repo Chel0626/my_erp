@@ -169,7 +169,11 @@ export function exportReportToExcel(data: ExcelReportData) {
   if (data.status) {
     summaryData.push(['Distribuição por Status'], ['Status', 'Quantidade', 'Percentual']);
     data.status.data.forEach((item) => {
-      summaryData.push([item.status_display, item.count, `${item.percentage.toFixed(2)}%`]);
+      summaryData.push([
+        String(item.status_display), 
+        String(item.count), 
+        `${(item.percentage as number).toFixed(2)}%`
+      ]);
     });
     summaryData.push([]);
   }
@@ -187,10 +191,10 @@ export function exportReportToExcel(data: ExcelReportData) {
 
     data.topServices.forEach((item) => {
       servicesData.push([
-        item.service_name,
-        parseFloat(item.price),
-        item.appointments_count,
-        parseFloat(item.total_revenue),
+        String(item.service_name),
+        String(typeof item.price === 'number' ? item.price : parseFloat(String(item.price))),
+        String(item.appointments_count),
+        String(typeof item.total_revenue === 'number' ? item.total_revenue : parseFloat(String(item.total_revenue))),
       ]);
     });
 
@@ -216,13 +220,13 @@ export function exportReportToExcel(data: ExcelReportData) {
 
     data.professionals.forEach((item) => {
       professionalsData.push([
-        item.professional_name,
-        item.professional_email,
-        item.total_appointments,
-        item.completed,
-        item.cancelled,
-        item.completion_rate,
-        item.total_revenue,
+        String(item.professional_name),
+        String(item.professional_email),
+        String(item.total_appointments),
+        String(item.completed),
+        String(item.cancelled),
+        String(item.completion_rate),
+        String(item.total_revenue),
       ]);
     });
 
@@ -237,8 +241,8 @@ export function exportReportToExcel(data: ExcelReportData) {
     data.revenue.data.forEach((item) => {
       revenueData.push([
         format(new Date(item.period), 'dd/MM/yyyy'),
-        parseFloat(item.total),
-        item.count,
+        String(typeof item.total === 'number' ? item.total : parseFloat(String(item.total))),
+        String(item.count),
       ]);
     });
 

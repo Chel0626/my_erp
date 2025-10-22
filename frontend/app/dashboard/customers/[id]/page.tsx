@@ -365,7 +365,7 @@ export default function CustomerDetailPage({
                           Profissional:
                         </span>
                         <p className="font-semibold">
-                          {appointment.professional_name}
+                          {appointment.professional_details?.name || 'Não especificado'}
                         </p>
                       </div>
                       {appointment.notes && (
@@ -404,7 +404,7 @@ export default function CustomerDetailPage({
                         <div className="text-2xl font-bold text-green-600">
                           R$ {appointments
                             .filter((a: Appointment) => a.status === 'concluido' && a.final_price)
-                            .reduce((sum: number, a: Appointment) => sum + parseFloat(a.final_price || '0'), 0)
+                            .reduce((sum: number, a: Appointment) => sum + (typeof a.final_price === 'number' ? a.final_price : parseFloat(String(a.final_price || 0))), 0)
                             .toFixed(2)}
                         </div>
                         <p className="text-xs text-muted-foreground">Total Gasto</p>
@@ -421,10 +421,10 @@ export default function CustomerDetailPage({
                     <Card>
                       <CardContent className="pt-6">
                         <div className="text-2xl font-bold text-orange-600">
-                          R$ {appointments
+                          R$ {(appointments
                             .filter((a: Appointment) => a.status === 'concluido' && a.final_price)
-                            .reduce((sum: number, a: Appointment) => sum + parseFloat(a.final_price || '0'), 0) / 
-                            Math.max(appointments.filter((a: Appointment) => a.status === 'concluido').length, 1) || 0}
+                            .reduce((sum: number, a: Appointment) => sum + (typeof a.final_price === 'number' ? a.final_price : parseFloat(String(a.final_price || 0))), 0) / 
+                            Math.max(appointments.filter((a: Appointment) => a.status === 'concluido').length, 1) || 0).toFixed(2)}
                         </div>
                         <p className="text-xs text-muted-foreground">Ticket Médio</p>
                       </CardContent>
@@ -441,7 +441,7 @@ export default function CustomerDetailPage({
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
                         >
                           <div className="flex-1">
-                            <p className="font-medium">{appointment.service_name}</p>
+                            <p className="font-medium">{appointment.service_details?.name || 'Serviço não especificado'}</p>
                             <p className="text-sm text-muted-foreground">
                               {format(new Date(appointment.start_time), "dd/MM/yyyy 'às' HH:mm", {
                                 locale: ptBR,
@@ -455,7 +455,7 @@ export default function CustomerDetailPage({
                               </Badge>
                             )}
                             <span className="text-lg font-semibold text-green-600">
-                              R$ {parseFloat(appointment.final_price || '0').toFixed(2)}
+                              R$ {(typeof appointment.final_price === 'number' ? appointment.final_price : parseFloat(String(appointment.final_price || 0))).toFixed(2)}
                             </span>
                           </div>
                         </div>

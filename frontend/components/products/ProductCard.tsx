@@ -36,9 +36,9 @@ export function ProductCard({
 }: ProductCardProps) {
   
   // Define cor do badge de estoque
-  const getStockBadgeVariant = () => {
+  const getStockBadgeVariant = (): "destructive" | "default" | "secondary" | "outline" => {
     if (product.stock_status === 'out') return 'destructive';
-    if (product.stock_status === 'low') return 'warning';
+    if (product.stock_status === 'low') return 'secondary';
     return 'default';
   };
 

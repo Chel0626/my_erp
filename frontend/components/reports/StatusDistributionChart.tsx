@@ -6,6 +6,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import type { PieLabelRenderProps } from 'recharts';
 import { CheckCircle, Clock, XCircle, Calendar } from 'lucide-react';
 
 interface StatusDistributionChartProps {
@@ -48,8 +49,9 @@ export function StatusDistributionChart({ data, total }: StatusDistributionChart
   }));
 
   // Custom label para mostrar percentual
-  const renderLabel = (props: { percentage: number }) => {
-    return `${props.percentage.toFixed(1)}%`;
+  const renderLabel = (props: PieLabelRenderProps) => {
+    const percentage = (props as unknown as { percentage: number }).percentage;
+    return `${percentage.toFixed(1)}%`;
   };
 
   return (
