@@ -23,6 +23,9 @@ export default function SubscriptionsPage() {
   const upgradeSubscription = useUpgradeSubscription();
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
+  // Garante que subscriptions é um array
+  const subscriptionsArray = Array.isArray(subscriptions) ? subscriptions : [];
+
   const handleSuspend = async (id: number, tenantName: string) => {
     if (!confirm(`Tem certeza que deseja suspender a assinatura de "${tenantName}"?`)) {
       return;
@@ -124,9 +127,9 @@ export default function SubscriptionsPage() {
       </div>
 
       {/* Subscriptions List */}
-      {subscriptions && subscriptions.length > 0 ? (
+      {subscriptionsArray.length > 0 ? (
         <div className="space-y-4">
-          {subscriptions.map((subscription) => (
+          {subscriptionsArray.map((subscription) => (
             <Card key={subscription.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">

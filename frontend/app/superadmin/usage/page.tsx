@@ -17,14 +17,17 @@ import { formatCurrency } from '@/lib/utils';
 export default function UsageStatsPage() {
   const { data: stats, isLoading } = useUsageStats();
 
+  // Garante que stats é um array
+  const statsArray = Array.isArray(stats) ? stats : [];
+
   // Group stats by tenant
-  const statsByTenant = stats?.reduce((acc, stat) => {
+  const statsByTenant = statsArray.reduce((acc, stat) => {
     if (!acc[stat.tenant_name]) {
       acc[stat.tenant_name] = [];
     }
     acc[stat.tenant_name].push(stat);
     return acc;
-  }, {} as Record<string, typeof stats>);
+  }, {} as Record<string, typeof statsArray>);
 
   if (isLoading) {
     return (

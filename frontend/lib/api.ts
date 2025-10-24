@@ -39,6 +39,22 @@ api.interceptors.response.use(
 
     // Se erro 401 e não é retry, tenta refresh
     if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
+      // Não tenta refresh se a URL já for de refresh (evita loop)
+      if (originalRequest.url?.includes('/auth/refresh/')) {
+        console.error('🔴 Refresh token inválido ou expirado');
+        // Limpa tokens
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        document.cookie = 'access_token=; path=/; max-age=0';
+        document.cookie = 'refresh_token=; path=/; max-age=0';
+        
+        // Só redireciona se não estiver já na página de login/signup
+        if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/signup')) {
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
       try {
@@ -64,14 +80,15 @@ api.interceptors.response.use(
         }
         return api(originalRequest);
       } catch (refreshError) {
+        console.error('🔴 Erro ao renovar token:', refreshError);
         // Refresh falhou - limpa tokens e redireciona para login
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         document.cookie = 'access_token=; path=/; max-age=0';
         document.cookie = 'refresh_token=; path=/; max-age=0';
         
-        // Previne loops - só redireciona se não estiver já na página de login
-        if (!window.location.pathname.startsWith('/login')) {
+        // Previne loops - só redireciona se não estiver já na página de login/signup
+        if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/signup')) {
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);

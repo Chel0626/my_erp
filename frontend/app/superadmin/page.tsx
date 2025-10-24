@@ -21,6 +21,10 @@ export default function SuperAdminDashboard() {
   const { data: revenueByPlan, isLoading: revenueLoading } = useRevenueByPlan();
   const { data: recentErrors, isLoading: errorsLoading } = useRecentErrors();
 
+  // Garante que os dados são arrays
+  const revenueArray = Array.isArray(revenueByPlan) ? revenueByPlan : [];
+  const errorsArray = Array.isArray(recentErrors) ? recentErrors : [];
+
   if (statsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -155,9 +159,9 @@ export default function SuperAdminDashboard() {
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
             </div>
-          ) : revenueByPlan && revenueByPlan.length > 0 ? (
+          ) : revenueArray.length > 0 ? (
             <div className="space-y-4">
-              {revenueByPlan.map((item) => (
+              {revenueArray.map((item) => (
                 <div key={item.plan} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Badge variant="outline">{item.plan_display}</Badge>
@@ -195,9 +199,9 @@ export default function SuperAdminDashboard() {
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
             </div>
-          ) : recentErrors && recentErrors.length > 0 ? (
+          ) : errorsArray.length > 0 ? (
             <div className="space-y-4">
-              {recentErrors.slice(0, 5).map((error) => (
+              {errorsArray.slice(0, 5).map((error) => (
                 <div key={error.id} className="flex items-start gap-3 p-3 border rounded-lg">
                   <AlertTriangle className={`h-5 w-5 mt-0.5 ${
                     error.severity === 'critical' ? 'text-red-600' : 

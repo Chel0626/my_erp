@@ -22,6 +22,9 @@ export default function ErrorsPage() {
   const [expandedError, setExpandedError] = useState<number | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState('');
 
+  // Garante que errors é um array
+  const errorsArray = Array.isArray(errors) ? errors : [];
+
   const handleResolve = async (id: number) => {
     if (!resolutionNotes.trim()) {
       toast.error('Por favor, adicione uma nota de resolução');
@@ -90,7 +93,7 @@ export default function ErrorsPage() {
   };
 
   // Calculate stats
-  const stats = errors?.reduce(
+  const stats = errorsArray.reduce(
     (acc, error) => {
       acc.total++;
       if (error.severity === 'critical') acc.critical++;
@@ -170,9 +173,9 @@ export default function ErrorsPage() {
       )}
 
       {/* Errors List */}
-      {errors && errors.length > 0 ? (
+      {errorsArray.length > 0 ? (
         <div className="space-y-3">
-          {errors.map((error) => (
+          {errorsArray.map((error) => (
             <Card key={error.id}>
               <CardContent className="p-4">
                 <div className="space-y-3">

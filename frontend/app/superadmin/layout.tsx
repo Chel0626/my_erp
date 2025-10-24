@@ -19,17 +19,30 @@ export default function SuperAdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    // Aguarda carregar antes de redirecionar
+    if (loading) return;
+    
     if (!user) {
       router.push('/login');
     } else if (user.role !== 'superadmin') {
       router.push('/dashboard');
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
+  // Mostra loading enquanto carrega o usuário
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Se não tem usuário ou não é superadmin, mostra loading (vai redirecionar)
   if (!user || user.role !== 'superadmin') {
     return (
       <div className="flex items-center justify-center min-h-screen">

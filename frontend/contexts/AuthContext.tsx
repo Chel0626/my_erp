@@ -66,11 +66,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Superadmin não tem tenant
         setTenant(null);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erro ao carregar usuário:', error);
+      
+      // Se o erro for 401, significa que os tokens estão inválidos/expirados
+      if (error.response?.status === 401) {
+        console.warn('🔑 Tokens expirados ou inválidos - limpando autenticação');
+      }
+      
       // Limpa tokens se houver erro
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      document.cookie = 'access_token=; path=/; max-age=0';
+      document.cookie = 'refresh_token=; path=/; max-age=0';
       setUser(null);
       setTenant(null);
     } finally {

@@ -21,6 +21,9 @@ export default function TenantsPage() {
   const activateTenant = useActivateTenant();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  // Garante que tenants é um array
+  const tenantsArray = Array.isArray(tenants) ? tenants : [];
+
   const handleSuspend = async (id: string, name: string) => {
     if (!confirm(`Tem certeza que deseja suspender o tenant "${name}"?`)) {
       return;
@@ -90,9 +93,9 @@ export default function TenantsPage() {
       </div>
 
       {/* Tenants Grid */}
-      {tenants && tenants.length > 0 ? (
+      {tenantsArray.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {tenants.map((tenant) => (
+          {tenantsArray.map((tenant) => (
             <Card key={tenant.id} className={!tenant.is_active ? 'opacity-60' : ''}>
               <CardHeader>
                 <div className="flex items-start justify-between">

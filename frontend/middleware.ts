@@ -9,16 +9,18 @@ export function middleware(request: NextRequest) {
   const publicRoutes = ['/login', '/signup'];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
-  // Se está tentando acessar rota protegida sem token
+  // Rotas de superadmin
+  const isSuperAdminRoute = pathname.startsWith('/superadmin');
+
+  // Se está tentando acessar rota protegida sem token, redireciona para login
   if (!token && !isPublicRoute) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Se já está logado e tenta acessar login/signup, redireciona para dashboard
-  if (token && isPublicRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
+  // Se já está logado e tenta acessar login/signup
+  // Não redireciona - deixa o AuthContext lidar com isso baseado no role
+  // (superadmin vai para /superadmin, outros para /dashboard)
+  
   return NextResponse.next();
 }
 

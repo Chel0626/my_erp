@@ -20,6 +20,9 @@ export default function PaymentsPage() {
   const markPaid = useMarkPaymentPaid();
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
+  // Garante que payments é um array (pode vir como objeto paginado ou array direto)
+  const paymentsArray = Array.isArray(payments) ? payments : [];
+
   const handleMarkPaid = async (id: number, tenantName: string) => {
     if (!confirm(`Confirmar pagamento de "${tenantName}"?`)) {
       return;
@@ -71,7 +74,7 @@ export default function PaymentsPage() {
   };
 
   // Calculate totals
-  const totals = payments?.reduce(
+  const totals = paymentsArray.reduce(
     (acc, payment) => {
       const amount = parseFloat(payment.amount);
       acc.total += amount;
@@ -101,7 +104,7 @@ export default function PaymentsPage() {
             Histórico de Pagamentos
           </h1>
           <p className="text-muted-foreground mt-1">
-            Total de {payments?.length || 0} transação(ões)
+            Total de {paymentsArray.length || 0} transação(ões)
           </p>
         </div>
       </div>
@@ -152,9 +155,9 @@ export default function PaymentsPage() {
       )}
 
       {/* Payments List */}
-      {payments && payments.length > 0 ? (
+      {paymentsArray.length > 0 ? (
         <div className="space-y-3">
-          {payments.map((payment) => (
+          {paymentsArray.map((payment) => (
             <Card key={payment.id}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
