@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +31,41 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 
-# Application definition
+# =============================================================================
+# SENTRY CONFIGURATION
+# =============================================================================
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
+SENTRY_DSN = config('SENTRY_DSN', default='')
+SENTRY_ENVIRONMENT = config('SENTRY_ENVIRONMENT', default='development')
+SENTRY_RELEASE = config('SENTRY_RELEASE', default='dev')
+
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[
+            DjangoIntegration(),
+        ],
+        # Performance Monitoring
+        traces_sample_rate=1.0 if DEBUG else 0.1,
+        
+        # Envia dados do usuário (email, username)
+        send_default_pii=True,
+        
+        # Ambiente (development, staging, production)
+        environment=SENTRY_ENVIRONMENT,
+        
+        # Versão da aplicação (útil para rastrear quando bugs foram introduzidos)
+        release=SENTRY_RELEASE,
+        
+        # Em desenvolvimento, mostra mais detalhes no console
+        debug=DEBUG,
+    )
+    print(f"✅ Sentry inicializado: {SENTRY_ENVIRONMENT} (Release: {SENTRY_RELEASE})")
+else:
+    print("⚠️ Sentry DSN não configurado - Monitoramento de erros desabilitado")
+# =============================================================================# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
