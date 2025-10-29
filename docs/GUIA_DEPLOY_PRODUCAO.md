@@ -44,7 +44,9 @@
 #### **1.5 Monitoramento e Logs**
 - [ ] **Sentry** (Rastreamento de Erros)
   - Criar projeto Django e Next.js
-  - Anotar: `SENTRY_DSN`
+  - Anotar:
+    - `SENTRY_DSN` (Backend Django): https://2e26d7a896e582b7b47c781e0469eaa9@o4510268451717120.ingest.us.sentry.io/4510268455387136
+    - `NEXT_PUBLIC_SENTRY_DSN` (Frontend Next.js): https://bb960e858674c4a75501db89b5a6e0ba@o4510268451717120.ingest.us.sentry.io/4510268495691776
 - [ ] **Logflare/Logtail** (Logs centralizados) - Opcional
 
 #### **1.6 Cache e Performance**
@@ -253,7 +255,7 @@ LOGGING = {
 NEXT_PUBLIC_API_URL=https://api.seuerp.com/api
 NEXT_PUBLIC_WS_URL=wss://api.seuerp.com/ws
 NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY=APP_USR-xxxxxxxx
-NEXT_PUBLIC_SENTRY_DSN=https://xxx@sentry.io/xxx
+NEXT_PUBLIC_SENTRY_DSN=https://bb960e858674c4a75501db89b5a6e0ba@o4510268451717120.ingest.us.sentry.io/4510268495691776
 ```
 
 **Otimizar `next.config.ts`:**
@@ -446,8 +448,10 @@ AWS_S3_REGION_NAME=us-east-1
 MERCADOPAGO_ACCESS_TOKEN=APP_USR-xxx
 MERCADOPAGO_PUBLIC_KEY=APP_USR-xxx
 
-# Sentry
-SENTRY_DSN=https://xxx@sentry.io/xxx
+# Sentry (Backend Django)
+SENTRY_DSN=https://2e26d7a896e582b7b47c781e0469eaa9@o4510268451717120.ingest.us.sentry.io/4510268455387136
+# Sentry (Frontend Next.js)
+NEXT_PUBLIC_SENTRY_DSN=https://bb960e858674c4a75501db89b5a6e0ba@o4510268451717120.ingest.us.sentry.io/4510268495691776
 ```
 
 #### **6.2 Comandos Pós-Deploy**
