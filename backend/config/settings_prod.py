@@ -11,4 +11,7 @@ ALLOWED_HOSTS = ['*']
 # DATABASES['default']['HOST'] = os.getenv('DB_HOST', DATABASES['default']['HOST'])
 # DATABASES['default']['PORT'] = os.getenv('DB_PORT', DATABASES['default']['PORT'])
 
-# Outras configurações de produção podem ser adicionadas aqui
+
+# Diretório para arquivos estáticos em produção
+import os
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
