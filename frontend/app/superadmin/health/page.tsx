@@ -54,8 +54,8 @@ export default function HealthPage() {
       setLastCheck(new Date());
     } catch (err: unknown) {
       console.error('Erro ao verificar saúde:', err);
-      if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
-        setError((err as any).message);
+      if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message?: string }).message === 'string') {
+        setError((err as { message?: string }).message!);
       } else {
         setError('Erro ao conectar com o backend');
       }
