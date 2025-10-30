@@ -2,7 +2,9 @@
  * Card de Produto
  * Exibe informações visuais do produto com badge de estoque
  */
+
 'use client';
+import Image from 'next/image';
 
 import { Product } from '@/hooks/useProducts';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -60,10 +62,13 @@ export function ProductCard({
       <CardHeader className="p-0">
         <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
           {product.image_url ? (
-            <img
+            <Image
               src={product.image_url}
               alt={product.name}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
