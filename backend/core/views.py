@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import Tenant, User
 from .serializers import (
@@ -188,3 +189,11 @@ class TenantViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({
             'message': 'Você não está associado a nenhuma empresa.'
         }, status=status.HTTP_404_NOT_FOUND)
+
+
+class PublicTokenObtainPairView(TokenObtainPairView):
+    """
+    Permite que qualquer usuário obtenha um par de tokens (access e refresh)
+    usando apenas o email e a senha.
+    """
+    permission_classes = [AllowAny]
