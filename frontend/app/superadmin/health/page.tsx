@@ -52,9 +52,13 @@ export default function HealthPage() {
       const response = await api.get('/core/health/');
       setHealth(response.data);
       setLastCheck(new Date());
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao verificar saúde:', err);
-      setError(err.message || 'Erro ao conectar com o backend');
+      if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+        setError((err as any).message);
+      } else {
+        setError('Erro ao conectar com o backend');
+      }
     } finally {
       setLoading(false);
     }
