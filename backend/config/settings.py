@@ -331,7 +331,6 @@ REST_AUTH = {
     'JWT_AUTH_SAMESITE': 'Lax',
     'SESSION_AUTHENTICATION': False,
     'USER_DETAILS_SERIALIZER': 'core.serializers.UserSerializer',
-    'REGISTER_SERIALIZER': 'core.serializers.RegisterSerializer',
 }
 
 # Configurações adicionais para JWT
