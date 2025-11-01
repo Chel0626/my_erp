@@ -14,9 +14,14 @@ from pathlib import Path
 from datetime import timedelta
 from decouple import config
 import os
+# Adiciona imports para Supabase
+import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Carrega variáveis do .env
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -138,15 +143,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Configuração do banco para Supabase
 DATABASES = {
-    "default": {
-        "ENGINE": config('DB_ENGINE', default='django.db.backends.sqlite3'),
-        "NAME": config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
-        "USER": config('DB_USER', default=''),
-        "PASSWORD": config('DB_PASSWORD', default=''),
-        "HOST": config('DB_HOST', default=''),
-        "PORT": config('DB_PORT', default=''),
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 
