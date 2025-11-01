@@ -8,20 +8,27 @@ DEBUG = False
 ALLOWED_HOSTS = ['*']
 
 # Configuração do banco de dados para produção (Supabase)
-# Força uso de IPv4 e conexão SSL
+# Usa a URL de pooling do Supabase para melhor compatibilidade com Railway
+DATABASE_URL = os.getenv('DATABASE_URL', '')
+
+# Se for Supabase, usa o pooler (porta 6543) ao invés da porta direta (5432)
+# O pooler é mais estável para conexões externas e suporta IPv4
+if 'supabase.co:5432' in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace(':5432/', ':6543/')
+    # Adiciona modo de pooling transacional
+    if '?' not in DATABASE_URL:
+        DATABASE_URL += '?pgbouncer=true&connection_limit=1'
+    else:
+        DATABASE_URL += '&pgbouncer=true&connection_limit=1'
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
+        default=DATABASE_URL,
+        conn_max_age=0,  # Desabilita persistent connections com pooler
         conn_health_checks=True,
         ssl_require=True,
     )
 }
-
-# Força uso de IPv4 apenas
-if DATABASES['default'].get('OPTIONS') is None:
-    DATABASES['default']['OPTIONS'] = {}
-DATABASES['default']['OPTIONS']['options'] = '-c gethostbyname=0'
 
 
 
