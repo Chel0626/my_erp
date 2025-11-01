@@ -321,10 +321,21 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# REST Auth
+# REST Auth Configuration
 REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_HTTPONLY': False,
     'JWT_AUTH_COOKIE': 'auth-token',
     'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
+    'JWT_AUTH_SECURE': False,  # True em produção com HTTPS
+    'JWT_AUTH_SAMESITE': 'Lax',
+    'SESSION_AUTHENTICATION': False,
+    'USER_DETAILS_SERIALIZER': 'core.serializers.UserSerializer',
+    'REGISTER_SERIALIZER': 'core.serializers.RegisterSerializer',
 }
+
+# Configurações adicionais para JWT
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'auth-token'
+JWT_AUTH_REFRESH_COOKIE = 'refresh-token'
+JWT_AUTH_HTTPONLY = False

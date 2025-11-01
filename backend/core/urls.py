@@ -3,9 +3,8 @@ URLs da app core (Multi-Tenant)
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import SignUpView, UserViewSet, TenantViewSet, PublicTokenObtainPairView
+from .views import SignUpView, UserViewSet, TenantViewSet
 from .health_views import (
     health_check,
     sentry_test_error,
@@ -18,10 +17,9 @@ router.register(r'users', UserViewSet, basename='user')
 router.register(r'tenants', TenantViewSet, basename='tenant')
 
 urlpatterns = [
-    # Auth endpoints
+    # Auth endpoints - usando dj-rest-auth
+    path('auth/', include('dj_rest_auth.urls')),  # Inclui login, logout, user, password reset
     path('auth/signup/', SignUpView.as_view(), name='signup'),
-    path('auth/login/', PublicTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     # Health Check & Monitoring
     path('health/', health_check, name='health-check'),
