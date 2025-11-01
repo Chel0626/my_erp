@@ -182,3 +182,13 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(self.validated_data['new_password'])
         user.save()
         return user
+
+
+class CustomJWTSerializer(serializers.Serializer):
+    """
+    Serializer customizado para login JWT com dj-rest-auth
+    Retorna access token, refresh token e dados do usuário
+    """
+    access = serializers.CharField(read_only=True)
+    refresh = serializers.CharField(read_only=True)
+    user = UserSerializer(read_only=True)
