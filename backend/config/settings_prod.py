@@ -19,10 +19,9 @@ if 'supabase.co' in DATABASE_URL:
     # Se não tem porta especificada, força 6543
     if ':6543' not in DATABASE_URL and 'supabase.co/' in DATABASE_URL:
         DATABASE_URL = DATABASE_URL.replace('supabase.co/', 'supabase.co:6543/')
-    # Garante parâmetros do pooler
-    if 'pgbouncer=true' not in DATABASE_URL:
-        separator = '&' if '?' in DATABASE_URL else '?'
-        DATABASE_URL += f'{separator}pgbouncer=true'
+    # Remove parâmetro pgbouncer que não é reconhecido pelo psycopg2
+    DATABASE_URL = DATABASE_URL.replace('?pgbouncer=true', '')
+    DATABASE_URL = DATABASE_URL.replace('&pgbouncer=true', '')
 
 DATABASES = {
     'default': dj_database_url.config(
