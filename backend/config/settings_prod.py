@@ -8,18 +8,21 @@ DEBUG = False
 ALLOWED_HOSTS = ['*']
 
 # Configuração do banco de dados para produção (Supabase)
-# Usa a URL de pooling do Supabase para melhor compatibilidade com Railway
+# Força uso do pooler do Supabase (porta 6543) para compatibilidade IPv4
 DATABASE_URL = os.getenv('DATABASE_URL', '')
 
-# Se for Supabase, usa o pooler (porta 6543) ao invés da porta direta (5432)
-# O pooler é mais estável para conexões externas e suporta IPv4
-if 'supabase.co:5432' in DATABASE_URL:
+# Força substituição de porta 5432 por 6543 (pooler)
+if 'supabase.co' in DATABASE_URL:
+    # Remove porta 5432 se existir
     DATABASE_URL = DATABASE_URL.replace(':5432/', ':6543/')
-    # Adiciona modo de pooling transacional
-    if '?' not in DATABASE_URL:
-        DATABASE_URL += '?pgbouncer=true&connection_limit=1'
-    else:
-        DATABASE_URL += '&pgbouncer=true&connection_limit=1'
+    DATABASE_URL = DATABASE_URL.replace(':5432?', ':6543?')
+    # Se não tem porta especificada, força 6543
+    if ':6543' not in DATABASE_URL and 'supabase.co/' in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.replace('supabase.co/', 'supabase.co:6543/')
+    # Garante parâmetros do pooler
+    if 'pgbouncer=true' not in DATABASE_URL:
+        separator = '&' if '?' in DATABASE_URL else '?'
+        DATABASE_URL += f'{separator}pgbouncer=true'
 
 DATABASES = {
     'default': dj_database_url.config(
