@@ -1,17 +1,27 @@
 from .settings import *
 from decouple import Csv, config
 import os
+import dj_database_url
 
 # Configurações específicas de produção
 DEBUG = False
 ALLOWED_HOSTS = ['*']
 
-# Exemplo: forçar uso de banco de dados do ambiente
-# DATABASES['default']['NAME'] = os.getenv('DB_NAME', DATABASES['default']['NAME'])
-# DATABASES['default']['USER'] = os.getenv('DB_USER', DATABASES['default']['USER'])
-# DATABASES['default']['PASSWORD'] = os.getenv('DB_PASSWORD', DATABASES['default']['PASSWORD'])
-# DATABASES['default']['HOST'] = os.getenv('DB_HOST', DATABASES['default']['HOST'])
-# DATABASES['default']['PORT'] = os.getenv('DB_PORT', DATABASES['default']['PORT'])
+# Configuração do banco de dados para produção (Supabase)
+# Força uso de IPv4 e conexão SSL
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True,
+    )
+}
+
+# Força uso de IPv4 apenas
+if DATABASES['default'].get('OPTIONS') is None:
+    DATABASES['default']['OPTIONS'] = {}
+DATABASES['default']['OPTIONS']['options'] = '-c gethostbyname=0'
 
 
 
