@@ -64,7 +64,7 @@ api.interceptors.response.use(
           throw new Error('No refresh token');
         }
 
-        const response = await axios.post(`${API_URL}/core/auth/refresh/`, {
+        const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
           refresh: refreshToken,
         });
 
@@ -103,7 +103,7 @@ api.interceptors.response.use(
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await api.post('/core/auth/login/', { email, password });
+    const response = await api.post('/auth/login/', { email, password });
     return response.data;
   },
 
