@@ -36,6 +36,17 @@ Este documento lista todas as mudanças e acréscimos realizados pelo assistente
 - Associação de usuário ao tenant disponível.
 - Orientação para acesso ao admin (`/admin/`) e rotas REST (`/api/core/tenants/`).
 
+## 8. Deploy e Infraestrutura
+- Realizado deploy do backend no Railway.
+- Realizado deploy do frontend no Vercel.
+- Banco de dados configurado e migrado para Supabase.
+- Redis configurado via Upstash para cache.
+
+## 9. Problemas e Pendências
+- Persistem problemas no login de superusuário: usuários criados no Supabase não conseguem autenticar via API REST.
+- Investigação de possíveis bloqueios no backend (serializers/views) para superusuários.
+- Login de superusuário ainda não está funcional, aguardando correção no fluxo de autenticação.
+
 ---
 
 **Observação:**
