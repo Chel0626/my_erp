@@ -15,7 +15,10 @@ import {
   X,
   Package,
   Percent,
-  BarChart3
+  BarChart3,
+  ShoppingCart,
+  Receipt,
+  Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -36,6 +39,9 @@ const navigation = [
   { name: 'Serviços', href: '/dashboard/services', icon: Scissors },
   { name: 'Clientes', href: '/dashboard/customers', icon: UserCircle },
   { name: 'Produtos', href: '/dashboard/products', icon: Package },
+  { name: 'PDV', href: '/dashboard/pos', icon: ShoppingCart },
+  { name: 'Vendas', href: '/dashboard/pos/sales', icon: Receipt },
+  { name: 'Caixa', href: '/dashboard/pos/cash-register', icon: Wallet },
   { name: 'Comissões', href: '/dashboard/commissions', icon: Percent },
   { name: 'Financeiro', href: '/dashboard/financial', icon: DollarSign },
   { name: 'Relatórios', href: '/dashboard/reports', icon: BarChart3 },

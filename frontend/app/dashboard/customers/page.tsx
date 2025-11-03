@@ -14,6 +14,8 @@ import {
   useCustomerSummary,
   CustomerFilters,
   Customer,
+  exportCustomersCSV,
+  exportCustomersExcel,
 } from '@/hooks/useCustomers';
 import { CustomerCard } from '@/components/customers/CustomerCard';
 import { CustomerForm } from '@/components/customers/CustomerForm';
@@ -48,6 +50,8 @@ import {
   UserPlus,
   UserX,
   Cake,
+  Download,
+  FileText,
 } from 'lucide-react';
 
 export default function CustomersPage() {
@@ -122,6 +126,24 @@ export default function CustomersPage() {
     });
   };
 
+  const handleExportCSV = async () => {
+    try {
+      await exportCustomersCSV(filters);
+      // Toast será exibido automaticamente pelo componente
+    } catch (error) {
+      console.error('Erro ao exportar CSV:', error);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      await exportCustomersExcel(filters);
+      // Toast será exibido automaticamente pelo componente
+    } catch (error) {
+      console.error('Erro ao exportar Excel:', error);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 space-y-8">
       {/* Header */}
@@ -132,10 +154,20 @@ export default function CustomersPage() {
             Gerencie seus clientes e suas informações
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Cliente
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <Button variant="outline" onClick={handleExportExcel}>
+            <FileText className="h-4 w-4 mr-2" />
+            Exportar Excel
+          </Button>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Cliente
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}

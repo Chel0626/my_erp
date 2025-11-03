@@ -319,3 +319,86 @@ class CommissionViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(commission)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def export_csv(self, request):
+        """Exporta comissões para CSV"""
+        import csv
+        from django.http import HttpResponse
+        
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="comissoes.csv"'
+        response.write('\ufeff')  # BOM para UTF-8
+        
+        writer = csv.writer(response)
+        writer.writerow([
+            'Data', 'Profissional', 'Tipo', 'Serviço/Produto', 
+            'Valor Base', 'Percentual', 'Valor Comissão', 'Status', 'Pago em'
+        ])
+        
+        for commission in queryset:
+            writer.writerow([
+                commission.date.strftime('%d/%m/%Y %H:%M'),
+                commission.professional.get_full_name(),
+                commission.get_commission_type_display(),
+                commission.service.name if commission.service else 
+                (commission.product.name if commission.product else '-'),
+                float(commission.base_value),
+                float(commission.commission_percentage),
+                float(commission.commission_value),
+                commission.get_status_display(),
+                commission.paid_at.strftime('%d/%m/%Y') if commission.paid_at else '-'
+            ])
+        
+        return response
+    
+    @action(detail=False, methods=['get'])
+    def export_excel(self, request):
+        """Exporta comissões para Excel"""
+        try:
+            from openpyxl import Workbook
+            from django.http import HttpResponse
+            
+            queryset = self.filter_queryset(self.get_queryset())
+            
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Comissões"
+            
+            # Cabeçalho
+            headers = [
+                'Data', 'Profissional', 'Tipo', 'Serviço/Produto',
+                'Valor Base', 'Percentual', 'Valor Comissão', 'Status', 'Pago em'
+            ]
+            ws.append(headers)
+            
+            # Dados
+            for commission in queryset:
+                ws.append([
+                    commission.date.strftime('%d/%m/%Y %H:%M'),
+                    commission.professional.get_full_name(),
+                    commission.get_commission_type_display(),
+                    commission.service.name if commission.service else 
+                    (commission.product.name if commission.product else '-'),
+                    float(commission.base_value),
+                    float(commission.commission_percentage),
+                    float(commission.commission_value),
+                    commission.get_status_display(),
+                    commission.paid_at.strftime('%d/%m/%Y') if commission.paid_at else '-'
+                ])
+            
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = 'attachment; filename="comissoes.xlsx"'
+            wb.save(response)
+            
+            return response
+        
+        except ImportError:
+            return Response(
+                {'error': 'Biblioteca openpyxl não instalada'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

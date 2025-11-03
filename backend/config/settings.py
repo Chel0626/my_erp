@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "commissions",
     "notifications",
     "superadmin",  # Super Admin Dashboard
+    "pos",  # Point of Sale
 ]
 
 SITE_ID = 1

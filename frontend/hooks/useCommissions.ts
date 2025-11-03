@@ -270,3 +270,59 @@ export function useCancelCommission() {
     },
   });
 }
+
+/**
+ * Exportar comissões para CSV
+ */
+export async function exportCommissionsCSV(filters?: {
+  status?: string;
+  professional?: number;
+  date_from?: string;
+  date_to?: string;
+}) {
+  const params = new URLSearchParams();
+  if (filters?.status) params.append('status', filters.status);
+  if (filters?.professional) params.append('professional', filters.professional.toString());
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+  
+  const response = await api.get(`/commissions/export_csv/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'comissoes.csv');
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+/**
+ * Exportar comissões para Excel
+ */
+export async function exportCommissionsExcel(filters?: {
+  status?: string;
+  professional?: number;
+  date_from?: string;
+  date_to?: string;
+}) {
+  const params = new URLSearchParams();
+  if (filters?.status) params.append('status', filters.status);
+  if (filters?.professional) params.append('professional', filters.professional.toString());
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+  
+  const response = await api.get(`/commissions/export_excel/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'comissoes.xlsx');
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}

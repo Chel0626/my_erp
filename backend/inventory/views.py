@@ -250,6 +250,85 @@ class ProductViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
+    @action(detail=False, methods=['get'])
+    def export_csv(self, request):
+        """Exporta produtos para CSV"""
+        import csv
+        from django.http import HttpResponse
+        
+        queryset = self.get_queryset()
+        
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="produtos.csv"'
+        response.write('\ufeff')  # BOM para UTF-8
+        
+        writer = csv.writer(response)
+        writer.writerow([
+            'SKU', 'Nome', 'Categoria', 'Preço Custo', 'Preço Venda',
+            'Estoque', 'Estoque Mínimo', 'Ativo'
+        ])
+        
+        for product in queryset:
+            writer.writerow([
+                product.sku,
+                product.name,
+                product.category,
+                float(product.cost_price),
+                float(product.sale_price),
+                product.stock_quantity,
+                product.min_stock,
+                'Sim' if product.is_active else 'Não'
+            ])
+        
+        return response
+    
+    @action(detail=False, methods=['get'])
+    def export_excel(self, request):
+        """Exporta produtos para Excel"""
+        try:
+            from openpyxl import Workbook
+            from django.http import HttpResponse
+            
+            queryset = self.get_queryset()
+            
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Produtos"
+            
+            # Cabeçalho
+            headers = [
+                'SKU', 'Nome', 'Categoria', 'Preço Custo', 'Preço Venda',
+                'Estoque', 'Estoque Mínimo', 'Ativo'
+            ]
+            ws.append(headers)
+            
+            # Dados
+            for product in queryset:
+                ws.append([
+                    product.sku,
+                    product.name,
+                    product.category,
+                    float(product.cost_price),
+                    float(product.sale_price),
+                    product.stock_quantity,
+                    product.min_stock,
+                    'Sim' if product.is_active else 'Não'
+                ])
+            
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = 'attachment; filename="produtos.xlsx"'
+            wb.save(response)
+            
+            return response
+        
+        except ImportError:
+            return Response(
+                {'error': 'Biblioteca openpyxl não instalada'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
     @action(detail=True, methods=['post'])
     def remove_stock(self, request, pk=None):
         """

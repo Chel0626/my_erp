@@ -5,7 +5,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Calendar as CalendarIcon, Filter, AlertCircle, LayoutGrid, CalendarDays } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Filter, AlertCircle, LayoutGrid, CalendarDays, Download, FileText } from 'lucide-react';
 import {
   useAppointments,
   useCreateAppointment,
@@ -18,6 +18,8 @@ import {
   Appointment,
   CreateAppointmentInput,
   AppointmentFilters,
+  exportAppointmentsCSV,
+  exportAppointmentsExcel,
 } from '@/hooks/useAppointments';
 import { useServices } from '@/hooks/useServices';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
@@ -29,6 +31,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 export default function AppointmentsPage() {
   const [showDialog, setShowDialog] = useState(false);
@@ -140,6 +143,24 @@ export default function AppointmentsPage() {
     }
   };
 
+  const handleExportCSV = async () => {
+    try {
+      await exportAppointmentsCSV(filters);
+      toast.success('Exportação CSV concluída!');
+    } catch (error) {
+      toast.error('Erro ao exportar CSV');
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      await exportAppointmentsExcel(filters);
+      toast.success('Exportação Excel concluída!');
+    } catch (error) {
+      toast.error('Erro ao exportar Excel');
+    }
+  };
+
   const handleSubmit = async (data: CreateAppointmentInput) => {
     try {
       if (editingAppointment) {
@@ -210,6 +231,16 @@ export default function AppointmentsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {/* Botões de Exportação */}
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <Button variant="outline" onClick={handleExportExcel}>
+            <FileText className="h-4 w-4 mr-2" />
+            Exportar Excel
+          </Button>
+          
           {/* Toggle de visualização */}
           <div className="flex border rounded-md">
             <Button

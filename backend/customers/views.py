@@ -9,6 +9,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.db.models import Count, Q, Sum, Avg, F
 from datetime import datetime, timedelta
+from django.http import HttpResponse
+import csv
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
 
 from .models import Customer
 from .serializers import (
@@ -237,4 +241,110 @@ class CustomerViewSet(viewsets.ModelViewSet):
         }
         
         return Response(summary)
+
+    @action(detail=False, methods=['get'])
+    def export_csv(self, request):
+        """Exporta clientes em formato CSV"""
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Criar resposta CSV
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="clientes.csv"'
+        response.write('\ufeff')  # BOM para UTF-8
+        
+        writer = csv.writer(response)
+        writer.writerow([
+            'Nome',
+            'Telefone',
+            'E-mail',
+            'CPF',
+            'Data de Nascimento',
+            'Gênero',
+            'Tag',
+            'Endereço',
+            'Ativo',
+            'Cadastrado em'
+        ])
+        
+        for customer in queryset:
+            writer.writerow([
+                customer.name,
+                customer.phone,
+                customer.email or '-',
+                customer.cpf or '-',
+                customer.birth_date.strftime('%d/%m/%Y') if customer.birth_date else '-',
+                customer.get_gender_display() if customer.gender else '-',
+                customer.get_tag_display(),
+                customer.address or '-',
+                'Sim' if customer.is_active else 'Não',
+                customer.created_at.strftime('%d/%m/%Y %H:%M')
+            ])
+        
+        return response
+
+    @action(detail=False, methods=['get'])
+    def export_excel(self, request):
+        """Exporta clientes em formato Excel"""
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Criar workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Clientes"
+        
+        # Estilizar cabeçalho
+        header_font = Font(bold=True)
+        header_alignment = Alignment(horizontal='center')
+        
+        headers = [
+            'Nome',
+            'Telefone',
+            'E-mail',
+            'CPF',
+            'Data de Nascimento',
+            'Gênero',
+            'Tag',
+            'Endereço',
+            'Ativo',
+            'Cadastrado em'
+        ]
+        
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.alignment = header_alignment
+        
+        # Adicionar dados
+        for row, customer in enumerate(queryset, start=2):
+            ws.cell(row=row, column=1, value=customer.name)
+            ws.cell(row=row, column=2, value=customer.phone)
+            ws.cell(row=row, column=3, value=customer.email or '-')
+            ws.cell(row=row, column=4, value=customer.cpf or '-')
+            ws.cell(row=row, column=5, value=customer.birth_date.strftime('%d/%m/%Y') if customer.birth_date else '-')
+            ws.cell(row=row, column=6, value=customer.get_gender_display() if customer.gender else '-')
+            ws.cell(row=row, column=7, value=customer.get_tag_display())
+            ws.cell(row=row, column=8, value=customer.address or '-')
+            ws.cell(row=row, column=9, value='Sim' if customer.is_active else 'Não')
+            ws.cell(row=row, column=10, value=customer.created_at.strftime('%d/%m/%Y %H:%M'))
+        
+        # Ajustar largura das colunas
+        ws.column_dimensions['A'].width = 30
+        ws.column_dimensions['B'].width = 15
+        ws.column_dimensions['C'].width = 30
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 18
+        ws.column_dimensions['F'].width = 12
+        ws.column_dimensions['G'].width = 12
+        ws.column_dimensions['H'].width = 40
+        ws.column_dimensions['I'].width = 10
+        ws.column_dimensions['J'].width = 18
+        
+        # Criar resposta
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="clientes.xlsx"'
+        wb.save(response)
+        
+        return response
 

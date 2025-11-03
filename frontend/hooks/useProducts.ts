@@ -275,3 +275,45 @@ export function useRemoveStock() {
     },
   });
 }
+
+/**
+ * Exportar produtos para CSV
+ */
+export async function exportProductsCSV(filters?: ProductFilters) {
+  const params = new URLSearchParams();
+  if (filters?.category) params.append('category', filters.category);
+  if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
+  
+  const response = await api.get(`/inventory/products/export_csv/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'produtos.csv');
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+/**
+ * Exportar produtos para Excel
+ */
+export async function exportProductsExcel(filters?: ProductFilters) {
+  const params = new URLSearchParams();
+  if (filters?.category) params.append('category', filters.category);
+  if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
+  
+  const response = await api.get(`/inventory/products/export_excel/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+  
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'produtos.xlsx');
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}

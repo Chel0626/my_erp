@@ -200,3 +200,61 @@ export function useDeleteTransaction() {
     },
   });
 }
+
+// ==============================
+// EXPORTAÇÕES
+// ==============================
+
+/**
+ * Exporta transações em formato CSV
+ */
+export async function exportTransactionsCSV(filters?: TransactionFilters) {
+  const params = new URLSearchParams();
+  if (filters?.date) params.append('date', filters.date);
+  if (filters?.start_date) params.append('start_date', filters.start_date);
+  if (filters?.end_date) params.append('end_date', filters.end_date);
+  if (filters?.type) params.append('type', filters.type);
+  if (filters?.payment_method) params.append('payment_method', filters.payment_method);
+
+  const response = await api.get(`/financial/transactions/export_csv/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+
+  const blob = new Blob([response.data], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'transacoes.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
+
+/**
+ * Exporta transações em formato Excel
+ */
+export async function exportTransactionsExcel(filters?: TransactionFilters) {
+  const params = new URLSearchParams();
+  if (filters?.date) params.append('date', filters.date);
+  if (filters?.start_date) params.append('start_date', filters.start_date);
+  if (filters?.end_date) params.append('end_date', filters.end_date);
+  if (filters?.type) params.append('type', filters.type);
+  if (filters?.payment_method) params.append('payment_method', filters.payment_method);
+
+  const response = await api.get(`/financial/transactions/export_excel/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+
+  const blob = new Blob([response.data], { 
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'transacoes.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}

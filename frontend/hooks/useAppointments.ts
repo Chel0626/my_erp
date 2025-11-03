@@ -73,6 +73,7 @@ export interface AppointmentFilters {
   status?: string;
   professional?: string;
   service?: string;
+  customer?: string;
 }
 
 // ==============================
@@ -291,4 +292,64 @@ export function useStartAppointment() {
       });
     },
   };
+}
+
+// ==================== EXPORTAÇÕES ====================
+
+/**
+ * Exporta agendamentos em formato CSV
+ */
+export async function exportAppointmentsCSV(filters?: AppointmentFilters) {
+  const params = new URLSearchParams();
+  if (filters?.date) params.append('date', filters.date);
+  if (filters?.start_date) params.append('start_date', filters.start_date);
+  if (filters?.end_date) params.append('end_date', filters.end_date);
+  if (filters?.status) params.append('status', filters.status);
+  if (filters?.customer) params.append('customer', filters.customer);
+  if (filters?.professional) params.append('professional', filters.professional);
+  if (filters?.service) params.append('service', filters.service);
+
+  const response = await api.get(`/scheduling/appointments/export_csv/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+
+  const blob = new Blob([response.data], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'agendamentos.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
+
+/**
+ * Exporta agendamentos em formato Excel
+ */
+export async function exportAppointmentsExcel(filters?: AppointmentFilters) {
+  const params = new URLSearchParams();
+  if (filters?.date) params.append('date', filters.date);
+  if (filters?.start_date) params.append('start_date', filters.start_date);
+  if (filters?.end_date) params.append('end_date', filters.end_date);
+  if (filters?.status) params.append('status', filters.status);
+  if (filters?.customer) params.append('customer', filters.customer);
+  if (filters?.professional) params.append('professional', filters.professional);
+  if (filters?.service) params.append('service', filters.service);
+
+  const response = await api.get(`/scheduling/appointments/export_excel/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+
+  const blob = new Blob([response.data], { 
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'agendamentos.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
 }

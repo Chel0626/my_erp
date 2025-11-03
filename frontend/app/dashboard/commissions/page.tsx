@@ -10,6 +10,8 @@ import {
   XCircle,
   User,
   Filter,
+  Download,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +49,8 @@ import {
   useCommissionSummary,
   useMarkCommissionsAsPaid,
   useCancelCommission,
+  exportCommissionsCSV,
+  exportCommissionsExcel,
   type Commission,
   type CommissionFilters,
 } from "@/hooks/useCommissions";
@@ -153,6 +157,39 @@ export default function CommissionsPage() {
     }
   };
 
+  // Funções de exportação
+  const handleExportCSV = async () => {
+    try {
+      await exportCommissionsCSV(filters);
+      toast({
+        title: 'Exportação concluída',
+        description: 'As comissões foram exportadas para CSV.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Ocorreu um erro ao exportar as comissões.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      await exportCommissionsExcel(filters);
+      toast({
+        title: 'Exportação concluída',
+        description: 'As comissões foram exportadas para Excel.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Ocorreu um erro ao exportar as comissões.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStatusBadge = (status: Commission["status"]) => {
     const variants = {
       pending: { variant: "outline" as const, icon: Clock, label: "Pendente" },
@@ -202,6 +239,14 @@ export default function CommissionsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Comissões</h1>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <Button variant="outline" onClick={handleExportExcel}>
+            <FileText className="h-4 w-4 mr-2" />
+            Exportar Excel
+          </Button>
           <Button variant="outline" asChild>
             <a href="/dashboard/commissions/rules">
               Gerenciar Regras

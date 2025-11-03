@@ -10,6 +10,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db.models import Q
 from datetime import timedelta
+from django.http import HttpResponse
+import csv
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
 
 from .models import Service, Appointment
 from .serializers import (
@@ -355,3 +359,100 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             'period': period,
             'data': list(data)
         })
+
+    @action(detail=False, methods=['get'])
+    def export_csv(self, request):
+        """Exporta agendamentos em formato CSV"""
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Criar resposta CSV
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="agendamentos.csv"'
+        response.write('\ufeff')  # BOM para UTF-8
+        
+        writer = csv.writer(response)
+        writer.writerow([
+            'Data/Hora',
+            'Cliente',
+            'Telefone',
+            'Serviço',
+            'Profissional',
+            'Status',
+            'Valor',
+            'Observações'
+        ])
+        
+        for appointment in queryset:
+            writer.writerow([
+                appointment.start_time.strftime('%d/%m/%Y %H:%M'),
+                appointment.customer.name,
+                appointment.customer.phone,
+                appointment.service.name,
+                appointment.professional.get_full_name(),
+                appointment.get_status_display(),
+                f'R$ {appointment.price:.2f}',
+                appointment.notes or '-'
+            ])
+        
+        return response
+
+    @action(detail=False, methods=['get'])
+    def export_excel(self, request):
+        """Exporta agendamentos em formato Excel"""
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Criar workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Agendamentos"
+        
+        # Estilizar cabeçalho
+        header_font = Font(bold=True)
+        header_alignment = Alignment(horizontal='center')
+        
+        headers = [
+            'Data/Hora',
+            'Cliente',
+            'Telefone',
+            'Serviço',
+            'Profissional',
+            'Status',
+            'Valor',
+            'Observações'
+        ]
+        
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.alignment = header_alignment
+        
+        # Adicionar dados
+        for row, appointment in enumerate(queryset, start=2):
+            ws.cell(row=row, column=1, value=appointment.start_time.strftime('%d/%m/%Y %H:%M'))
+            ws.cell(row=row, column=2, value=appointment.customer.name)
+            ws.cell(row=row, column=3, value=appointment.customer.phone)
+            ws.cell(row=row, column=4, value=appointment.service.name)
+            ws.cell(row=row, column=5, value=appointment.professional.get_full_name())
+            ws.cell(row=row, column=6, value=appointment.get_status_display())
+            ws.cell(row=row, column=7, value=f'R$ {appointment.price:.2f}')
+            ws.cell(row=row, column=8, value=appointment.notes or '-')
+        
+        # Ajustar largura das colunas
+        ws.column_dimensions['A'].width = 18
+        ws.column_dimensions['B'].width = 30
+        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['D'].width = 25
+        ws.column_dimensions['E'].width = 25
+        ws.column_dimensions['F'].width = 15
+        ws.column_dimensions['G'].width = 12
+        ws.column_dimensions['H'].width = 40
+        
+        # Criar resposta
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="agendamentos.xlsx"'
+        wb.save(response)
+        
+        return response
+

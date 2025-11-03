@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, Transaction, CreateTransactionInput, TransactionFilters as TFilters } from '@/hooks/useTransactions';
+import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, Transaction, CreateTransactionInput, TransactionFilters as TFilters, exportTransactionsCSV, exportTransactionsExcel } from '@/hooks/useTransactions';
 import { useActivePaymentMethods } from '@/hooks/usePaymentMethods';
 import TransactionCard from '@/components/financial/TransactionCard';
 import TransactionForm from '@/components/financial/TransactionForm';
@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Filter, X } from 'lucide-react';
+import { Plus, Filter, X, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function TransactionsPage() {
@@ -104,6 +104,24 @@ export default function TransactionsPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleExportCSV = async () => {
+    try {
+      await exportTransactionsCSV(filters);
+      toast.success('Exportação CSV concluída!');
+    } catch (error) {
+      toast.error('Erro ao exportar CSV');
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      await exportTransactionsExcel(filters);
+      toast.success('Exportação Excel concluída!');
+    } catch (error) {
+      toast.error('Erro ao exportar Excel');
+    }
+  };
+
   const clearFilters = () => {
     setFilters({
       start_date: '',
@@ -125,10 +143,20 @@ export default function TransactionsPage() {
             Gerencie suas receitas e despesas
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} size="lg">
-          <Plus className="mr-2 h-5 w-5" />
-          Nova Transação
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <Button variant="outline" onClick={handleExportExcel}>
+            <FileText className="h-4 w-4 mr-2" />
+            Exportar Excel
+          </Button>
+          <Button onClick={() => setIsCreateDialogOpen(true)} size="lg">
+            <Plus className="mr-2 h-5 w-5" />
+            Nova Transação
+          </Button>
+        </div>
       </div>
 
       {/* Resumo Financeiro */}

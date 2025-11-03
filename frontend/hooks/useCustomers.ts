@@ -331,3 +331,57 @@ export function useCustomerSummary() {
     queryFn: customersApi.summary,
   });
 }
+
+// ==================== EXPORTAÇÕES ====================
+
+/**
+ * Exporta clientes em formato CSV
+ */
+export async function exportCustomersCSV(filters?: CustomerFilters) {
+  const params = new URLSearchParams();
+  if (filters?.tag) params.append('tag', filters.tag);
+  if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
+  if (filters?.gender) params.append('gender', filters.gender);
+  if (filters?.search) params.append('search', filters.search);
+
+  const response = await api.get(`/customers/customers/export_csv/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+
+  const blob = new Blob([response.data], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'clientes.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
+
+/**
+ * Exporta clientes em formato Excel
+ */
+export async function exportCustomersExcel(filters?: CustomerFilters) {
+  const params = new URLSearchParams();
+  if (filters?.tag) params.append('tag', filters.tag);
+  if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
+  if (filters?.gender) params.append('gender', filters.gender);
+  if (filters?.search) params.append('search', filters.search);
+
+  const response = await api.get(`/customers/customers/export_excel/?${params.toString()}`, {
+    responseType: 'blob',
+  });
+
+  const blob = new Blob([response.data], { 
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'clientes.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}

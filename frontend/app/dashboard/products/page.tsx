@@ -13,6 +13,8 @@ import {
   useAddStock,
   useRemoveStock,
   useProductSummary,
+  exportProductsCSV,
+  exportProductsExcel,
   Product,
   CreateProductInput
 } from '@/hooks/useProducts';
@@ -56,7 +58,9 @@ import {
   XCircle, 
   DollarSign,
   Loader2,
-  Filter
+  Filter,
+  Download,
+  FileText
 } from 'lucide-react';
 
 // Categorias disponíveis
@@ -261,6 +265,39 @@ export default function ProductsPage() {
     }
   };
 
+  // Funções de exportação
+  const handleExportCSV = async () => {
+    try {
+      await exportProductsCSV(filters);
+      toast({
+        title: 'Exportação concluída',
+        description: 'Os produtos foram exportados para CSV.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Ocorreu um erro ao exportar os produtos.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      await exportProductsExcel(filters);
+      toast({
+        title: 'Exportação concluída',
+        description: 'Os produtos foram exportados para Excel.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Ocorreu um erro ao exportar os produtos.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -271,10 +308,20 @@ export default function ProductsPage() {
             Gerencie seu inventário de produtos
           </p>
         </div>
-        <Button onClick={handleCreateProduct}>
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Produto
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
+          <Button variant="outline" onClick={handleExportExcel}>
+            <FileText className="h-4 w-4 mr-2" />
+            Exportar Excel
+          </Button>
+          <Button onClick={handleCreateProduct}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Produto
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}

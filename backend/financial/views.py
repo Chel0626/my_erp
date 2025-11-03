@@ -10,6 +10,10 @@ from django.db.models import Sum, Q
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
+from django.http import HttpResponse
+import csv
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
 
 from core.permissions import IsSameTenant
 from .models import PaymentMethod, Transaction, CashFlow
@@ -278,6 +282,97 @@ class TransactionViewSet(viewsets.ModelViewSet):
             'period': period,
             'data': list(data)
         })
+
+    @action(detail=False, methods=['get'])
+    def export_csv(self, request):
+        """Exporta transações em formato CSV"""
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Criar resposta CSV
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="transacoes.csv"'
+        response.write('\ufeff')  # BOM para UTF-8
+        
+        writer = csv.writer(response)
+        writer.writerow([
+            'Data',
+            'Tipo',
+            'Categoria',
+            'Descrição',
+            'Valor',
+            'Método de Pagamento',
+            'Agendamento'
+        ])
+        
+        for transaction in queryset:
+            writer.writerow([
+                transaction.date.strftime('%d/%m/%Y'),
+                transaction.get_type_display(),
+                transaction.get_category_display(),
+                transaction.description,
+                f'R$ {transaction.amount:.2f}',
+                transaction.payment_method.name if transaction.payment_method else '-',
+                f'#{transaction.appointment.id}' if transaction.appointment else '-'
+            ])
+        
+        return response
+
+    @action(detail=False, methods=['get'])
+    def export_excel(self, request):
+        """Exporta transações em formato Excel"""
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Criar workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Transações"
+        
+        # Estilizar cabeçalho
+        header_font = Font(bold=True)
+        header_alignment = Alignment(horizontal='center')
+        
+        headers = [
+            'Data',
+            'Tipo',
+            'Categoria',
+            'Descrição',
+            'Valor',
+            'Método de Pagamento',
+            'Agendamento'
+        ]
+        
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.alignment = header_alignment
+        
+        # Adicionar dados
+        for row, transaction in enumerate(queryset, start=2):
+            ws.cell(row=row, column=1, value=transaction.date.strftime('%d/%m/%Y'))
+            ws.cell(row=row, column=2, value=transaction.get_type_display())
+            ws.cell(row=row, column=3, value=transaction.get_category_display())
+            ws.cell(row=row, column=4, value=transaction.description)
+            ws.cell(row=row, column=5, value=f'R$ {transaction.amount:.2f}')
+            ws.cell(row=row, column=6, value=transaction.payment_method.name if transaction.payment_method else '-')
+            ws.cell(row=row, column=7, value=f'#{transaction.appointment.id}' if transaction.appointment else '-')
+        
+        # Ajustar largura das colunas
+        ws.column_dimensions['A'].width = 12
+        ws.column_dimensions['B'].width = 10
+        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['D'].width = 30
+        ws.column_dimensions['E'].width = 12
+        ws.column_dimensions['F'].width = 20
+        ws.column_dimensions['G'].width = 15
+        
+        # Criar resposta
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="transacoes.xlsx"'
+        wb.save(response)
+        
+        return response
 
 
 class CashFlowViewSet(viewsets.ReadOnlyModelViewSet):
