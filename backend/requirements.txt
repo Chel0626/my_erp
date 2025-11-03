@@ -26,6 +26,7 @@ cryptography>=46.0.0
 PyJWT>=2.10.0
 oauthlib>=3.3.0
 django-redis>=6.0.0
+openpyxl>=3.1.2
 
 # Monitoring
 sentry-sdk>=2.17.0
