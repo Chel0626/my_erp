@@ -31,6 +31,7 @@ urlpatterns = [
     path("api/notifications/", include("notifications.urls")),
     path("api/superadmin/", include("superadmin.urls")),  # Super Admin Dashboard
     path("api/pos/", include("pos.urls")),  # Point of Sale
+    path("api/goals/", include("goals.urls")),  # Goals and Targets
     # Auth social
     path("api/auth/", include("dj_rest_auth.urls")),
     path("api/auth/registration/", include("dj_rest_auth.registration.urls")),

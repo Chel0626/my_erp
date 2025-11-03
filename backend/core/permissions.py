@@ -75,3 +75,18 @@ class IsOwnerOrAdmin(permissions.BasePermission):
             request.user.is_admin() and
             obj.tenant_id == request.user.tenant_id
         )
+
+
+class IsTenantUser(permissions.BasePermission):
+    """
+    Permissão básica que verifica se o usuário está autenticado e tem um tenant
+    """
+    message = 'Você precisa estar autenticado e vinculado a um tenant.'
+
+    def has_permission(self, request, view):
+        return (
+            request.user and
+            request.user.is_authenticated and
+            hasattr(request.user, 'tenant_id') and
+            request.user.tenant_id is not None
+        )

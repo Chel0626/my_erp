@@ -104,6 +104,7 @@ INSTALLED_APPS = [
     "notifications",
     "superadmin",  # Super Admin Dashboard
     "pos",  # Point of Sale
+    "goals",  # Goals and Targets
 ]
 
 SITE_ID = 1
