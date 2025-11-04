@@ -1,0 +1,4 @@
+# Arquivos ignorados pelo Vercel
+node_modules
+.next
+.git
