@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import {
   useCurrentCashRegister,
   useOpenCashRegister,
@@ -320,12 +321,10 @@ export default function CashRegisterPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Saldo Inicial *</Label>
-              <Input
-                type="number"
-                step="0.01"
+              <CurrencyInput
                 value={openingBalance}
-                onChange={(e) => setOpeningBalance(e.target.value)}
-                placeholder="0.00"
+                onChange={(value) => setOpeningBalance(value)}
+                placeholder="R$ 0,00"
               />
             </div>
             <div className="space-y-2">
@@ -383,12 +382,10 @@ export default function CashRegisterPage() {
             )}
             <div className="space-y-2">
               <Label>Saldo de Fechamento *</Label>
-              <Input
-                type="number"
-                step="0.01"
+              <CurrencyInput
                 value={closingBalance}
-                onChange={(e) => setClosingBalance(e.target.value)}
-                placeholder="0.00"
+                onChange={(value) => setClosingBalance(value)}
+                placeholder="R$ 0,00"
               />
               <p className="text-sm text-muted-foreground">
                 Informe o valor real em dinheiro no caixa

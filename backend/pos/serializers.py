@@ -171,8 +171,9 @@ class CashRegisterSerializer(serializers.ModelSerializer):
     
     def get_total_sales(self, obj):
         """Total de vendas pagas no caixa"""
+        from django.db.models import Sum
         return obj.sales.filter(payment_status='paid').aggregate(
-            total=serializers.Sum('total')
+            total=Sum('total')
         )['total'] or Decimal('0')
     
     def get_total_sales_count(self, obj):
