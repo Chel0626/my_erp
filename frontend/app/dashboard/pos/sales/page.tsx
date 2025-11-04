@@ -50,8 +50,8 @@ export default function SalesPage() {
     }
   };
 
-  const totalSales = sales?.reduce((sum: number, sale: Sale) => sum + parseFloat(sale.total), 0) || 0;
-  const paidSales = sales?.filter((s: Sale) => s.payment_status === 'paid').length || 0;
+  const totalSales = Array.isArray(sales) ? sales.reduce((sum: number, sale: Sale) => sum + parseFloat(sale.total), 0) : 0;
+  const paidSales = Array.isArray(sales) ? sales.filter((s: Sale) => s.payment_status === 'paid').length : 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -201,7 +201,7 @@ export default function SalesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sales.map((sale: Sale) => (
+                {Array.isArray(sales) && sales.map((sale: Sale) => (
                   <TableRow key={sale.id}>
                     <TableCell>#{sale.id}</TableCell>
                     <TableCell>
