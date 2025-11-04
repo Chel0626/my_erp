@@ -8,9 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCurrentCashRegister, useOpenCashRegister, useCreateSale } from '@/hooks/usePOS';
-import { useProducts } from '@/hooks/useProducts';
-import { useServices } from '@/hooks/useAppointments';
-import { useCustomers } from '@/hooks/useCustomers';
+import { useProducts, type Product } from '@/hooks/useProducts';
+import { useServices, type Service } from '@/hooks/useServices';
+import { useCustomers, type CustomerListItem } from '@/hooks/useCustomers';
 import { CartItem } from '@/types/pos';
 import { ShoppingCart, DollarSign, Package, Briefcase, AlertCircle, CreditCard } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -56,20 +56,24 @@ export default function POSPage() {
     }
   };
 
-  const addToCart = (type: 'product' | 'service', item: any) => {
+  const addToCart = (type: 'product' | 'service', item: Product | Service) => {
     const existingItem = cart.find(
-      (cartItem) => cartItem.type === type && cartItem.id === item.id
+      (cartItem) => cartItem.type === type && cartItem.id.toString() === item.id.toString()
     );
 
     if (existingItem) {
       setCart(
         cart.map((cartItem) =>
-          cartItem.type === type && cartItem.id === item.id
+          cartItem.type === type && cartItem.id.toString() === item.id.toString()
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         )
       );
     } else {
+      const price = type === 'product' 
+        ? parseFloat((item as Product).sale_price || '0')
+        : parseFloat((item as Service).price || '0');
+      
       setCart([
         ...cart,
         {
@@ -77,25 +81,25 @@ export default function POSPage() {
           id: item.id,
           name: item.name,
           quantity: 1,
-          price: parseFloat(type === 'product' ? item.sale_price : item.price),
+          price,
           discount: 0,
         },
       ]);
     }
   };
 
-  const removeFromCart = (type: string, id: number) => {
-    setCart(cart.filter((item) => !(item.type === type && item.id === id)));
+  const removeFromCart = (type: string, id: string | number) => {
+    setCart(cart.filter((item) => !(item.type === type && item.id.toString() === id.toString())));
   };
 
-  const updateQuantity = (type: string, id: number, quantity: number) => {
+  const updateQuantity = (type: string, id: string | number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(type, id);
       return;
     }
     setCart(
       cart.map((item) =>
-        item.type === type && item.id === id ? { ...item, quantity } : item
+        item.type === type && item.id.toString() === id.toString() ? { ...item, quantity } : item
       )
     );
   };
@@ -122,8 +126,8 @@ export default function POSPage() {
         payment_status: 'paid',
         notes: '',
         items: cart.map((item) => ({
-          product: item.type === 'product' ? item.id : null,
-          service: item.type === 'service' ? item.id : null,
+          product: item.type === 'product' ? (typeof item.id === 'string' ? parseInt(item.id) : item.id) : null,
+          service: item.type === 'service' ? (typeof item.id === 'string' ? parseInt(item.id) : item.id) : null,
           professional: item.professional || null,
           quantity: item.quantity.toString(),
           unit_price: item.price.toString(),
@@ -139,16 +143,17 @@ export default function POSPage() {
       setSelectedCustomer(null);
       setDiscount('0');
       setShowPayment(false);
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao finalizar venda');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || 'Erro ao finalizar venda');
     }
   };
 
-  const filteredProducts = products?.filter((p) =>
+  const filteredProducts = products?.filter((p: Product) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredServices = services?.filter((s) =>
+  const filteredServices = services?.filter((s: Service) =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -203,20 +208,20 @@ export default function POSPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto">
-                {filteredProducts?.map((product) => (
+                {filteredProducts?.map((product: Product) => (
                   <Button
                     key={product.id}
                     variant="outline"
                     className="h-auto flex-col items-start p-3"
                     onClick={() => addToCart('product', product)}
-                    disabled={!currentCash || product.stock <= 0}
+                    disabled={!currentCash || product.stock_quantity <= 0}
                   >
                     <span className="font-semibold text-sm">{product.name}</span>
                     <span className="text-green-600 font-bold">
                       R$ {parseFloat(product.sale_price).toFixed(2)}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      Estoque: {product.stock}
+                      Estoque: {product.stock_quantity}
                     </span>
                   </Button>
                 ))}
@@ -234,7 +239,7 @@ export default function POSPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto">
-                {filteredServices?.map((service) => (
+                {filteredServices?.map((service: Service) => (
                   <Button
                     key={service.id}
                     variant="outline"
@@ -247,7 +252,7 @@ export default function POSPage() {
                       R$ {parseFloat(service.price).toFixed(2)}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {service.duration} min
+                      {service.duration_minutes} min
                     </span>
                   </Button>
                 ))}
@@ -277,7 +282,7 @@ export default function POSPage() {
                     <SelectValue placeholder="Selecione um cliente" />
                   </SelectTrigger>
                   <SelectContent>
-                    {customers?.map((customer) => (
+                    {customers?.map((customer: CustomerListItem) => (
                       <SelectItem key={customer.id} value={customer.id.toString()}>
                         {customer.name}
                       </SelectItem>

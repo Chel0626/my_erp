@@ -118,10 +118,11 @@ export default function GoalDetailPage({ params }: PageProps) {
       });
       setProgressValue('');
       setProgressNotes('');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { detail?: string } } };
       toast({
         title: 'Erro ao atualizar progresso',
-        description: error.response?.data?.detail || 'Tente novamente',
+        description: err.response?.data?.detail || 'Tente novamente',
         variant: 'destructive',
       });
     }
@@ -134,10 +135,11 @@ export default function GoalDetailPage({ params }: PageProps) {
         title: 'Sucesso!',
         description: 'Meta recalculada com sucesso',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { detail?: string } } };
       toast({
         title: 'Erro ao recalcular',
-        description: error.response?.data?.detail || 'Tente novamente',
+        description: err.response?.data?.detail || 'Tente novamente',
         variant: 'destructive',
       });
     }
@@ -153,10 +155,11 @@ export default function GoalDetailPage({ params }: PageProps) {
         description: 'A meta foi cancelada com sucesso',
       });
       router.push('/dashboard/goals');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { detail?: string } } };
       toast({
         title: 'Erro ao cancelar',
-        description: error.response?.data?.detail || 'Tente novamente',
+        description: err.response?.data?.detail || 'Tente novamente',
         variant: 'destructive',
       });
     }
@@ -172,10 +175,11 @@ export default function GoalDetailPage({ params }: PageProps) {
         description: 'A meta foi excluída com sucesso',
       });
       router.push('/dashboard/goals');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { detail?: string } } };
       toast({
         title: 'Erro ao excluir',
-        description: error.response?.data?.detail || 'Tente novamente',
+        description: err.response?.data?.detail || 'Tente novamente',
         variant: 'destructive',
       });
     }

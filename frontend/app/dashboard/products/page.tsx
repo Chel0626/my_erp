@@ -268,7 +268,7 @@ export default function ProductsPage() {
   // Funções de exportação
   const handleExportCSV = async () => {
     try {
-      await exportProductsCSV(filters);
+      await exportProductsCSV({});
       toast({
         title: 'Exportação concluída',
         description: 'Os produtos foram exportados para CSV.',
@@ -284,7 +284,7 @@ export default function ProductsPage() {
 
   const handleExportExcel = async () => {
     try {
-      await exportProductsExcel(filters);
+      await exportProductsExcel({});
       toast({
         title: 'Exportação concluída',
         description: 'Os produtos foram exportados para Excel.',

@@ -24,7 +24,7 @@ const POS_API = {
   // Cash Register
   cashRegisters: '/pos/cash-registers/',
   cashRegister: (id: number) => `/pos/cash-registers/${id}/`,
-  closeCash: (id: number) => `/pos/cash-registers/${id}/close/',
+  closeCash: (id: number) => `/pos/cash-registers/${id}/close/`,
   currentCash: '/pos/cash-registers/current/',
   cashSummary: '/pos/cash-registers/summary/',
 };

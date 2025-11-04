@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useSales, useCancelSale, exportSalesCSV, exportSalesExcel } from '@/hooks/usePOS';
+import type { Sale } from '@/types/pos';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -49,8 +50,8 @@ export default function SalesPage() {
     }
   };
 
-  const totalSales = sales?.reduce((sum, sale) => sum + parseFloat(sale.total), 0) || 0;
-  const paidSales = sales?.filter((s) => s.payment_status === 'paid').length || 0;
+  const totalSales = sales?.reduce((sum: number, sale: Sale) => sum + parseFloat(sale.total), 0) || 0;
+  const paidSales = sales?.filter((s: Sale) => s.payment_status === 'paid').length || 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -200,7 +201,7 @@ export default function SalesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sales.map((sale) => (
+                {sales.map((sale: Sale) => (
                   <TableRow key={sale.id}>
                     <TableCell>#{sale.id}</TableCell>
                     <TableCell>

@@ -14,6 +14,7 @@ import {
   useCashRegisters,
   useCashSummary,
 } from '@/hooks/usePOS';
+import type { CashRegister } from '@/types/pos';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DollarSign, TrendingUp, Clock, CheckCircle, AlertCircle } from 'lucide-react';
@@ -182,7 +183,7 @@ export default function CashRegisterPage() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {Object.entries(currentCash.payment_breakdown).map(
-                ([method, data]) => (
+                ([method, data]: [string, { label: string; total: number }]) => (
                   <div key={method} className="text-center p-4 border rounded">
                     <p className="text-sm text-muted-foreground mb-1">
                       {data.label}
@@ -255,7 +256,7 @@ export default function CashRegisterPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cashHistory.map((cash) => (
+                {cashHistory.map((cash: CashRegister) => (
                   <TableRow key={cash.id}>
                     <TableCell>
                       {cash.user_details.first_name} {cash.user_details.last_name}

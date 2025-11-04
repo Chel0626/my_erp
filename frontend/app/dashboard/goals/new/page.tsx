@@ -50,10 +50,11 @@ export default function NewGoalPage() {
         description: 'Meta criada com sucesso',
       });
       router.push('/dashboard/goals');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { detail?: string } } };
       toast({
         title: 'Erro ao criar meta',
-        description: error.response?.data?.detail || 'Tente novamente',
+        description: err.response?.data?.detail || 'Tente novamente',
         variant: 'destructive',
       });
     }

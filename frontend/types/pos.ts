@@ -118,7 +118,7 @@ export interface CashRegisterClose {
 
 export interface CartItem {
   type: 'product' | 'service';
-  id: number;
+  id: string | number;
   name: string;
   quantity: number;
   price: number;
