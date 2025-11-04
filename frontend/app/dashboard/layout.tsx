@@ -18,7 +18,8 @@ import {
   BarChart3,
   ShoppingCart,
   Receipt,
-  Wallet
+  Wallet,
+  Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -42,6 +43,7 @@ const navigation = [
   { name: 'PDV', href: '/dashboard/pos', icon: ShoppingCart },
   { name: 'Vendas', href: '/dashboard/pos/sales', icon: Receipt },
   { name: 'Caixa', href: '/dashboard/pos/cash-register', icon: Wallet },
+  { name: 'Metas', href: '/dashboard/goals', icon: Target },
   { name: 'Comissões', href: '/dashboard/commissions', icon: Percent },
   { name: 'Financeiro', href: '/dashboard/financial', icon: DollarSign },
   { name: 'Relatórios', href: '/dashboard/reports', icon: BarChart3 },
