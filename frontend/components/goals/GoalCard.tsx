@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { 
   Calendar, 
   Target, 
@@ -53,14 +53,6 @@ export function GoalCard({ goal }: GoalCardProps) {
   const isActive = goal.status === 'active';
   const percentage = Math.min(Math.round(goal.percentage), 100);
 
-  // Determinar cor do progresso
-  const getProgressColor = () => {
-    if (percentage >= 100) return 'bg-green-500';
-    if (percentage >= 75) return 'bg-blue-500';
-    if (percentage >= 50) return 'bg-yellow-500';
-    return 'bg-orange-500';
-  };
-
   // Formatar valor baseado no tipo
   const formatValue = (value: string) => {
     if (goal.target_type === 'revenue') {
@@ -107,7 +99,18 @@ export function GoalCard({ goal }: GoalCardProps) {
             <span className="text-muted-foreground">Progresso</span>
             <span className="font-semibold">{percentage}%</span>
           </div>
-          <Progress value={percentage} className={getProgressColor()} />
+          <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div
+              className={cn(
+                "h-full transition-all duration-300 ease-in-out",
+                percentage >= 100 ? "bg-green-500" :
+                percentage >= 75 ? "bg-blue-500" :
+                percentage >= 50 ? "bg-yellow-500" :
+                "bg-orange-500"
+              )}
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{formatValue(goal.current_value)}</span>
             <span>Meta: {formatValue(goal.target_value)}</span>
