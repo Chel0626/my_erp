@@ -188,3 +188,14 @@ export function useGoalProgressHistory(goalId: number) {
     enabled: !!goalId,
   });
 }
+
+// GET /api/goals/compare_periods/ - Comparação de períodos
+export function useGoalsComparison() {
+  return useQuery({
+    queryKey: [`${GOALS_KEY}-comparison`],
+    queryFn: async () => {
+      const response = await api.get('/goals/compare_periods/');
+      return response.data;
+    },
+  });
+}

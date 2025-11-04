@@ -11,6 +11,7 @@ import { Plus, Search, Target, TrendingUp, Trophy, Users } from 'lucide-react';
 import type { GoalFilters, GoalStatus, GoalType, TargetType, GoalPeriod } from '@/types/goals';
 import { GoalCard } from '@/components/goals/GoalCard';
 import { GoalsDashboard } from '@/components/goals/GoalsDashboard';
+import { GoalsComparison } from '@/components/goals/GoalsComparison';
 
 export default function GoalsPage() {
   const [filters, setFilters] = useState<GoalFilters>({});
@@ -107,7 +108,10 @@ export default function GoalsPage() {
 
       {/* Dashboard Section */}
       {showDashboard && (
-        <GoalsDashboard />
+        <>
+          <GoalsDashboard />
+          <GoalsComparison />
+        </>
       )}
 
       {/* Filters */}

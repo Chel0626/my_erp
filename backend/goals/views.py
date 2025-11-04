@@ -265,6 +265,100 @@ class GoalViewSet(viewsets.ModelViewSet):
             'message': f'{count} metas foram recalculadas com sucesso.',
             'count': count
         })
+    
+    @action(detail=False, methods=['get'])
+    def compare_periods(self, request):
+        """Compara metas entre períodos"""
+        from datetime import datetime, timedelta
+        from calendar import monthrange
+        
+        # Período atual (mês atual por padrão)
+        today = timezone.now().date()
+        current_start = today.replace(day=1)
+        
+        # Último dia do mês atual
+        last_day = monthrange(today.year, today.month)[1]
+        current_end = today.replace(day=last_day)
+        
+        # Período anterior
+        if today.month == 1:
+            previous_month = 12
+            previous_year = today.year - 1
+        else:
+            previous_month = today.month - 1
+            previous_year = today.year
+        
+        previous_start = datetime(previous_year, previous_month, 1).date()
+        previous_last_day = monthrange(previous_year, previous_month)[1]
+        previous_end = datetime(previous_year, previous_month, previous_last_day).date()
+        
+        # Busca metas do período atual
+        current_goals = Goal.objects.filter(
+            tenant=request.user.tenant,
+            start_date__lte=current_end,
+            end_date__gte=current_start
+        )
+        
+        # Busca metas do período anterior
+        previous_goals = Goal.objects.filter(
+            tenant=request.user.tenant,
+            start_date__lte=previous_end,
+            end_date__gte=previous_start
+        )
+        
+        def calculate_period_stats(goals):
+            total = goals.count()
+            active = goals.filter(status='active').count()
+            completed = goals.filter(status='completed').count()
+            failed = goals.filter(status='failed').count()
+            
+            avg_progress = 0
+            if goals.exists():
+                progress_sum = sum([g.percentage() for g in goals])
+                avg_progress = progress_sum / total
+            
+            total_revenue = sum([
+                float(g.current_value) for g in goals.filter(target_type='revenue')
+            ])
+            
+            return {
+                'total': total,
+                'active': active,
+                'completed': completed,
+                'failed': failed,
+                'avg_progress': round(avg_progress, 2),
+                'total_revenue': round(total_revenue, 2),
+                'success_rate': round((completed / total * 100) if total > 0 else 0, 2)
+            }
+        
+        current_stats = calculate_period_stats(current_goals)
+        previous_stats = calculate_period_stats(previous_goals)
+        
+        # Calcula variações
+        def calculate_change(current, previous):
+            if previous == 0:
+                return 100 if current > 0 else 0
+            return round(((current - previous) / previous) * 100, 2)
+        
+        return Response({
+            'current_period': {
+                'start': current_start,
+                'end': current_end,
+                'stats': current_stats
+            },
+            'previous_period': {
+                'start': previous_start,
+                'end': previous_end,
+                'stats': previous_stats
+            },
+            'changes': {
+                'total_goals': calculate_change(current_stats['total'], previous_stats['total']),
+                'completed_goals': calculate_change(current_stats['completed'], previous_stats['completed']),
+                'avg_progress': calculate_change(current_stats['avg_progress'], previous_stats['avg_progress']),
+                'total_revenue': calculate_change(current_stats['total_revenue'], previous_stats['total_revenue']),
+                'success_rate': calculate_change(current_stats['success_rate'], previous_stats['success_rate'])
+            }
+        })
 
 
 class GoalProgressViewSet(viewsets.ReadOnlyModelViewSet):
