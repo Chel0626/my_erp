@@ -10,9 +10,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCurrentCashRegister, useOpenCashRegister, useCreateSale } from '@/hooks/usePOS';
 import { useProducts, type Product } from '@/hooks/useProducts';
 import { useServices, type Service } from '@/hooks/useServices';
-import { useCustomers, type CustomerListItem } from '@/hooks/useCustomers';
+import { useCustomers, useCreateCustomer, type CustomerListItem } from '@/hooks/useCustomers';
 import { CartItem } from '@/types/pos';
-import { ShoppingCart, DollarSign, Package, Briefcase, AlertCircle, CreditCard } from 'lucide-react';
+import { ShoppingCart, DollarSign, Package, Briefcase, AlertCircle, CreditCard, UserPlus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,8 +27,14 @@ export default function POSPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showOpenCash, setShowOpenCash] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [openingBalance, setOpeningBalance] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
+  const [newCustomer, setNewCustomer] = useState({
+    name: '',
+    phone: '',
+    email: '',
+  });
 
   const { data: currentCash, isLoading: cashLoading } = useCurrentCashRegister();
   const { data: products } = useProducts();
@@ -36,6 +42,7 @@ export default function POSPage() {
   const { data: customers } = useCustomers();
   const openCash = useOpenCashRegister();
   const createSale = useCreateSale();
+  const createCustomer = useCreateCustomer();
 
   // Verificar se há caixa aberto
   useEffect(() => {
@@ -54,6 +61,23 @@ export default function POSPage() {
       setShowOpenCash(false);
     } catch (error) {
       toast.error('Erro ao abrir caixa');
+    }
+  };
+
+  const handleCreateCustomer = async () => {
+    if (!newCustomer.name || !newCustomer.phone) {
+      toast.error('Preencha nome e telefone');
+      return;
+    }
+    
+    try {
+      const created = await createCustomer.mutateAsync(newCustomer);
+      setSelectedCustomer(Number(created.id));
+      setShowNewCustomer(false);
+      setNewCustomer({ name: '', phone: '', email: '' });
+      toast.success('Cliente criado e selecionado!');
+    } catch (error) {
+      toast.error('Erro ao criar cliente');
     }
   };
 
@@ -274,7 +298,18 @@ export default function POSPage() {
             <CardContent className="space-y-4">
               {/* Cliente */}
               <div className="space-y-2">
-                <Label>Cliente (opcional)</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Cliente (opcional)</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowNewCustomer(true)}
+                    className="h-7 text-xs"
+                  >
+                    <UserPlus className="h-3 w-3 mr-1" />
+                    Novo
+                  </Button>
+                </div>
                 <Select
                   value={selectedCustomer?.toString() || ''}
                   onValueChange={(value) => setSelectedCustomer(parseInt(value))}
@@ -414,6 +449,50 @@ export default function POSPage() {
           <DialogFooter>
             <Button onClick={handleOpenCash} disabled={openCash.isPending}>
               {openCash.isPending ? 'Abrindo...' : 'Abrir Caixa'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Novo Cliente */}
+      <Dialog open={showNewCustomer} onOpenChange={setShowNewCustomer}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cadastro Rápido de Cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome *</Label>
+              <Input
+                value={newCustomer.name}
+                onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                placeholder="Nome completo"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Telefone *</Label>
+              <Input
+                value={newCustomer.phone}
+                onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email (opcional)</Label>
+              <Input
+                type="email"
+                value={newCustomer.email}
+                onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                placeholder="email@exemplo.com"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewCustomer(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateCustomer} disabled={createCustomer.isPending}>
+              {createCustomer.isPending ? 'Salvando...' : 'Salvar Cliente'}
             </Button>
           </DialogFooter>
         </DialogContent>
