@@ -16,6 +16,7 @@ import { ShoppingCart, DollarSign, Package, Briefcase, AlertCircle, CreditCard }
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { toast } from 'sonner';
 
 export default function POSPage() {
@@ -403,12 +404,10 @@ export default function POSPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Saldo Inicial</Label>
-              <Input
-                type="number"
-                step="0.01"
+              <CurrencyInput
                 value={openingBalance}
-                onChange={(e) => setOpeningBalance(e.target.value)}
-                placeholder="0.00"
+                onChange={setOpeningBalance}
+                placeholder="R$ 0,00"
               />
             </div>
           </div>
