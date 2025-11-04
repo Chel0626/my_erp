@@ -115,14 +115,14 @@ export default function SalesPage() {
               <Select
                 value={filters.payment_method}
                 onValueChange={(value) =>
-                  setFilters({ ...filters, payment_method: value })
+                  setFilters({ ...filters, payment_method: value === "all" ? "" : value })
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="cash">Dinheiro</SelectItem>
                   <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
                   <SelectItem value="debit_card">Cartão de Débito</SelectItem>
@@ -137,14 +137,14 @@ export default function SalesPage() {
               <Select
                 value={filters.payment_status}
                 onValueChange={(value) =>
-                  setFilters({ ...filters, payment_status: value })
+                  setFilters({ ...filters, payment_status: value === "all" ? "" : value })
                 }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="paid">Pago</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="cancelled">Cancelado</SelectItem>

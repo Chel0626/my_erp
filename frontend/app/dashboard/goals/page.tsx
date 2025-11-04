@@ -20,8 +20,11 @@ export default function GoalsPage() {
 
   const { data: goals, isLoading } = useGoals(filters);
 
+  // Garantir que goals é um array
+  const goalsArray = Array.isArray(goals) ? goals : [];
+
   // Filtrar por termo de busca
-  const filteredGoals = goals?.filter((goal) => {
+  const filteredGoals = goalsArray.filter((goal) => {
     if (!searchTerm) return true;
     return goal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
            goal.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -29,11 +32,11 @@ export default function GoalsPage() {
 
   // Estatísticas rápidas
   const stats = {
-    total: goals?.length || 0,
-    active: goals?.filter((g) => g.status === 'active').length || 0,
-    completed: goals?.filter((g) => g.status === 'completed').length || 0,
-    avgProgress: goals?.length
-      ? Math.round(goals.reduce((sum, g) => sum + g.percentage, 0) / goals.length)
+    total: goalsArray.length || 0,
+    active: goalsArray.filter((g) => g.status === 'active').length || 0,
+    completed: goalsArray.filter((g) => g.status === 'completed').length || 0,
+    avgProgress: goalsArray.length
+      ? Math.round(goalsArray.reduce((sum, g) => sum + g.percentage, 0) / goalsArray.length)
       : 0,
   };
 

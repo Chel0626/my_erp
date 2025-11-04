@@ -226,7 +226,7 @@ export function useAppointmentsTimeline(filters?: ReportFilters) {
 }
 
 /**
- * Busca performance de comissões por profissional
+ * Busca desempenho de comissões por profissional
  */
 export function useCommissionPerformance(filters?: ReportFilters) {
   return useQuery<CommissionPerformance[]>({
@@ -237,7 +237,7 @@ export function useCommissionPerformance(filters?: ReportFilters) {
       if (filters?.end_date) params.append('date_to', filters.end_date);
 
       const response = await api.get(
-        `/commissions/commissions/professional_performance/?${params.toString()}`
+        `/commissions/professional_performance/?${params.toString()}`
       );
       return response.data;
     },

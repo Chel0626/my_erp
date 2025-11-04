@@ -16,7 +16,7 @@ import {
   useCashSummary,
 } from '@/hooks/usePOS';
 import type { CashRegister } from '@/types/pos';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DollarSign, TrendingUp, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -317,6 +317,9 @@ export default function CashRegisterPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Abrir Caixa</DialogTitle>
+            <DialogDescription>
+              Informe o saldo inicial para abertura do caixa
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -352,6 +355,9 @@ export default function CashRegisterPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Fechar Caixa</DialogTitle>
+            <DialogDescription>
+              Confira os valores e informe o saldo final para fechamento do caixa
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {currentCash && (

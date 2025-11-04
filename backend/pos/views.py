@@ -324,10 +324,7 @@ class CashRegisterViewSet(viewsets.ModelViewSet):
         ).first()
         
         if not cash_register:
-            return Response(
-                {'error': 'Não há caixa aberto.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response(None, status=status.HTTP_200_OK)
         
         serializer = self.get_serializer(cash_register)
         return Response(serializer.data)

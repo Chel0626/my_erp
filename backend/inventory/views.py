@@ -150,7 +150,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         # Base query de transações (apenas saídas/vendas)
         transactions = Transaction.objects.filter(
             tenant=request.user.tenant,
-            transaction_type='saida'
+            type='saida'
         )
         
         # Filtrar por período se fornecido
