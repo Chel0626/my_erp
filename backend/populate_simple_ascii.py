@@ -6,15 +6,15 @@ import json
 from datetime import datetime, timedelta
 import random
 
-# Configurações
+# Configuraes
 BASE_URL = "https://myerp-production-4bb9.up.railway.app/api"
 TENANT_NAME = "Gael's Barber"
 EMAIL = "gael@barber.com"
 PASSWORD = "barber123"
 
 def register():
-    """Registra um novo usuário"""
-    print(f"📝 Registrando usuário {EMAIL}...")
+    """Registra um novo usurio"""
+    print(f" Registrando usurio {EMAIL}...")
     response = requests.post(f"{BASE_URL}/auth/signup/", json={
         "email": EMAIL,
         "password": PASSWORD,
@@ -23,15 +23,15 @@ def register():
     })
     
     if response.status_code in [200, 201]:
-        print(f"✅ Usuário registrado com sucesso!")
+        print(f" Usurio registrado com sucesso!")
         return True
     else:
-        print(f"⚠️ Erro no registro: {response.status_code} - {response.text}")
+        print(f" Erro no registro: {response.status_code} - {response.text}")
         return False
 
 def login():
     """Faz login e retorna o token"""
-    print("🔐 Fazendo login...")
+    print(" Fazendo login...")
     response = requests.post(f"{BASE_URL}/auth/login/", json={
         "email": EMAIL,
         "password": PASSWORD
@@ -39,19 +39,19 @@ def login():
     
     if response.status_code == 200:
         data = response.json()
-        print(f"✅ Login bem-sucedido!")
+        print(f" Login bem-sucedido!")
         return data['access']
     else:
-        print(f"❌ Erro no login: {response.text}")
+        print(f" Erro no login: {response.text}")
         return None
 
 def create_customers(token, count=20):
     """Cria clientes"""
-    print(f"\n📋 Criando {count} clientes...")
+    print(f"\n Criando {count} clientes...")
     
-    nomes = ["João Silva", "Maria Santos", "Pedro Oliveira", "Ana Costa", "Carlos Souza",
-             "Juliana Lima", "Roberto Alves", "Fernanda Rodrigues", "Lucas Ferreira", "Patrícia Martins",
-             "Rafael Carvalho", "Camila Ribeiro", "Bruno Araújo", "Larissa Gomes", "Felipe Barbosa",
+    nomes = ["Joo Silva", "Maria Santos", "Pedro Oliveira", "Ana Costa", "Carlos Souza",
+             "Juliana Lima", "Roberto Alves", "Fernanda Rodrigues", "Lucas Ferreira", "Patrcia Martins",
+             "Rafael Carvalho", "Camila Ribeiro", "Bruno Arajo", "Larissa Gomes", "Felipe Barbosa",
              "Beatriz Cardoso", "Thiago Dias", "Amanda Correia", "Gabriel Monteiro", "Mariana Freitas"]
     
     headers = {"Authorization": f"Bearer {token}"}
@@ -71,23 +71,23 @@ def create_customers(token, count=20):
         elif i == 0:  # Print error only for first customer
             print(f"   Debug: Status {response.status_code}, Response: {response.text[:200]}")
     
-    print(f"✅ {created} clientes criados")
+    print(f" {created} clientes criados")
     return created
 
 def create_services(token, count=10):
-    """Cria serviços"""
-    print(f"\n✂️ Criando {count} serviços...")
+    """Cria servios"""
+    print(f"\n Criando {count} servios...")
     
     servicos = [
         ("Corte Masculino", "45.00", 30, "Corte profissional com acabamento"),
         ("Barba Completa", "35.00", 25, "Barba desenhada e aparada"),
         ("Corte + Barba", "70.00", 50, "Combo completo de corte e barba"),
-        ("Platinado", "120.00", 90, "Descoloração completa"),
+        ("Platinado", "120.00", 90, "Descolorao completa"),
         ("Luzes", "150.00", 120, "Luzes profissionais"),
         ("Relaxamento", "80.00", 60, "Relaxamento capilar"),
-        ("Hidratação", "60.00", 40, "Tratamento hidratante profundo"),
+        ("Hidratao", "60.00", 40, "Tratamento hidratante profundo"),
         ("Sobrancelha", "20.00", 15, "Design de sobrancelhas"),
-        ("Pigmentação Barba", "100.00", 45, "Pigmentação profissional"),
+        ("Pigmentao Barba", "100.00", 45, "Pigmentao profissional"),
         ("Spa da Barba", "90.00", 60, "Tratamento completo para barba"),
     ]
     
@@ -106,18 +106,18 @@ def create_services(token, count=10):
         if response.status_code in [200, 201]:
             created += 1
     
-    print(f"✅ {created} serviços criados")
+    print(f" {created} servios criados")
     return created
 
 def create_products(token, count=15):
     """Cria produtos"""
-    print(f"\n🛍️ Criando {count} produtos...")
+    print(f"\n Criando {count} produtos...")
     
     produtos = [
         ("Pomada Modeladora", "35.90", "21.54", 50),
         ("Shampoo Anticaspa", "28.50", "17.10", 30),
         ("Cera Finalizadora", "42.00", "25.20", 25),
-        ("Óleo para Barba", "55.00", "33.00", 20),
+        ("leo para Barba", "55.00", "33.00", 20),
         ("Balm para Barba", "48.90", "29.34", 18),
         ("Navalha Profissional", "120.00", "72.00", 10),
         ("Tesoura Corte", "85.00", "51.00", 8),
@@ -126,9 +126,9 @@ def create_products(token, count=15):
         ("Gel Fixador", "32.00", "19.20", 35),
         ("Mousse Modelador", "38.50", "23.10", 22),
         ("Spray Finalizador", "45.00", "27.00", 28),
-        ("Loção Pós-Barba", "52.00", "31.20", 15),
+        ("Loo Ps-Barba", "52.00", "31.20", 15),
         ("Kit Barba Completo", "150.00", "90.00", 5),
-        ("Máquina de Corte", "450.00", "270.00", 3),
+        ("Mquina de Corte", "450.00", "270.00", 3),
     ]
     
     headers = {"Authorization": f"Bearer {token}"}
@@ -148,21 +148,21 @@ def create_products(token, count=15):
         if response.status_code in [200, 201]:
             created += 1
     
-    print(f"✅ {created} produtos criados")
+    print(f" {created} produtos criados")
     return created
 
 def create_appointments(token, count=30):
     """Cria agendamentos"""
-    print(f"\n📅 Criando {count} agendamentos...")
+    print(f"\n Criando {count} agendamentos...")
     
     headers = {"Authorization": f"Bearer {token}"}
     
-    # Buscar clientes e serviços existentes
+    # Buscar clientes e servios existentes
     customers = requests.get(f"{BASE_URL}/customers/customers/", headers=headers).json()
     services = requests.get(f"{BASE_URL}/inventory/services/", headers=headers).json()
     
     if not customers or not services:
-        print("⚠️ Não há clientes ou serviços para criar agendamentos")
+        print(" No h clientes ou servios para criar agendamentos")
         return 0
     
     created = 0
@@ -197,16 +197,16 @@ def create_appointments(token, count=30):
         if response.status_code in [200, 201]:
             created += 1
     
-    print(f"✅ {created} agendamentos criados")
+    print(f" {created} agendamentos criados")
     return created
 
 def create_transactions(token, count=50):
-    """Cria transações financeiras"""
-    print(f"\n💰 Criando {count} transações...")
+    """Cria transaes financeiras"""
+    print(f"\n Criando {count} transaes...")
     
     headers = {"Authorization": f"Bearer {token}"}
     
-    # Buscar métodos de pagamento
+    # Buscar mtodos de pagamento
     payment_methods_response = requests.get(f"{BASE_URL}/financial/payment-methods/", headers=headers)
     payment_methods = payment_methods_response.json() if payment_methods_response.status_code == 200 else []
     
@@ -257,16 +257,16 @@ def create_transactions(token, count=50):
         if response.status_code in [200, 201]:
             created += 1
     
-    print(f"✅ {created} transações criadas")
+    print(f" {created} transaes criadas")
     return created
 
 def main():
-    """Função principal"""
+    """Funo principal"""
     print("=" * 60)
     print("POPULANDO DADOS DE DEMONSTRACAO")
     print("=" * 60)
     
-    # Registrar usuário
+    # Registrar usurio
     register()
     
     # Login
