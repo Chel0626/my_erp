@@ -299,54 +299,56 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6 pb-4">
+      {/* Header - Compacto mobile */}
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Produtos</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Produtos</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             Gerencie seu inventário de produtos
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportCSV}>
-            <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
-          </Button>
-          <Button variant="outline" onClick={handleExportExcel}>
-            <FileText className="h-4 w-4 mr-2" />
-            Exportar Excel
-          </Button>
-          <Button onClick={handleCreateProduct}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button onClick={handleCreateProduct} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Novo Produto
           </Button>
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <Button variant="outline" onClick={handleExportCSV} size="sm" className="px-3">
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">CSV</span>
+            </Button>
+            <Button variant="outline" onClick={handleExportExcel} size="sm" className="px-3">
+              <FileText className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Excel</span>
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary Cards - Grid responsivo */}
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total de Produtos</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-1.5 sm:pb-2 space-y-0">
+              <CardTitle className="text-xs sm:text-sm font-medium">Produtos</CardTitle>
+              <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summary.total_products}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-lg sm:text-2xl font-bold">{summary.total_products}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
                 {summary.active_products} ativos
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Estoque Baixo</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-1.5 sm:pb-2 space-y-0">
+              <CardTitle className="text-xs sm:text-sm font-medium">Estoque Baixo</CardTitle>
+              <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-600 flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-lg sm:text-2xl font-bold text-yellow-600">
                 {summary.low_stock_products}
               </div>
               <p className="text-xs text-muted-foreground">

@@ -145,77 +145,79 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="container mx-auto py-4 sm:py-8 px-3 sm:px-4 space-y-4 sm:space-y-8">
+      {/* Header - Compacto mobile */}
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Clientes</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Clientes</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             Gerencie seus clientes e suas informações
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportCSV}>
-            <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
-          </Button>
-          <Button variant="outline" onClick={handleExportExcel}>
-            <FileText className="h-4 w-4 mr-2" />
-            Exportar Excel
-          </Button>
-          <Button onClick={() => setShowCreateDialog(true)}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Novo Cliente
           </Button>
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <Button variant="outline" onClick={handleExportCSV} size="sm" className="px-3">
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">CSV</span>
+            </Button>
+            <Button variant="outline" onClick={handleExportExcel} size="sm" className="px-3">
+              <FileText className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Excel</span>
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary Cards - Grid responsivo */}
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Total
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-1.5 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium flex items-center gap-1.5 sm:gap-2">
+                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                <span className="truncate">Total</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summary.total_customers}</div>
+              <div className="text-lg sm:text-2xl font-bold">{summary.total_customers}</div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-600" />
-                VIP
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-1.5 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium flex items-center gap-1.5 sm:gap-2">
+                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-600 flex-shrink-0" />
+                <span className="truncate">VIP</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summary.vip_customers}</div>
+              <div className="text-lg sm:text-2xl font-bold">{summary.vip_customers}</div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                Regulares
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-1.5 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium flex items-center gap-1.5 sm:gap-2">
+                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 flex-shrink-0" />
+                <span className="truncate">Regulares</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-lg sm:text-2xl font-bold">
                 {summary.regular_customers}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <UserPlus className="h-4 w-4 text-green-600" />
-                Novos
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-1.5 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium flex items-center gap-1.5 sm:gap-2">
+                <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 flex-shrink-0" />
+                <span className="truncate">Novos</span>
               </CardTitle>
             </CardHeader>
             <CardContent>

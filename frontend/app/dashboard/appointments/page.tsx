@@ -221,66 +221,73 @@ export default function AppointmentsPage() {
   }, {} as Record<string, Appointment[]>);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header - Compacto mobile */}
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Agendamentos</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Agendamentos</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             Gerencie os agendamentos da sua empresa
           </p>
         </div>
-        <div className="flex gap-2">
-          {/* Botões de Exportação */}
-          <Button variant="outline" onClick={handleExportCSV}>
-            <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
-          </Button>
-          <Button variant="outline" onClick={handleExportExcel}>
-            <FileText className="h-4 w-4 mr-2" />
-            Exportar Excel
+        
+        {/* Botões principais - Stack vertical mobile */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          {/* Novo Agendamento - Full width mobile */}
+          <Button onClick={handleCreateClick} className="w-full sm:w-auto order-1 sm:order-4">
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Agendamento
           </Button>
           
-          {/* Toggle de visualização */}
-          <div className="flex border rounded-md">
+          {/* Toggle de visualização - Horizontal mobile */}
+          <div className="flex border rounded-md order-2 sm:order-3">
             <Button
               variant={viewMode === 'calendar' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('calendar')}
-              className="rounded-r-none"
+              className="rounded-r-none flex-1 sm:flex-none"
             >
-              <CalendarDays className="mr-2 h-4 w-4" />
-              Calendário
+              <CalendarDays className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Calendário</span>
             </Button>
             <Button
               variant={viewMode === 'list' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('list')}
-              className="rounded-l-none"
+              className="rounded-l-none flex-1 sm:flex-none"
             >
-              <LayoutGrid className="mr-2 h-4 w-4" />
-              Lista
+              <LayoutGrid className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Lista</span>
             </Button>
           </div>
           
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="mr-2 h-4 w-4" />
-            Filtros
-          </Button>
-          <Button onClick={handleCreateClick}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Agendamento
-          </Button>
+          {/* Botões secundários - Grid mobile */}
+          <div className="grid grid-cols-3 gap-2 order-3 sm:order-1 sm:flex">
+            <Button variant="outline" onClick={handleExportCSV} size="sm" className="px-2 sm:px-4">
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">CSV</span>
+            </Button>
+            <Button variant="outline" onClick={handleExportExcel} size="sm" className="px-2 sm:px-4">
+              <FileText className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Excel</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              size="sm"
+              className="px-2 sm:px-4"
+            >
+              <Filter className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Filtros</span>
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Filtros */}
+      {/* Filtros - Melhor espaçamento mobile */}
       {showFilters && (
-        <div className="bg-white p-4 rounded-lg border space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white p-3 sm:p-4 rounded-lg border space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label htmlFor="filter-date">Data Específica</Label>
               <Input
@@ -399,16 +406,16 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {/* Lista de Agendamentos (Agrupados por Data) */}
+      {/* Lista de Agendamentos (Agrupados por Data) - Grid responsivo */}
       {!isLoading && appointmentsList.length > 0 && viewMode === 'list' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {Object.entries(groupedAppointments).map(([date, dayAppointments]) => (
-            <div key={date} className="space-y-3">
-              <h2 className="text-lg font-semibold text-muted-foreground flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5" />
+            <div key={date} className="space-y-2 sm:space-y-3">
+              <h2 className="text-base sm:text-lg font-semibold text-muted-foreground flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 {date}
               </h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {dayAppointments.map((appointment) => (
                   <AppointmentCard
                     key={appointment.id}
@@ -428,14 +435,14 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {/* Dialog Criar/Editar */}
+      {/* Dialog Criar/Editar - Full screen mobile */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingAppointment ? 'Editar Agendamento' : 'Novo Agendamento'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs sm:text-sm">
               {editingAppointment
                 ? 'Atualize as informações do agendamento'
                 : 'Preencha os dados do novo agendamento'}
@@ -456,9 +463,9 @@ export default function AppointmentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Visualizar Detalhes */}
+      {/* Dialog Visualizar Detalhes - Full screen mobile */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalhes do Agendamento</DialogTitle>
             <DialogDescription>
