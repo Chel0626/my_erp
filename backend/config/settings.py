@@ -243,6 +243,19 @@ CORS_ALLOWED_ORIGINS = config(
 
 CORS_ALLOW_CREDENTIALS = True
 
+# CSRF Configuration - Permitir origens confiáveis
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://localhost:3000,http://127.0.0.1:3000,https://vrb-erp-frontend.vercel.app,https://*.railway.app'
+).split(',')
+
+# Permitir cookies CSRF em produção
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False  # Permitir JavaScript acessar (para React)
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+
 
 # =============================================================================
 # Storage: Cloudflare R2 (S3 Compatible)
