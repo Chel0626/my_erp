@@ -135,7 +135,7 @@ export default function GoalsPage() {
 
             {/* Type Filter */}
             <Select
-              value={filters.type || 'all'}
+              value={filters.type ?? 'all'}
               onValueChange={(value) =>
                 setFilters((prev) => ({
                   ...prev,
@@ -155,7 +155,7 @@ export default function GoalsPage() {
 
             {/* Target Type Filter */}
             <Select
-              value={filters.target_type || 'all'}
+              value={filters.target_type ?? 'all'}
               onValueChange={(value) =>
                 setFilters((prev) => ({
                   ...prev,
@@ -178,7 +178,7 @@ export default function GoalsPage() {
 
             {/* Status Filter */}
             <Select
-              value={filters.status || 'all'}
+              value={filters.status ?? 'all'}
               onValueChange={(value) =>
                 setFilters((prev) => ({
                   ...prev,
@@ -200,7 +200,7 @@ export default function GoalsPage() {
 
             {/* Period Filter */}
             <Select
-              value={filters.period || 'all'}
+              value={filters.period ?? 'all'}
               onValueChange={(value) =>
                 setFilters((prev) => ({
                   ...prev,
