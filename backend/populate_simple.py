@@ -19,7 +19,7 @@ def register():
         "email": EMAIL,
         "password": PASSWORD,
         "tenant_name": TENANT_NAME,
-        "name": "Gael Silva"
+        "name": "Gael Macedo"
     })
     
     if response.status_code in [200, 201]:
