@@ -235,26 +235,26 @@ export default function CommissionsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Comissões</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportCSV}>
-            <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold">Comissões</h1>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportCSV} className="flex-1 sm:flex-none">
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Exportar CSV</span>
           </Button>
-          <Button variant="outline" onClick={handleExportExcel}>
-            <FileText className="h-4 w-4 mr-2" />
-            Exportar Excel
+          <Button variant="outline" size="sm" onClick={handleExportExcel} className="flex-1 sm:flex-none">
+            <FileText className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Exportar Excel</span>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="outline" size="sm" asChild className="flex-1 sm:flex-none">
             <a href="/dashboard/commissions/rules">
-              Gerenciar Regras
+              Regras
             </a>
           </Button>
           {selectedCommissions.length > 0 && (
-            <Button onClick={() => setPaymentDialogOpen(true)}>
-              Marcar como Pagas ({selectedCommissions.length})
+            <Button size="sm" onClick={() => setPaymentDialogOpen(true)} className="w-full sm:w-auto">
+              Pagar ({selectedCommissions.length})
             </Button>
           )}
         </div>
@@ -262,16 +262,16 @@ export default function CommissionsPage() {
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium">
                 Comissões Pendentes
               </CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-lg sm:text-2xl font-bold truncate">
                 {formatCurrency(summary.total_pending)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -282,13 +282,13 @@ export default function CommissionsPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium">
                 Comissões Pagas
               </CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-lg sm:text-2xl font-bold truncate">
                 {formatCurrency(summary.total_paid)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -299,13 +299,13 @@ export default function CommissionsPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium">
                 Comissões Canceladas
               </CardTitle>
-              <XCircle className="h-4 w-4 text-muted-foreground" />
+              <XCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-lg sm:text-2xl font-bold truncate">
                 {formatCurrency(summary.total_cancelled)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -318,15 +318,15 @@ export default function CommissionsPage() {
 
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Filter className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
             Filtros
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
+        <CardContent className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status" className="text-xs sm:text-sm">Status</Label>
             <Select
               value={filters.status || "all"}
               onValueChange={(value) =>
@@ -336,7 +336,7 @@ export default function CommissionsPage() {
                 }))
               }
             >
-              <SelectTrigger id="status">
+              <SelectTrigger id="status" className="h-9 sm:h-10">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -349,7 +349,7 @@ export default function CommissionsPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="professional">Profissional</Label>
+            <Label htmlFor="professional" className="text-xs sm:text-sm">Profissional</Label>
             <Select
               value={filters.professional?.toString() || "all"}
               onValueChange={(value) =>
@@ -359,7 +359,7 @@ export default function CommissionsPage() {
                 }))
               }
             >
-              <SelectTrigger id="professional">
+              <SelectTrigger id="professional" className="h-9 sm:h-10">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -374,10 +374,11 @@ export default function CommissionsPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date_from">Data Inicial</Label>
+            <Label htmlFor="date_from" className="text-xs sm:text-sm">Data Inicial</Label>
             <Input
               id="date_from"
               type="date"
+              className="h-9 sm:h-10 text-sm"
               value={filters.date_from || ""}
               onChange={(e) =>
                 setFilters((prev) => ({ ...prev, date_from: e.target.value }))
@@ -386,10 +387,11 @@ export default function CommissionsPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date_to">Data Final</Label>
+            <Label htmlFor="date_to" className="text-xs sm:text-sm">Data Final</Label>
             <Input
               id="date_to"
               type="date"
+              className="h-9 sm:h-10 text-sm"
               value={filters.date_to || ""}
               onChange={(e) =>
                 setFilters((prev) => ({ ...prev, date_to: e.target.value }))
@@ -399,55 +401,57 @@ export default function CommissionsPage() {
         </CardContent>
       </Card>
 
-      {/* Commissions Table */}
+      {/* Commissions Table/Cards */}
       <Card>
-        <CardHeader>
-          <CardTitle>Lista de Comissões</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">Lista de Comissões</CardTitle>
         </CardHeader>
         <CardContent>
           {commissions.length === 0 ? (
             <div className="text-center py-12">
               <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Nenhuma comissão encontrada.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={
-                          selectedCommissions.length > 0 &&
-                          selectedCommissions.length ===
-                            commissions.filter((c) => c.status === "pending")
-                              .length
-                        }
-                        onCheckedChange={handleSelectAll}
-                      />
-                    </TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Profissional</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    <TableHead>Valor Serviço</TableHead>
-                    <TableHead>% Comissão</TableHead>
-                    <TableHead>Valor Comissão</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {commissions.map((commission) => (
-                    <TableRow key={commission.id}>
-                      <TableCell>
-                        {commission.status === "pending" && (
-                          <Checkbox
-                            checked={selectedCommissions.includes(commission.id)}
-                            onCheckedChange={(checked) =>
-                              handleSelectCommission(
-                                commission.id,
+            <>
+              {/* Desktop Table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={
+                            selectedCommissions.length > 0 &&
+                            selectedCommissions.length ===
+                              commissions.filter((c) => c.status === "pending")
+                                .length
+                          }
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Profissional</TableHead>
+                      <TableHead>Serviço</TableHead>
+                      <TableHead>Valor Serviço</TableHead>
+                      <TableHead>% Comissão</TableHead>
+                      <TableHead>Valor Comissão</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {commissions.map((commission) => (
+                      <TableRow key={commission.id}>
+                        <TableCell>
+                          {commission.status === "pending" && (
+                            <Checkbox
+                              checked={selectedCommissions.includes(commission.id)}
+                              onCheckedChange={(checked) =>
+                                handleSelectCommission(
+                                  commission.id,
                                 checked as boolean
                               )
                             }
@@ -484,6 +488,73 @@ export default function CommissionsPage() {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Mobile Cards */}
+            <div className="lg:hidden space-y-3">
+              {commissions.map((commission) => (
+                <div
+                  key={commission.id}
+                  className="border rounded-lg p-3 space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                      {commission.status === "pending" && (
+                        <Checkbox
+                          checked={selectedCommissions.includes(commission.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectCommission(commission.id, checked as boolean)
+                          }
+                          className="mt-1 flex-shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">
+                          {commission.service_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <User className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{commission.professional_name}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {getStatusBadge(commission.status)}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <p className="text-muted-foreground">Data</p>
+                      <p className="font-medium">{formatDate(commission.date)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Valor Serviço</p>
+                      <p className="font-medium">{formatCurrency(commission.service_price)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">% Comissão</p>
+                      <p className="font-medium">{commission.commission_percentage}%</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Valor Comissão</p>
+                      <p className="font-semibold text-primary">{formatCurrency(commission.commission_amount)}</p>
+                    </div>
+                  </div>
+
+                  {commission.status === "pending" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCancel(commission)}
+                      className="w-full"
+                    >
+                      Cancelar Comissão
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            </>
           )}
         </CardContent>
       </Card>

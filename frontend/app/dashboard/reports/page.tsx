@@ -143,45 +143,51 @@ export default function ReportsPage() {
     bestSellingProducts.isLoading;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <BarChart3 className="h-8 w-8 text-blue-600" />
-            Relatórios e Análises
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
+            <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
+            <span>Relatórios</span>
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground hidden sm:block">
             Visualize o desempenho do seu negócio
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 sm:flex gap-2">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => setShowFilters(!showFilters)}
+            className="text-xs"
           >
-            <Filter className="mr-2 h-4 w-4" />
-            Filtros
+            <Filter className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Filtros</span>
           </Button>
-          <Button variant="outline" onClick={handleReset}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Resetar
+          <Button variant="outline" size="sm" onClick={handleReset} className="text-xs">
+            <RefreshCw className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Resetar</span>
           </Button>
           <Button 
-            variant="default" 
+            variant="default"
+            size="sm"
             onClick={handleExportPDF}
             disabled={isLoading}
+            className="text-xs"
           >
-            <Download className="mr-2 h-4 w-4" />
-            PDF
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">PDF</span>
           </Button>
           <Button 
-            variant="default" 
+            variant="default"
+            size="sm"
             onClick={handleExportExcel}
             disabled={isLoading}
+            className="text-xs"
           >
-            <Download className="mr-2 h-4 w-4" />
-            Excel
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Excel</span>
           </Button>
         </div>
       </div>
@@ -189,20 +195,21 @@ export default function ReportsPage() {
       {/* Filtros */}
       {showFilters && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Filtros</CardTitle>
-            <CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base sm:text-lg">Filtros</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Configure o período e tipo de visualização dos dados
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               {/* Data Inicial */}
               <div className="space-y-2">
-                <Label htmlFor="start_date">Data Inicial</Label>
+                <Label htmlFor="start_date" className="text-xs sm:text-sm">Data Inicial</Label>
                 <Input
                   id="start_date"
                   type="date"
+                  className="h-9 sm:h-10 text-sm"
                   value={filters.start_date}
                   onChange={(e) =>
                     handleFilterChange('start_date', e.target.value)
@@ -212,10 +219,11 @@ export default function ReportsPage() {
 
               {/* Data Final */}
               <div className="space-y-2">
-                <Label htmlFor="end_date">Data Final</Label>
+                <Label htmlFor="end_date" className="text-xs sm:text-sm">Data Final</Label>
                 <Input
                   id="end_date"
                   type="date"
+                  className="h-9 sm:h-10 text-sm"
                   value={filters.end_date}
                   onChange={(e) => handleFilterChange('end_date', e.target.value)}
                 />
@@ -223,12 +231,12 @@ export default function ReportsPage() {
 
               {/* Período de Agrupamento */}
               <div className="space-y-2">
-                <Label htmlFor="period">Agrupamento</Label>
+                <Label htmlFor="period" className="text-xs sm:text-sm">Agrupamento</Label>
                 <Select
                   value={filters.period}
                   onValueChange={(value) => handleFilterChange('period', value)}
                 >
-                  <SelectTrigger id="period">
+                  <SelectTrigger id="period" className="h-9 sm:h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -241,14 +249,14 @@ export default function ReportsPage() {
 
               {/* Limite Top Serviços */}
               <div className="space-y-2">
-                <Label htmlFor="limit">Top Serviços</Label>
+                <Label htmlFor="limit" className="text-xs sm:text-sm">Top Serviços</Label>
                 <Select
                   value={filters.limit?.toString()}
                   onValueChange={(value) =>
                     handleFilterChange('limit', parseInt(value))
                   }
                 >
-                  <SelectTrigger id="limit">
+                  <SelectTrigger id="limit" className="h-9 sm:h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -262,32 +270,36 @@ export default function ReportsPage() {
             </div>
 
             {/* Filtros Rápidos */}
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-3 sm:mt-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => handleQuickFilter(7)}
+                className="text-xs"
               >
-                Últimos 7 dias
+                <span className="hidden sm:inline">Últimos </span>7d
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => handleQuickFilter(15)}
+                className="text-xs"
               >
-                Últimos 15 dias
+                <span className="hidden sm:inline">Últimos </span>15d
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => handleQuickFilter(30)}
+                className="text-xs"
               >
-                Últimos 30 dias
+                <span className="hidden sm:inline">Últimos </span>30d
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={handleThisMonth}
+                className="text-xs"
               >
                 Este mês
               </Button>
@@ -297,9 +309,9 @@ export default function ReportsPage() {
       )}
 
       {/* Informações do Período */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Calendar className="h-4 w-4" />
-        <span>
+      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+        <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+        <span className="truncate">
           Período: {format(new Date(filters.start_date!), 'dd/MM/yyyy')} até{' '}
           {format(new Date(filters.end_date!), 'dd/MM/yyyy')}
         </span>
@@ -307,19 +319,19 @@ export default function ReportsPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="grid gap-6 md:grid-cols-2">
-          <Skeleton className="h-[400px]" />
-          <Skeleton className="h-[400px]" />
-          <Skeleton className="h-[400px]" />
-          <Skeleton className="h-[400px]" />
+        <div className="grid gap-3 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+          <Skeleton className="h-[300px] sm:h-[400px]" />
+          <Skeleton className="h-[300px] sm:h-[400px]" />
+          <Skeleton className="h-[300px] sm:h-[400px]" />
+          <Skeleton className="h-[300px] sm:h-[400px]" />
         </div>
       )}
 
       {/* Gráficos */}
       {!isLoading && (
-        <div className="grid gap-6">
+        <div className="grid gap-4 sm:gap-6">
           {/* Linha 1: Receita e Status */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
             {revenueChart.data && (
               <RevenueChart
                 data={revenueChart.data.data}
