@@ -338,10 +338,12 @@ export default function AppointmentCalendar({
           padding: 2px 4px;
           border: 2px solid rgba(255, 255, 255, 0.2);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          opacity: 1 !important;
+          background-color: var(--fc-event-bg-color) !important;
         }
         
         .fc .fc-event:hover {
-          opacity: 0.9;
+          opacity: 0.9 !important;
           transform: scale(1.02);
           transition: all 0.2s ease;
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -350,6 +352,7 @@ export default function AppointmentCalendar({
         /* Melhor contraste para texto em eventos */
         .fc .fc-event-main {
           color: #ffffff !important;
+          background: transparent !important;
         }
 
         .fc .fc-event-time,
@@ -361,6 +364,11 @@ export default function AppointmentCalendar({
 
         .fc .fc-daygrid-event {
           padding: 2px 4px;
+          margin-bottom: 2px;
+          background-color: var(--fc-event-bg-color) !important;
+          border: 1px solid var(--fc-event-border-color) !important;
+          color: var(--fc-event-text-color) !important;
+          opacity: 1 !important;
         }
 
         /* Corrige overflow de texto no calendário mensal */
@@ -414,6 +422,25 @@ export default function AppointmentCalendar({
         
         .fc .fc-list-event:hover td {
           background-color: hsl(var(--muted));
+        }
+        
+        /* Garantir contraste no modo lista */
+        .fc .fc-list-event td {
+          color: hsl(var(--foreground)) !important;
+        }
+        
+        .fc .fc-list-event-dot {
+          border-color: var(--fc-event-border-color) !important;
+          background-color: var(--fc-event-bg-color) !important;
+        }
+        
+        .fc .fc-list-event-title a {
+          color: hsl(var(--foreground)) !important;
+          text-decoration: none;
+        }
+        
+        .fc .fc-list-event-time {
+          color: hsl(var(--muted-foreground)) !important;
         }
       `}</style>
     </div>
