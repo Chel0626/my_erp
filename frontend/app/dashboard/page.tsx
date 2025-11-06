@@ -19,13 +19,19 @@ export default function DashboardPage() {
   // Buscar agendamentos
   const { data: appointments = [], isLoading } = useQuery<Appointment[]>({
     queryKey: ['appointments'],
-    queryFn: () => api.get('/scheduling/appointments/').then(res => res.data),
+    queryFn: async () => {
+      const res = await api.get('/scheduling/appointments/');
+      return res.data.results || res.data || [];
+    },
   });
 
   // Buscar serviços
   const { data: services = [] } = useQuery<Service[]>({
     queryKey: ['services'],
-    queryFn: () => api.get('/scheduling/services/').then(res => res.data),
+    queryFn: async () => {
+      const res = await api.get('/scheduling/services/');
+      return res.data.results || res.data || [];
+    },
   });
 
   // Garantir que appointments é um array
@@ -47,22 +53,34 @@ export default function DashboardPage() {
       return sum + (service ? parseFloat(service.price) : 0);
     }, 0);
 
-  // Próximos agendamentos
+  // Próximos agendamentos (próximos 7 dias)
+  const now = new Date();
+  const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  
   const upcomingAppointments = appointmentsList
-    .filter(apt => apt.status === 'confirmado' && apt.start_time >= new Date().toISOString())
+    .filter(apt => {
+      const aptDate = new Date(apt.start_time);
+      return (apt.status === 'marcado' || apt.status === 'confirmado') && 
+             aptDate >= now && 
+             aptDate <= sevenDaysLater;
+    })
     .sort((a, b) => a.start_time.localeCompare(b.start_time))
     .slice(0, 5);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed':
+      case 'confirmado':
         return 'bg-blue-100 text-blue-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      case 'pending':
+      case 'marcado':
         return 'bg-yellow-100 text-yellow-800';
+      case 'em_atendimento':
+        return 'bg-purple-100 text-purple-800';
+      case 'concluido':
+        return 'bg-green-100 text-green-800';
+      case 'cancelado':
+        return 'bg-red-100 text-red-800';
+      case 'falta':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -70,14 +88,18 @@ export default function DashboardPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'confirmed':
+      case 'confirmado':
         return 'Confirmado';
-      case 'completed':
+      case 'marcado':
+        return 'Marcado';
+      case 'em_atendimento':
+        return 'Em Atendimento';
+      case 'concluido':
         return 'Concluído';
-      case 'cancelled':
+      case 'cancelado':
         return 'Cancelado';
-      case 'pending':
-        return 'Pendente';
+      case 'falta':
+        return 'Falta';
       default:
         return status;
     }
