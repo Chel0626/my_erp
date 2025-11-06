@@ -15,7 +15,7 @@ import {
   CustomerFilters,
   Customer,
   exportCustomersCSV,
-  exportCustomersExcel,
+  exportCustomersPDF,
 } from '@/hooks/useCustomers';
 import { CustomerCard } from '@/components/customers/CustomerCard';
 import { CustomerForm } from '@/components/customers/CustomerForm';
@@ -53,6 +53,7 @@ import {
   Download,
   FileText,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -129,18 +130,20 @@ export default function CustomersPage() {
   const handleExportCSV = async () => {
     try {
       await exportCustomersCSV(filters);
-      // Toast será exibido automaticamente pelo componente
+      toast.success('Exportação CSV concluída!');
     } catch (error) {
       console.error('Erro ao exportar CSV:', error);
+      toast.error('Erro ao exportar CSV');
     }
   };
 
-  const handleExportExcel = async () => {
+  const handleExportPDF = async () => {
     try {
-      await exportCustomersExcel(filters);
-      // Toast será exibido automaticamente pelo componente
+      await exportCustomersPDF(filters);
+      toast.success('Exportação PDF concluída!');
     } catch (error) {
-      console.error('Erro ao exportar Excel:', error);
+      console.error('Erro ao exportar PDF:', error);
+      toast.error('Erro ao exportar PDF');
     }
   };
 
@@ -160,13 +163,13 @@ export default function CustomersPage() {
             Novo Cliente
           </Button>
           <div className="grid grid-cols-2 gap-2 sm:flex">
+            <Button variant="outline" onClick={handleExportPDF} size="sm" className="px-3">
+              <FileText className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">PDF</span>
+            </Button>
             <Button variant="outline" onClick={handleExportCSV} size="sm" className="px-3">
               <Download className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">CSV</span>
-            </Button>
-            <Button variant="outline" onClick={handleExportExcel} size="sm" className="px-3">
-              <FileText className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Excel</span>
             </Button>
           </div>
         </div>

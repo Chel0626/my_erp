@@ -360,28 +360,87 @@ export async function exportCustomersCSV(filters?: CustomerFilters) {
 }
 
 /**
- * Exporta clientes em formato Excel
+ * Exporta clientes em formato PDF
  */
-export async function exportCustomersExcel(filters?: CustomerFilters) {
+export async function exportCustomersPDF(filters?: CustomerFilters) {
+  const { default: jsPDF } = await import('jspdf');
+  const { default: autoTable } = await import('jspdf-autotable');
+  
   const params = new URLSearchParams();
   if (filters?.tag) params.append('tag', filters.tag);
   if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
   if (filters?.gender) params.append('gender', filters.gender);
   if (filters?.search) params.append('search', filters.search);
 
-  const response = await api.get(`/customers/customers/export_excel/?${params.toString()}`, {
-    responseType: 'blob',
+  // Buscar dados da API
+  const response = await api.get(`/customers/customers/?${params.toString()}`);
+  const customers = response.data.results || response.data || [];
+
+  // Criar PDF
+  const doc = new jsPDF();
+  
+  // Título
+  doc.setFontSize(18);
+  doc.text('Relatório de Clientes', 14, 20);
+  
+  // Data de geração
+  doc.setFontSize(10);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
+
+  // Mapear tags
+  const tagMap: Record<string, string> = {
+    VIP: 'VIP',
+    REGULAR: 'Regular',
+    NOVO: 'Novo',
+    INATIVO: 'Inativo',
+  };
+
+  // Mapear gênero
+  const genderMap: Record<string, string> = {
+    M: 'Masculino',
+    F: 'Feminino',
+    O: 'Outro',
+  };
+
+  // Preparar dados da tabela
+  const tableData = customers.map((customer: Customer) => [
+    customer.name || '-',
+    customer.phone || '-',
+    customer.email || '-',
+    customer.cpf || '-',
+    customer.gender ? genderMap[customer.gender] : '-',
+    tagMap[customer.tag] || customer.tag,
+    customer.is_active ? 'Sim' : 'Não',
+  ]);
+
+  // Criar tabela
+  autoTable(doc, {
+    startY: 35,
+    head: [['Nome', 'Telefone', 'E-mail', 'CPF', 'Gênero', 'Categoria', 'Ativo']],
+    body: tableData,
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+    },
+    headStyles: {
+      fillColor: [79, 70, 229], // Indigo
+      textColor: 255,
+      fontStyle: 'bold',
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245],
+    },
+    columnStyles: {
+      0: { cellWidth: 40 }, // Nome
+      1: { cellWidth: 28 }, // Telefone
+      2: { cellWidth: 45 }, // Email
+      3: { cellWidth: 28 }, // CPF
+      4: { cellWidth: 23 }, // Gênero
+      5: { cellWidth: 23 }, // Categoria
+      6: { cellWidth: 13 }, // Ativo
+    },
   });
 
-  const blob = new Blob([response.data], { 
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-  });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'clientes.xlsx';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+  // Salvar PDF
+  doc.save('clientes.pdf');
 }
