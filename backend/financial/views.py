@@ -54,9 +54,17 @@ class TransactionViewSet(viewsets.ModelViewSet):
     filterset_fields = ['type', 'payment_method', 'appointment']
 
     def get_queryset(self):
-        """Retorna apenas transações do mesmo tenant com filtros opcionais"""
+        """Retorna apenas transações do mesmo tenant com filtros opcionais - Otimizado"""
         if self.request.user.is_authenticated:
-            queryset = Transaction.objects.filter(tenant=self.request.user.tenant)
+            queryset = Transaction.objects.filter(
+                tenant=self.request.user.tenant
+            ).select_related(
+                'payment_method',
+                'appointment__service',
+                'appointment__customer',
+                'created_by',
+                'tenant'
+            ).order_by('-date', '-created_at')
             
             # Filtro por data específica
             date = self.request.query_params.get('date', None)

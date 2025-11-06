@@ -46,6 +46,8 @@ export function useServices(activeOnly = false) {
       // DRF retorna {count, next, previous, results}
       return response.data.results || response.data;
     },
+    staleTime: 10 * 60 * 1000, // 10 minutos - serviços mudam raramente
+    gcTime: 30 * 60 * 1000, // 30 minutos
   });
 }
 
@@ -109,6 +111,7 @@ export function useUpdateService() {
 /**
  * Atualiza parcialmente um serviço (PATCH)
  * Útil para toggle de is_active
+ * Usa optimistic updates para melhor UX
  */
 export function usePatchService() {
   const queryClient = useQueryClient();
@@ -118,8 +121,34 @@ export function usePatchService() {
       const response = await api.patch(`/scheduling/services/${id}/`, data);
       return response.data;
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['services', data.id], data);
+    // Optimistic update - atualiza UI antes da resposta
+    onMutate: async ({ id, data }) => {
+      // Cancela queries em andamento
+      await queryClient.cancelQueries({ queryKey: ['services'] });
+      
+      // Pega o valor anterior
+      const previousServices = queryClient.getQueryData<Service[]>(['services', false]);
+      
+      // Atualiza otimisticamente
+      if (previousServices) {
+        queryClient.setQueryData<Service[]>(['services', false], (old) =>
+          old?.map((service) =>
+            service.id === id ? { ...service, ...data } : service
+          )
+        );
+      }
+      
+      // Retorna contexto com valor anterior para rollback se der erro
+      return { previousServices };
+    },
+    // Se der erro, faz rollback
+    onError: (err, variables, context) => {
+      if (context?.previousServices) {
+        queryClient.setQueryData(['services', false], context.previousServices);
+      }
+    },
+    // Sempre sincroniza no final
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
     },
   });

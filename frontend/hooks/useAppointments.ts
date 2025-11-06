@@ -107,6 +107,8 @@ export function useAppointments(filters?: AppointmentFilters) {
       // DRF retorna {count, next, previous, results}
       return response.data.results || response.data;
     },
+    staleTime: 2 * 60 * 1000, // 2 minutos - dados de agendamentos mudam com frequência
+    gcTime: 5 * 60 * 1000, // 5 minutos
   });
 }
 
@@ -147,6 +149,8 @@ export function useAppointmentsUpcoming() {
       const response = await api.get('/scheduling/appointments/upcoming/');
       return response.data.results || response.data;
     },
+    staleTime: 1 * 60 * 1000, // 1 minuto - dados de "próximos" mudam frequentemente
+    gcTime: 3 * 60 * 1000, // 3 minutos
   });
 }
 

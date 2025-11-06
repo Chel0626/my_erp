@@ -52,10 +52,15 @@ class CustomerViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        """Filtra clientes do tenant do usuário"""
+        """Filtra clientes do tenant do usuário - Otimizado"""
         return Customer.objects.filter(
             tenant=self.request.user.tenant
-        ).prefetch_related('appointments')
+        ).select_related(
+            'tenant'
+        ).prefetch_related(
+            'appointments__service',
+            'appointments__professional'
+        ).order_by('-created_at')
     
     def get_serializer_class(self):
         """Retorna serializer apropriado para cada ação"""

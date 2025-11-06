@@ -65,9 +65,18 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         """
         Retorna apenas agendamentos do mesmo tenant
         Implementa: BLOCO 3 - Regras de Segurança
+        Otimizado com select_related para evitar N+1 queries
         """
         if self.request.user.is_authenticated:
-            queryset = Appointment.objects.filter(tenant=self.request.user.tenant)
+            queryset = Appointment.objects.filter(
+                tenant=self.request.user.tenant
+            ).select_related(
+                'customer',
+                'service', 
+                'professional',
+                'created_by',
+                'tenant'
+            ).order_by('-start_time')
             
             # Filtros opcionais via query params
             date = self.request.query_params.get('date', None)
