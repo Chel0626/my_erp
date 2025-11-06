@@ -74,10 +74,10 @@ class SaleItemCreateSerializer(serializers.ModelSerializer):
             product = data['product']
             quantity = data.get('quantity', Decimal('1'))
             
-            if product.stock < quantity:
+            if product.stock_quantity < quantity:
                 raise serializers.ValidationError(
                     f'Estoque insuficiente para {product.name}. '
-                    f'Disponível: {product.stock}, Solicitado: {quantity}'
+                    f'Disponível: {product.stock_quantity}, Solicitado: {quantity}'
                 )
         
         return data
@@ -133,7 +133,7 @@ class SaleCreateSerializer(serializers.ModelSerializer):
             # Atualiza estoque se for produto
             if item.product:
                 product = item.product
-                product.stock -= item.quantity
+                product.stock_quantity -= item.quantity
                 product.save()
         
         # Recalcula total da venda

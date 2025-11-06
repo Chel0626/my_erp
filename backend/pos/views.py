@@ -72,7 +72,7 @@ class SaleViewSet(viewsets.ModelViewSet):
         for item in sale.items.all():
             if item.product:
                 product = item.product
-                product.stock += item.quantity
+                product.stock_quantity += item.quantity
                 product.save()
         
         # Cancela comissões relacionadas
