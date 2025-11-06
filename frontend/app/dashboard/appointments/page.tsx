@@ -19,7 +19,7 @@ import {
   CreateAppointmentInput,
   AppointmentFilters,
   exportAppointmentsCSV,
-  exportAppointmentsExcel,
+  exportAppointmentsPDF,
 } from '@/hooks/useAppointments';
 import { useServices } from '@/hooks/useServices';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
@@ -152,12 +152,12 @@ export default function AppointmentsPage() {
     }
   };
 
-  const handleExportExcel = async () => {
+  const handleExportPDF = async () => {
     try {
-      await exportAppointmentsExcel(filters);
-      toast.success('Exportação Excel concluída!');
+      await exportAppointmentsPDF(filters);
+      toast.success('Exportação PDF concluída!');
     } catch (error) {
-      toast.error('Erro ao exportar Excel');
+      toast.error('Erro ao exportar PDF');
     }
   };
 
@@ -263,13 +263,13 @@ export default function AppointmentsPage() {
           
           {/* Botões secundários - Grid mobile */}
           <div className="grid grid-cols-3 gap-2 order-3 sm:order-1 sm:flex">
+            <Button variant="outline" onClick={handleExportPDF} size="sm" className="px-2 sm:px-4">
+              <FileText className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">PDF</span>
+            </Button>
             <Button variant="outline" onClick={handleExportCSV} size="sm" className="px-2 sm:px-4">
               <Download className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">CSV</span>
-            </Button>
-            <Button variant="outline" onClick={handleExportExcel} size="sm" className="px-2 sm:px-4">
-              <FileText className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Excel</span>
             </Button>
             <Button
               variant="outline"

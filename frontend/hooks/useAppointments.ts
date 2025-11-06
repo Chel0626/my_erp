@@ -329,9 +329,12 @@ export async function exportAppointmentsCSV(filters?: AppointmentFilters) {
 }
 
 /**
- * Exporta agendamentos em formato Excel
+ * Exporta agendamentos em formato PDF
  */
-export async function exportAppointmentsExcel(filters?: AppointmentFilters) {
+export async function exportAppointmentsPDF(filters?: AppointmentFilters) {
+  const { default: jsPDF } = await import('jspdf');
+  const { default: autoTable } = await import('jspdf-autotable');
+  
   const params = new URLSearchParams();
   if (filters?.date) params.append('date', filters.date);
   if (filters?.start_date) params.append('start_date', filters.start_date);
@@ -341,19 +344,73 @@ export async function exportAppointmentsExcel(filters?: AppointmentFilters) {
   if (filters?.professional) params.append('professional', filters.professional);
   if (filters?.service) params.append('service', filters.service);
 
-  const response = await api.get(`/scheduling/appointments/export_excel/?${params.toString()}`, {
-    responseType: 'blob',
+  // Buscar dados da API
+  const response = await api.get(`/scheduling/appointments/?${params.toString()}`);
+  const appointments = response.data.results || response.data || [];
+
+  // Criar PDF
+  const doc = new jsPDF();
+  
+  // Título
+  doc.setFontSize(18);
+  doc.text('Relatório de Agendamentos', 14, 20);
+  
+  // Data de geração
+  doc.setFontSize(10);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
+
+  // Mapear status para português
+  const statusMap: Record<string, string> = {
+    marcado: 'Marcado',
+    confirmado: 'Confirmado',
+    em_atendimento: 'Em Atendimento',
+    concluido: 'Concluído',
+    cancelado: 'Cancelado',
+    falta: 'Falta',
+  };
+
+  // Preparar dados da tabela
+  const tableData = appointments.map((apt: Appointment) => {
+    const startDate = new Date(apt.start_time);
+    return [
+      startDate.toLocaleDateString('pt-BR'),
+      startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      apt.customer_name || apt.customer_full_info?.name || '-',
+      apt.service_details?.name || '-',
+      apt.professional_details?.name || '-',
+      statusMap[apt.status] || apt.status,
+      apt.price ? `R$ ${Number(apt.price).toFixed(2)}` : '-',
+    ];
   });
 
-  const blob = new Blob([response.data], { 
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+  // Criar tabela
+  autoTable(doc, {
+    startY: 35,
+    head: [['Data', 'Hora', 'Cliente', 'Serviço', 'Profissional', 'Status', 'Valor']],
+    body: tableData,
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+    },
+    headStyles: {
+      fillColor: [79, 70, 229], // Indigo
+      textColor: 255,
+      fontStyle: 'bold',
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245],
+    },
+    columnStyles: {
+      0: { cellWidth: 25 }, // Data
+      1: { cellWidth: 20 }, // Hora
+      2: { cellWidth: 40 }, // Cliente
+      3: { cellWidth: 35 }, // Serviço
+      4: { cellWidth: 35 }, // Profissional
+      5: { cellWidth: 25 }, // Status
+      6: { cellWidth: 20 }, // Valor
+    },
   });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'agendamentos.xlsx';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+
+  // Salvar PDF
+  doc.save('agendamentos.pdf');
 }
