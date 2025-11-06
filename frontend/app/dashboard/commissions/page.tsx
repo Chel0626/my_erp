@@ -50,7 +50,7 @@ import {
   useMarkCommissionsAsPaid,
   useCancelCommission,
   exportCommissionsCSV,
-  exportCommissionsExcel,
+  exportCommissionsPDF,
   type Commission,
   type CommissionFilters,
 } from "@/hooks/useCommissions";
@@ -174,12 +174,12 @@ export default function CommissionsPage() {
     }
   };
 
-  const handleExportExcel = async () => {
+  const handleExportPDF = async () => {
     try {
-      await exportCommissionsExcel(filters);
+      await exportCommissionsPDF(filters);
       toast({
         title: 'Exportação concluída',
-        description: 'As comissões foram exportadas para Excel.',
+        description: 'As comissões foram exportadas para PDF.',
       });
     } catch (error) {
       toast({
@@ -239,13 +239,13 @@ export default function CommissionsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl sm:text-3xl font-bold">Comissões</h1>
         <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportPDF} className="flex-1 sm:flex-none">
+            <FileText className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Exportar PDF</span>
+          </Button>
           <Button variant="outline" size="sm" onClick={handleExportCSV} className="flex-1 sm:flex-none">
             <Download className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Exportar CSV</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExportExcel} className="flex-1 sm:flex-none">
-            <FileText className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Exportar Excel</span>
           </Button>
           <Button variant="outline" size="sm" asChild className="flex-1 sm:flex-none">
             <a href="/dashboard/commissions/rules">

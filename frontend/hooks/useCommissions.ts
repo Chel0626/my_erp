@@ -300,29 +300,87 @@ export async function exportCommissionsCSV(filters?: {
 }
 
 /**
- * Exportar comissões para Excel
+ * Exportar comissões para PDF
  */
-export async function exportCommissionsExcel(filters?: {
+export async function exportCommissionsPDF(filters?: {
   status?: string;
   professional?: number;
   date_from?: string;
   date_to?: string;
 }) {
+  const { default: jsPDF } = await import('jspdf');
+  const { default: autoTable } = await import('jspdf-autotable');
+  
   const params = new URLSearchParams();
   if (filters?.status) params.append('status', filters.status);
   if (filters?.professional) params.append('professional', filters.professional.toString());
   if (filters?.date_from) params.append('date_from', filters.date_from);
   if (filters?.date_to) params.append('date_to', filters.date_to);
+
+  // Buscar dados da API
+  const response = await api.get(`/commissions/commissions/?${params.toString()}`);
+  const commissions = response.data.results || response.data || [];
+
+  // Criar PDF
+  const doc = new jsPDF();
   
-  const response = await api.get(`/commissions/export_excel/?${params.toString()}`, {
-    responseType: 'blob',
+  // Título
+  doc.setFontSize(18);
+  doc.text('Relatório de Comissões', 14, 20);
+  
+  // Data de geração
+  doc.setFontSize(10);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
+
+  // Mapear status
+  const statusMap: Record<string, string> = {
+    pending: 'Pendente',
+    paid: 'Paga',
+    cancelled: 'Cancelada',
+  };
+
+  // Preparar dados da tabela
+  const tableData = commissions.map((comm: Commission) => {
+    const date = new Date(comm.date);
+    return [
+      date.toLocaleDateString('pt-BR'),
+      comm.professional_name || '-',
+      comm.service_name || '-',
+      `R$ ${parseFloat(comm.service_price).toFixed(2)}`,
+      `${parseFloat(comm.commission_percentage).toFixed(1)}%`,
+      `R$ ${parseFloat(comm.commission_amount).toFixed(2)}`,
+      statusMap[comm.status] || comm.status,
+    ];
   });
-  
-  const url = window.URL.createObjectURL(new Blob([response.data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', 'comissoes.xlsx');
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+
+  // Criar tabela
+  autoTable(doc, {
+    startY: 35,
+    head: [['Data', 'Profissional', 'Serviço', 'Valor Serv.', '%', 'Comissão', 'Status']],
+    body: tableData,
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+    },
+    headStyles: {
+      fillColor: [79, 70, 229], // Indigo
+      textColor: 255,
+      fontStyle: 'bold',
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245],
+    },
+    columnStyles: {
+      0: { cellWidth: 22 }, // Data
+      1: { cellWidth: 35 }, // Profissional
+      2: { cellWidth: 35 }, // Serviço
+      3: { cellWidth: 25 }, // Valor Serviço
+      4: { cellWidth: 18 }, // %
+      5: { cellWidth: 25 }, // Comissão
+      6: { cellWidth: 25 }, // Status
+    },
+  });
+
+  // Salvar PDF
+  doc.save('comissoes.pdf');
 }
