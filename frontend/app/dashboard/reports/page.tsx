@@ -49,7 +49,7 @@ import { CommissionPerformance } from '@/components/reports/CommissionPerformanc
 import { BestSellingProductsChart } from '@/components/reports/BestSellingProductsChart';
 
 // Export utilities
-import { exportReportToPDF, exportReportToExcel } from '@/lib/export/reportExport';
+import { exportReportToPDF, exportReportToExcel, exportReportToCSV } from '@/lib/export/reportExport';
 
 export default function ReportsPage() {
   // Estado dos filtros
@@ -133,6 +133,19 @@ export default function ReportsPage() {
     });
   };
 
+  const handleExportCSV = () => {
+    exportReportToCSV({
+      tenantName: 'Minha Empresa - ERP',
+      period: {
+        start: filters.start_date || format(subDays(new Date(), 30), 'yyyy-MM-dd'),
+        end: filters.end_date || format(new Date(), 'yyyy-MM-dd'),
+      },
+      status: statusDistribution.data,
+      topServices: topServices.data as unknown as Array<Record<string, string | number>>,
+      professionals: professionalPerformance.data as unknown as Array<Record<string, string | number>>,
+    });
+  };
+
   const isLoading =
     revenueChart.isLoading ||
     expenseChart.isLoading ||
@@ -155,7 +168,7 @@ export default function ReportsPage() {
             Visualize o desempenho do seu negócio
           </p>
         </div>
-        <div className="grid grid-cols-2 sm:flex gap-2">
+        <div className="grid grid-cols-3 sm:flex gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -188,6 +201,16 @@ export default function ReportsPage() {
           >
             <Download className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Excel</span>
+          </Button>
+          <Button 
+            variant="default"
+            size="sm"
+            onClick={handleExportCSV}
+            disabled={isLoading}
+            className="text-xs"
+          >
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">CSV</span>
           </Button>
         </div>
       </div>

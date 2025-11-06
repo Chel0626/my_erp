@@ -278,3 +278,63 @@ export function exportTableToExcel(
   // Salvar
   XLSX.writeFile(workbook, `${fileName}_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`);
 }
+
+// ==================== CSV ====================
+
+export interface CSVReportData {
+  tenantName: string;
+  period: { start: string; end: string };
+  status?: { total: number; data: Array<Record<string, string | number>> };
+  topServices?: Array<Record<string, string | number>>;
+  professionals?: Array<Record<string, string | number>>;
+}
+
+export function exportReportToCSV(data: CSVReportData) {
+  let csvContent = '\uFEFF'; // UTF-8 BOM
+  
+  // Header
+  csvContent += `Relatório de Desempenho\n`;
+  csvContent += `${data.tenantName}\n`;
+  csvContent += `Período:,${format(new Date(data.period.start), 'dd/MM/yyyy')} a ${format(new Date(data.period.end), 'dd/MM/yyyy')}\n\n`;
+
+  // Distribuição de Status
+  if (data.status) {
+    csvContent += `Distribuição por Status\n`;
+    csvContent += `Status,Quantidade,Percentual\n`;
+    data.status.data.forEach((item) => {
+      csvContent += `${item.status_display},${item.count},${(item.percentage as number).toFixed(2)}%\n`;
+    });
+    csvContent += `\n`;
+  }
+
+  // Top Serviços
+  if (data.topServices && data.topServices.length > 0) {
+    csvContent += `Top Serviços\n`;
+    csvContent += `Serviço,Preço,Agendamentos,Receita Total\n`;
+    data.topServices.forEach((item) => {
+      csvContent += `${item.service_name},${item.price},${item.appointments_count},${item.total_revenue}\n`;
+    });
+    csvContent += `\n`;
+  }
+
+  // Desempenho Profissional
+  if (data.professionals && data.professionals.length > 0) {
+    csvContent += `Desempenho por Profissional\n`;
+    csvContent += `Profissional,Email,Total Agendamentos,Concluídos,Cancelados,Taxa de Conclusão (%),Receita Total\n`;
+    data.professionals.forEach((item) => {
+      csvContent += `${item.professional_name},${item.professional_email},${item.total_appointments},${item.completed},${item.cancelled},${item.completion_rate},${item.total_revenue}\n`;
+    });
+  }
+
+  // Criar blob e fazer download
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `relatorio_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
