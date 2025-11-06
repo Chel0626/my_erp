@@ -15,6 +15,7 @@ import {
   useProductSummary,
   exportProductsCSV,
   exportProductsExcel,
+  exportProductsPDF,
   Product,
   CreateProductInput
 } from '@/hooks/useProducts';
@@ -298,6 +299,22 @@ export default function ProductsPage() {
     }
   };
 
+  const handleExportPDF = async () => {
+    try {
+      await exportProductsPDF({});
+      toast({
+        title: 'Exportação concluída',
+        description: 'Os produtos foram exportados para PDF.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Ocorreu um erro ao exportar os produtos.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 pb-4">
       {/* Header - Compacto mobile */}
@@ -313,14 +330,18 @@ export default function ProductsPage() {
             <Plus className="h-4 w-4 mr-2" />
             Novo Produto
           </Button>
-          <div className="grid grid-cols-2 gap-2 sm:flex">
-            <Button variant="outline" onClick={handleExportCSV} size="sm" className="px-3">
-              <Download className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">CSV</span>
+          <div className="grid grid-cols-3 gap-2 sm:flex">
+            <Button variant="outline" onClick={handleExportPDF} size="sm" className="px-3">
+              <FileText className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">PDF</span>
             </Button>
             <Button variant="outline" onClick={handleExportExcel} size="sm" className="px-3">
               <FileText className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Excel</span>
+            </Button>
+            <Button variant="outline" onClick={handleExportCSV} size="sm" className="px-3">
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">CSV</span>
             </Button>
           </div>
         </div>
