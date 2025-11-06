@@ -318,13 +318,13 @@ export default function CommissionRulesPage() {
               <div className="space-y-2">
                 <Label htmlFor="service">Serviço (opcional)</Label>
                 <Select
-                  value={formData.service?.toString() || "all"}
-                  onValueChange={(value) =>
+                  value={formData.service !== null && formData.service !== undefined ? formData.service.toString() : "all"}
+                  onValueChange={(value) => {
                     setFormData((prev) => ({
                       ...prev,
                       service: value === "all" ? null : parseInt(value),
-                    }))
-                  }
+                    }));
+                  }}
                 >
                   <SelectTrigger id="service">
                     <SelectValue placeholder="Todos os serviços" />
