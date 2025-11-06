@@ -7,17 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useCurrentCashRegister, useOpenCashRegister, useCreateSale } from '@/hooks/usePOS';
 import { useProducts, type Product } from '@/hooks/useProducts';
 import { useServices, type Service } from '@/hooks/useServices';
 import { useCustomers, useCreateCustomer, type CustomerListItem } from '@/hooks/useCustomers';
 import { CartItem } from '@/types/pos';
-import { ShoppingCart, DollarSign, Package, Briefcase, AlertCircle, CreditCard, UserPlus } from 'lucide-react';
+import { ShoppingCart, Package, Briefcase, AlertCircle, CreditCard, UserPlus, Search, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function POSPage() {
   const router = useRouter();
@@ -30,6 +33,8 @@ export default function POSPage() {
   const [showNewCustomer, setShowNewCustomer] = useState(false);
   const [openingBalance, setOpeningBalance] = useState('0');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
+  const [openProductSearch, setOpenProductSearch] = useState(false);
+  const [openServiceSearch, setOpenServiceSearch] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     phone: '',
@@ -174,14 +179,6 @@ export default function POSPage() {
     }
   };
 
-  const filteredProducts = products?.filter((p: Product) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredServices = services?.filter((s: Service) =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   if (cashLoading) {
     return <div className="p-3 sm:p-6 text-sm sm:text-base">Carregando...</div>;
   }
@@ -212,18 +209,9 @@ export default function POSPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Produtos e Serviços */}
+        {/* Busca de Produtos e Serviços */}
         <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Buscar produtos ou serviços..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 h-9 sm:h-10 text-sm"
-            />
-          </div>
-
-          {/* Produtos */}
+          {/* Produtos - Combobox */}
           <Card>
             <CardHeader className="pb-2 sm:pb-4">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -232,29 +220,62 @@ export default function POSPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 max-h-[250px] sm:max-h-[300px] overflow-y-auto">
-                {filteredProducts?.map((product: Product) => (
+              <Popover open={openProductSearch} onOpenChange={setOpenProductSearch}>
+                <PopoverTrigger asChild>
                   <Button
-                    key={product.id}
                     variant="outline"
-                    className="h-auto flex-col items-start p-2 sm:p-3 min-h-[72px]"
-                    onClick={() => addToCart('product', product)}
-                    disabled={!currentCash || product.stock_quantity <= 0}
+                    role="combobox"
+                    aria-expanded={openProductSearch}
+                    className="w-full justify-between h-10 text-sm"
+                    disabled={!currentCash}
                   >
-                    <span className="font-semibold text-xs sm:text-sm line-clamp-2 w-full text-left">{product.name}</span>
-                    <span className="text-green-600 font-bold text-sm sm:text-base">
-                      R$ {parseFloat(product.sale_price).toFixed(2)}
-                    </span>
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">
-                      Estoque: {product.stock_quantity}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Buscar produto para adicionar...</span>
+                    </div>
                   </Button>
-                ))}
-              </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Digite o nome do produto..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {products?.filter((p: Product) => p.is_active).map((product: Product) => (
+                          <CommandItem
+                            key={product.id}
+                            value={product.name}
+                            onSelect={() => {
+                              if (product.stock_quantity > 0) {
+                                addToCart('product', product);
+                                setOpenProductSearch(false);
+                              } else {
+                                toast.error('Produto sem estoque');
+                              }
+                            }}
+                            className="flex items-center justify-between cursor-pointer"
+                            disabled={product.stock_quantity <= 0}
+                          >
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-medium">{product.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                Estoque: {product.stock_quantity} • R$ {parseFloat(product.sale_price).toFixed(2)}
+                              </span>
+                            </div>
+                            {product.stock_quantity <= 0 && (
+                              <Badge variant="destructive" className="text-xs">Sem estoque</Badge>
+                            )}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </CardContent>
           </Card>
 
-          {/* Serviços */}
+          {/* Serviços - Combobox */}
           <Card>
             <CardHeader className="pb-2 sm:pb-4">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -263,25 +284,50 @@ export default function POSPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 max-h-[250px] sm:max-h-[300px] overflow-y-auto">
-                {filteredServices?.map((service: Service) => (
+              <Popover open={openServiceSearch} onOpenChange={setOpenServiceSearch}>
+                <PopoverTrigger asChild>
                   <Button
-                    key={service.id}
                     variant="outline"
-                    className="h-auto flex-col items-start p-2 sm:p-3 min-h-[72px]"
-                    onClick={() => addToCart('service', service)}
+                    role="combobox"
+                    aria-expanded={openServiceSearch}
+                    className="w-full justify-between h-10 text-sm"
                     disabled={!currentCash}
                   >
-                    <span className="font-semibold text-xs sm:text-sm line-clamp-2 w-full text-left">{service.name}</span>
-                    <span className="text-green-600 font-bold text-sm sm:text-base">
-                      R$ {parseFloat(service.price).toFixed(2)}
-                    </span>
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">
-                      {service.duration_minutes} min
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Buscar serviço para adicionar...</span>
+                    </div>
                   </Button>
-                ))}
-              </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Digite o nome do serviço..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum serviço encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {services?.filter((s: Service) => s.is_active).map((service: Service) => (
+                          <CommandItem
+                            key={service.id}
+                            value={service.name}
+                            onSelect={() => {
+                              addToCart('service', service);
+                              setOpenServiceSearch(false);
+                            }}
+                            className="flex items-center justify-between cursor-pointer"
+                          >
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-medium">{service.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {service.duration_minutes} min • R$ {parseFloat(service.price).toFixed(2)}
+                              </span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </CardContent>
           </Card>
         </div>
