@@ -232,9 +232,12 @@ export async function exportTransactionsCSV(filters?: TransactionFilters) {
 }
 
 /**
- * Exporta transações em formato Excel
+ * Exporta transações em formato PDF
  */
-export async function exportTransactionsExcel(filters?: TransactionFilters) {
+export async function exportTransactionsPDF(filters?: TransactionFilters) {
+  const { default: jsPDF } = await import('jspdf');
+  const { default: autoTable } = await import('jspdf-autotable');
+  
   const params = new URLSearchParams();
   if (filters?.date) params.append('date', filters.date);
   if (filters?.start_date) params.append('start_date', filters.start_date);
@@ -242,19 +245,81 @@ export async function exportTransactionsExcel(filters?: TransactionFilters) {
   if (filters?.type) params.append('type', filters.type);
   if (filters?.payment_method) params.append('payment_method', filters.payment_method);
 
-  const response = await api.get(`/financial/transactions/export_excel/?${params.toString()}`, {
-    responseType: 'blob',
+  // Buscar dados da API
+  const response = await api.get(`/financial/transactions/?${params.toString()}`);
+  const transactions = response.data.results || response.data || [];
+
+  // Criar PDF
+  const doc = new jsPDF();
+  
+  // Título
+  doc.setFontSize(18);
+  doc.text('Relatório de Transações', 14, 20);
+  
+  // Data de geração
+  doc.setFontSize(10);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
+
+  // Mapear tipos
+  const typeMap: Record<string, string> = {
+    receita: 'Receita',
+    despesa: 'Despesa',
+  };
+
+  // Preparar dados da tabela
+  const tableData = transactions.map((trans: Transaction) => {
+    const date = new Date(trans.date);
+    const amount = parseFloat(trans.amount);
+    const isReceita = trans.type === 'receita';
+    
+    return [
+      date.toLocaleDateString('pt-BR'),
+      typeMap[trans.type] || trans.type,
+      trans.description || '-',
+      trans.payment_method_details?.name || '-',
+      `${isReceita ? '+' : '-'} R$ ${amount.toFixed(2)}`,
+      trans.notes || '-',
+    ];
   });
 
-  const blob = new Blob([response.data], { 
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+  // Criar tabela
+  autoTable(doc, {
+    startY: 35,
+    head: [['Data', 'Tipo', 'Descrição', 'Forma Pgto.', 'Valor', 'Observações']],
+    body: tableData,
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+    },
+    headStyles: {
+      fillColor: [79, 70, 229], // Indigo
+      textColor: 255,
+      fontStyle: 'bold',
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245],
+    },
+    columnStyles: {
+      0: { cellWidth: 25 }, // Data
+      1: { cellWidth: 22 }, // Tipo
+      2: { cellWidth: 45 }, // Descrição
+      3: { cellWidth: 30 }, // Forma Pgto
+      4: { cellWidth: 30 }, // Valor
+      5: { cellWidth: 38 }, // Observações
+    },
+    // Colorir linhas de acordo com tipo
+    didParseCell: (data) => {
+      if (data.section === 'body' && data.column.index === 4) {
+        const value = data.cell.text[0];
+        if (value.startsWith('+')) {
+          data.cell.styles.textColor = [16, 185, 129]; // green
+        } else if (value.startsWith('-')) {
+          data.cell.styles.textColor = [239, 68, 68]; // red
+        }
+      }
+    },
   });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'transacoes.xlsx';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+
+  // Salvar PDF
+  doc.save('transacoes.pdf');
 }

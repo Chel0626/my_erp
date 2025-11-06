@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, Transaction, CreateTransactionInput, TransactionFilters as TFilters, exportTransactionsCSV, exportTransactionsExcel } from '@/hooks/useTransactions';
+import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, Transaction, CreateTransactionInput, TransactionFilters as TFilters, exportTransactionsCSV, exportTransactionsPDF } from '@/hooks/useTransactions';
 import { useActivePaymentMethods } from '@/hooks/usePaymentMethods';
 import TransactionCard from '@/components/financial/TransactionCard';
 import TransactionForm from '@/components/financial/TransactionForm';
@@ -113,12 +113,12 @@ export default function TransactionsPage() {
     }
   };
 
-  const handleExportExcel = async () => {
+  const handleExportPDF = async () => {
     try {
-      await exportTransactionsExcel(filters);
-      toast.success('Exportação Excel concluída!');
+      await exportTransactionsPDF(filters);
+      toast.success('Exportação PDF concluída!');
     } catch (error) {
-      toast.error('Erro ao exportar Excel');
+      toast.error('Erro ao exportar PDF');
     }
   };
 
@@ -149,13 +149,13 @@ export default function TransactionsPage() {
             Nova Transação
           </Button>
           <div className="grid grid-cols-2 gap-2 sm:flex">
+            <Button variant="outline" onClick={handleExportPDF} size="sm" className="px-3">
+              <FileText className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">PDF</span>
+            </Button>
             <Button variant="outline" onClick={handleExportCSV} size="sm" className="px-3">
               <Download className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">CSV</span>
-            </Button>
-            <Button variant="outline" onClick={handleExportExcel} size="sm" className="px-3">
-              <FileText className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Excel</span>
             </Button>
           </div>
         </div>
