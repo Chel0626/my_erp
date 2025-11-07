@@ -50,7 +50,13 @@ if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[
-            DjangoIntegration(),
+            DjangoIntegration(
+                # Captura SQL queries para debug de performance
+                transaction_style='url',
+                middleware_spans=True,
+                signals_spans=True,
+                cache_spans=True,
+            ),
         ],
         # Performance Monitoring
         traces_sample_rate=1.0 if DEBUG else 0.1,
@@ -66,6 +72,24 @@ if SENTRY_DSN:
         
         # Em desenvolvimento, mostra mais detalhes no console
         debug=DEBUG,
+        
+        # Ignora erros comuns que não são problemas
+        ignore_errors=[
+            # Erros de conexão do cliente (não podemos controlar)
+            'ConnectionResetError',
+            'BrokenPipeError',
+            # Token expirado é esperado
+            'rest_framework_simplejwt.exceptions.TokenError',
+        ],
+        
+        # Adiciona contexto global
+        before_send=lambda event, hint: {
+            **event,
+            'tags': {
+                **event.get('tags', {}),
+                'server_type': 'django',
+            }
+        },
     )
     print(f"✅ Sentry inicializado: {SENTRY_ENVIRONMENT} (Release: {SENTRY_RELEASE})")
 else:
@@ -121,6 +145,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",  # Allauth middleware
     "core.middleware.TenantMiddleware",  # Middleware personalizado para Multi-Tenant
+    "core.sentry_middleware.SentryContextMiddleware",  # Adiciona contexto ao Sentry
 ]
 
 ROOT_URLCONF = "config.urls"
