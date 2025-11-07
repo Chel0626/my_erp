@@ -382,3 +382,14 @@ class DashboardViewSet(viewsets.ViewSet):
         
         serializer = SystemErrorSerializer(errors, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def sentry_metrics(self, request):
+        """
+        Métricas do Sentry
+        GET /api/superadmin/dashboard/sentry_metrics/
+        """
+        from core.sentry_integration import sentry_client
+        
+        summary = sentry_client.get_dashboard_summary()
+        return Response(summary)
