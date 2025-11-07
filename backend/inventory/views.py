@@ -98,12 +98,18 @@ class ProductViewSet(viewsets.ModelViewSet):
             
             # Calcula valor total do estoque
             from decimal import Decimal
-            stock_value_result = queryset.aggregate(
-                total=Coalesce(
-                    Sum(F('stock_quantity') * F('cost_price'), output_field=DecimalField()),
-                    Decimal('0.00')
+            try:
+                stock_value_result = queryset.aggregate(
+                    total=Coalesce(
+                        Sum(F('stock_quantity') * F('cost_price'), output_field=DecimalField()),
+                        Decimal('0.00')
+                    )
                 )
-            )
+                total_stock_value = stock_value_result.get('total') or Decimal('0.00')
+            except Exception as agg_error:
+                # Se aggregate falhar, usa valor padrão
+                print(f"⚠️ Erro no aggregate, usando valor padrão: {agg_error}")
+                total_stock_value = Decimal('0.00')
             
             summary = {
                 'total_products': queryset.count(),
@@ -117,7 +123,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                     is_active=True,
                     stock_quantity=0
                 ).count(),
-                'total_stock_value': stock_value_result.get('total') or 0
+                'total_stock_value': total_stock_value
             }
             
             serializer = ProductSummarySerializer(summary)
