@@ -174,15 +174,25 @@ export default function POSPage() {
       setDiscount('0');
       setShowPayment(false);
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string; detail?: string; items?: unknown } } };
-      console.error('Erro ao finalizar venda:', err.response?.data);
+      const err = error as { response?: { data?: { error?: string; detail?: string; items?: unknown; [key: string]: unknown } } };
+      console.error('❌ Erro ao finalizar venda:', err.response?.data);
+      console.error('📦 Dados completos do erro:', JSON.stringify(err.response?.data, null, 2));
       
       // Tenta mostrar a mensagem de erro mais detalhada
-      const errorMessage = 
-        err.response?.data?.error || 
-        err.response?.data?.detail || 
-        (err.response?.data?.items ? 'Erro nos itens da venda' : null) ||
-        'Erro ao finalizar venda. Verifique se o backend está atualizado.';
+      let errorMessage = 'Erro ao finalizar venda. ';
+      
+      if (err.response?.data?.error) {
+        errorMessage += err.response.data.error;
+      } else if (err.response?.data?.detail) {
+        errorMessage += err.response.data.detail;
+      } else if (err.response?.data?.items) {
+        errorMessage += 'Erro nos itens da venda. Verifique o console para detalhes.';
+      } else if (err.response?.data) {
+        // Tenta mostrar qualquer erro do backend
+        errorMessage += JSON.stringify(err.response.data);
+      } else {
+        errorMessage += 'Verifique se o backend está atualizado.';
+      }
       
       toast.error(errorMessage);
     }
