@@ -97,10 +97,11 @@ class ProductViewSet(viewsets.ModelViewSet):
             queryset = self.get_queryset()
             
             # Calcula valor total do estoque
+            from decimal import Decimal
             stock_value_result = queryset.aggregate(
                 total=Coalesce(
                     Sum(F('stock_quantity') * F('cost_price'), output_field=DecimalField()),
-                    0.0
+                    Decimal('0.00')
                 )
             )
             
