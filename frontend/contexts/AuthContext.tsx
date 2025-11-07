@@ -40,9 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       setIsLoadingUser(true);
+      
+      // Verifica se há token no localStorage ou cookies
       const accessToken = localStorage.getItem('access_token');
       
+      // Se não há token, não faz nenhuma requisição
       if (!accessToken) {
+        setUser(null);
+        setTenant(null);
         setLoading(false);
         setIsLoadingUser(false);
         return;
@@ -58,8 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const tenantData = await tenantApi.getMyTenant();
           setTenant(tenantData);
         } catch (error) {
-          console.warn('⚠️ Erro ao buscar tenant:', error);
-          // Superadmin não tem tenant, isso é normal
+          // Superadmin não tem tenant, isso é normal - não loga erro
           setTenant(null);
         }
       } else {
@@ -67,14 +71,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTenant(null);
       }
     } catch (error: any) {
-      console.error('❌ Erro ao carregar usuário:', error);
-      
-      // Se o erro for 401, significa que os tokens estão inválidos/expirados
+      // Se o erro for 401, é esperado (token inválido/expirado)
+      // Não mostra erro no console pois é comportamento normal
       if (error.response?.status === 401) {
-        console.warn('🔑 Tokens expirados ou inválidos - limpando autenticação');
+        // Silenciosamente limpa os tokens
+      } else {
+        // Outros erros são inesperados e devem ser logados
+        console.error('❌ Erro inesperado ao carregar usuário:', error);
       }
       
-      // Limpa tokens se houver erro
+      // Limpa tokens em qualquer caso de erro
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       document.cookie = 'access_token=; path=/; max-age=0';

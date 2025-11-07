@@ -39,9 +39,14 @@ api.interceptors.response.use(
 
     // Se erro 401 e não é retry, tenta refresh
     if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
+      // Se estamos em página pública (login/signup), não tenta refresh
+      // Apenas falha silenciosamente
+      if (window.location.pathname.startsWith('/login') || window.location.pathname.startsWith('/signup')) {
+        return Promise.reject(error);
+      }
+
       // Não tenta refresh se a URL já for de refresh (evita loop)
-      if (originalRequest.url?.includes('/auth/refresh/')) {
-        console.error('🔴 Refresh token inválido ou expirado');
+      if (originalRequest.url?.includes('/auth/refresh/') || originalRequest.url?.includes('/auth/login/')) {
         // Limpa tokens
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
@@ -80,7 +85,6 @@ api.interceptors.response.use(
         }
         return api(originalRequest);
       } catch (refreshError) {
-        console.error('🔴 Erro ao renovar token:', refreshError);
         // Refresh falhou - limpa tokens e redireciona para login
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
