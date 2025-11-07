@@ -156,8 +156,8 @@ export default function POSPage() {
         payment_status: 'paid',
         notes: '',
         items: cart.map((item) => ({
-          product: item.type === 'product' ? (typeof item.id === 'string' ? parseInt(item.id) : item.id) : null,
-          service: item.type === 'service' ? (typeof item.id === 'string' ? parseInt(item.id) : item.id) : null,
+          product: item.type === 'product' ? item.id : null,
+          service: item.type === 'service' ? item.id : null,
           professional: item.professional || null,
           quantity: item.quantity.toString(),
           unit_price: item.price.toString(),

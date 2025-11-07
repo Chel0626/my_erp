@@ -30,9 +30,9 @@ export interface CashRegister {
 
 export interface SaleItem {
   id?: number;
-  product: number | null;
+  product: number | string | null;
   product_name?: string;
-  service: number | null;
+  service: number | string | null;
   service_name?: string;
   professional: number | null;
   professional_name?: string;
