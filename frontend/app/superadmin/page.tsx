@@ -252,7 +252,7 @@ export default function SuperAdminDashboard() {
             <div className="flex justify-center py-6 sm:py-8">
               <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-2 border-b-2 border-primary"></div>
             </div>
-          ) : !sentryMetrics?.is_configured ? (
+          ) : sentryMetrics && !sentryMetrics.is_configured ? (
             <div className="text-center py-6 sm:py-8">
               <AlertTriangle className="h-8 w-8 sm:h-10 sm:w-10 text-yellow-600 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
