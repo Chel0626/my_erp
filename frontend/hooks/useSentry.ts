@@ -46,7 +46,7 @@ export function useSentryMetrics() {
   return useQuery<SentryMetrics>({
     queryKey: ['sentry-metrics'],
     queryFn: async () => {
-      const response = await api.get('/api/superadmin/dashboard/sentry_metrics/');
+      const response = await api.get('/superadmin/dashboard/sentry_metrics/');
       return response.data;
     },
     // Atualiza a cada 60 segundos
