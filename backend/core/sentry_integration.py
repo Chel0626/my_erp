@@ -172,7 +172,12 @@ class SentryIntegration:
                         module = tag[1]
                         break
             
-            errors_by_module[module] = errors_by_module.get(module, 0) + issue.get('count', 0)
+            # Garante que count é int
+            count = issue.get('count', 0)
+            if isinstance(count, str):
+                count = int(count) if count.isdigit() else 0
+            
+            errors_by_module[module] = errors_by_module.get(module, 0) + count
         
         return {
             'is_configured': True,
