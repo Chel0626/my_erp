@@ -301,26 +301,30 @@ AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_DEFAULT_ACL = None
 
 # =============================================================================
-# Cache: Redis (Upstash)
+# Cache: Redis (Upstash REST API)
 # =============================================================================
-REDIS_URL = config('REDIS_URL', default=None)
-if REDIS_URL:
+# Upstash Redis via REST API (funciona melhor em ambientes serverless)
+UPSTASH_REDIS_REST_URL = config('UPSTASH_REDIS_REST_URL', default='')
+UPSTASH_REDIS_REST_TOKEN = config('UPSTASH_REDIS_REST_TOKEN', default='')
+
+if UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN:
     CACHES = {
         'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': REDIS_URL,
+            'BACKEND': 'core.cache_backend.UpstashRedisCache',
+            'LOCATION': UPSTASH_REDIS_REST_URL,
             'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-                'IGNORE_EXCEPTIONS': True,  # Não quebra o app se o Redis estiver offline
+                'CLIENT_CLASS': 'upstash_redis.Redis',
             }
         }
     }
+    print("✅ Cache: Upstash Redis REST")
 else:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         }
     }
+    print("⚠️ Cache: LocMemCache (fallback)")
 
 # Email Configuration
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
