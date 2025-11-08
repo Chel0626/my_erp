@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ==================== TYPES ====================
 
@@ -43,14 +44,18 @@ export interface SentryMetrics {
  * @returns {Object} Dados do Sentry com stats, issues recentes e contagem por módulo
  */
 export function useSentryMetrics() {
+  const { user } = useAuth();
+  
   return useQuery<SentryMetrics>({
     queryKey: ['sentry-metrics'],
     queryFn: async () => {
       const response = await api.get('/superadmin/dashboard/sentry_metrics/');
       return response.data;
     },
-    // Atualiza a cada 60 segundos
-    refetchInterval: 60000,
+    // Só executa se usuário estiver autenticado e for superadmin
+    enabled: !!user && user.role === 'superadmin',
+    // Atualiza a cada 60 segundos apenas se habilitado
+    refetchInterval: (user && user.role === 'superadmin') ? 60000 : false,
     // Mantém dados anteriores enquanto carrega novos
     placeholderData: (previousData) => previousData,
   });

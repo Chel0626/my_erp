@@ -5,6 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ==================== INTERFACES ====================
 
@@ -43,13 +44,16 @@ export interface CreateNotificationData {
  * Busca todas as notificações do usuário
  */
 export function useNotifications() {
+  const { user } = useAuth();
+  
   return useQuery<Notification[]>({
     queryKey: ['notifications'],
     queryFn: async () => {
       const response = await api.get('/notifications/');
       return response.data;
     },
-    refetchInterval: 30000, // Refetch a cada 30 segundos
+    enabled: !!user, // Só executa se usuário estiver autenticado
+    refetchInterval: user ? 30000 : false, // Refetch a cada 30 segundos apenas se autenticado
   });
 }
 
@@ -57,13 +61,16 @@ export function useNotifications() {
  * Busca apenas notificações não lidas
  */
 export function useUnreadNotifications() {
+  const { user } = useAuth();
+  
   return useQuery<Notification[]>({
     queryKey: ['notifications', 'unread'],
     queryFn: async () => {
       const response = await api.get('/notifications/unread/');
       return response.data;
     },
-    refetchInterval: 10000, // Refetch a cada 10 segundos (polling)
+    enabled: !!user, // Só executa se usuário estiver autenticado
+    refetchInterval: user ? 10000 : false, // Refetch a cada 10 segundos (polling) apenas se autenticado
   });
 }
 
@@ -71,13 +78,16 @@ export function useUnreadNotifications() {
  * Busca contagem de notificações
  */
 export function useNotificationCount() {
+  const { user } = useAuth();
+  
   return useQuery<NotificationCount>({
     queryKey: ['notifications', 'count'],
     queryFn: async () => {
       const response = await api.get('/notifications/count/');
       return response.data;
     },
-    refetchInterval: 10000, // Refetch a cada 10 segundos
+    enabled: !!user, // Só executa se usuário estiver autenticado
+    refetchInterval: user ? 10000 : false, // Refetch a cada 10 segundos apenas se autenticado
   });
 }
 
