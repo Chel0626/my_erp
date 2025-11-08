@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
+from django.db import transaction
 from datetime import datetime, timedelta
 
 from .models import Sale, SaleItem, CashRegister
@@ -12,6 +13,7 @@ from .serializers import (
     CashRegisterSerializer, CashRegisterCreateSerializer, CashRegisterCloseSerializer
 )
 from core.permissions import IsTenantUser
+from inventory.models import StockMovement
 
 
 class SaleViewSet(viewsets.ModelViewSet):
@@ -68,20 +70,28 @@ class SaleViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Reverte estoque
-        for item in sale.items.all():
-            if item.product:
-                product = item.product
-                product.stock_quantity += item.quantity
-                product.save()
-        
-        # Cancela comissões relacionadas
-        from commissions.models import Commission
-        Commission.objects.filter(sale=sale).update(payment_status='cancelled')
-        
-        # Atualiza status
-        sale.payment_status = 'cancelled'
-        sale.save()
+        # Usa transação para garantir atomicidade
+        with transaction.atomic():
+            # Reverte estoque criando movimentação de entrada
+            for item in sale.items.all():
+                if item.product:
+                    StockMovement.objects.create(
+                        tenant=request.user.tenant,
+                        product=item.product,
+                        movement_type='entrada',
+                        reason='devolucao',
+                        quantity=int(item.quantity),
+                        notes=f'Cancelamento da venda #{sale.id}',
+                        created_by=request.user
+                    )
+            
+            # Cancela comissões relacionadas
+            from commissions.models import Commission
+            Commission.objects.filter(sale=sale).update(payment_status='cancelled')
+            
+            # Atualiza status
+            sale.payment_status = 'cancelled'
+            sale.save()
         
         serializer = self.get_serializer(sale)
         return Response(serializer.data)

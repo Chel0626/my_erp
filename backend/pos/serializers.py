@@ -2,9 +2,10 @@ from rest_framework import serializers
 from .models import Sale, SaleItem, CashRegister
 from customers.serializers import CustomerSerializer
 from core.serializers import UserSerializer
-from inventory.models import Product
+from inventory.models import Product, StockMovement
 from scheduling.models import Service
 from decimal import Decimal
+from django.db import transaction
 
 
 class SaleItemSerializer(serializers.ModelSerializer):
@@ -117,36 +118,44 @@ class SaleCreateSerializer(serializers.ModelSerializer):
         if not cash_register:
             raise serializers.ValidationError('Não há caixa aberto para este usuário.')
         
-        # Cria venda
-        sale = Sale.objects.create(
-            tenant=request.user.tenant,
-            cash_register=cash_register,
-            user=request.user,
-            **validated_data
-        )
-        
-        # Cria items e atualiza estoque
-        for item_data in items_data:
-            item = SaleItem.objects.create(
+        # Usa transação para garantir atomicidade
+        with transaction.atomic():
+            # Cria venda
+            sale = Sale.objects.create(
                 tenant=request.user.tenant,
-                sale=sale,
-                **item_data
+                cash_register=cash_register,
+                user=request.user,
+                **validated_data
             )
             
-            # Atualiza estoque se for produto
-            if item.product:
-                product = item.product
-                # Garante que stock_quantity existe (proteção para produtos antigos)
-                current_stock = getattr(product, 'stock_quantity', 0)
-                product.stock_quantity = current_stock - item.quantity
-                product.save()
-        
-        # Recalcula total da venda
-        sale.calculate_total()
-        
-        # Gera comissões
-        if sale.payment_status == 'paid':
-            sale.generate_commissions()
+            # Cria items e movimentações de estoque
+            for item_data in items_data:
+                item = SaleItem.objects.create(
+                    tenant=request.user.tenant,
+                    sale=sale,
+                    **item_data
+                )
+                
+                # Cria movimentação de estoque se for produto
+                if item.product:
+                    # StockMovement.save() irá validar e atualizar o estoque automaticamente
+                    StockMovement.objects.create(
+                        tenant=request.user.tenant,
+                        product=item.product,
+                        movement_type='saida',
+                        reason='venda',
+                        quantity=int(item.quantity),
+                        notes=f'Venda #{sale.id} - Cliente: {sale.customer.name if sale.customer else "Avulso"}',
+                        created_by=request.user
+                    )
+            
+            # Recalcula total da venda
+            sale.calculate_total()
+            
+            # Gera comissões - TEMPORARIAMENTE DESABILITADO
+            # O modelo Commission precisa ser atualizado para suportar vendas
+            # if sale.payment_status == 'paid':
+            #     sale.generate_commissions()
         
         return sale
 

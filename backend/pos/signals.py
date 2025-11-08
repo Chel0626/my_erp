@@ -7,12 +7,17 @@ from .models import Sale
 def handle_sale_payment(sender, instance, created, **kwargs):
     """
     Signal para gerar comissões quando venda é paga
+    
+    TEMPORARIAMENTE DESABILITADO: 
+    O modelo Commission precisa ser atualizado para suportar vendas,
+    atualmente só suporta appointments.
     """
-    if not created:  # Apenas em updates
-        if instance.payment_status == 'paid':
-            # Verifica se já tem comissões geradas
-            from commissions.models import Commission
-            existing_commissions = Commission.objects.filter(sale=instance).exists()
-            
-            if not existing_commissions:
-                instance.generate_commissions()
+    pass
+    # if not created:  # Apenas em updates
+    #     if instance.payment_status == 'paid':
+    #         # Verifica se já tem comissões geradas
+    #         from commissions.models import Commission
+    #         existing_commissions = Commission.objects.filter(sale=instance).exists()
+    #         
+    #         if not existing_commissions:
+    #             instance.generate_commissions()

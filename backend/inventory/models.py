@@ -202,7 +202,10 @@ class StockMovement(TenantAwareModel):
         """
         Atualiza o estoque do produto automaticamente
         """
-        if not self.pk:  # Apenas na criação
+        # Verifica se é criação (ainda não foi salvo no banco)
+        is_new = self._state.adding
+        
+        if is_new:
             # Registra estoque anterior
             self.stock_before = self.product.stock_quantity
             
