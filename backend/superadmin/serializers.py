@@ -8,22 +8,27 @@ class TenantSerializer(serializers.ModelSerializer):
     
     user_count = serializers.SerializerMethodField()
     subscription_status = serializers.SerializerMethodField()
+    subscription_plan = serializers.SerializerMethodField()
     
     class Meta:
         model = Tenant
         fields = [
             'id', 'name', 'plan', 'is_active', 'user_count', 
-            'subscription_status', 'created_at'
+            'subscription_status', 'subscription_plan', 'created_at'
         ]
     
     def get_user_count(self, obj):
         return obj.users.filter(is_active=True).count()
     
     def get_subscription_status(self, obj):
-        try:
+        if hasattr(obj, 'subscription'):
             return obj.subscription.get_status_display()
-        except:
-            return 'Sem assinatura'
+        return 'Sem assinatura'
+    
+    def get_subscription_plan(self, obj):
+        if hasattr(obj, 'subscription'):
+            return obj.subscription.get_plan_display()
+        return obj.plan  # Fallback para o plano legacy do tenant
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):

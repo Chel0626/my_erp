@@ -10,6 +10,7 @@ export interface Tenant {
   is_active: boolean;
   user_count: number;
   subscription_status: string;
+  subscription_plan?: string;
   created_at: string;
 }
 
