@@ -280,119 +280,119 @@ export function useRemoveStock() {
  * Exportar produtos para CSV
  */
 export async function exportProductsCSV(filters?: ProductFilters) {
-  const params = new URLSearchParams();
-  if (filters?.category) params.append('category', filters.category);
-  if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
-  
-  const response = await api.get(`/inventory/products/export_csv/?${params.toString()}`, {
-    responseType: 'blob',
-  });
-  
-  const url = window.URL.createObjectURL(new Blob([response.data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', 'produtos.csv');
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-}
+  try {
+    const params = new URLSearchParams();
+    if (filters?.category) params.append('category', filters.category);
+    if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
+    
+    const response = await api.get(`/inventory/products/export_csv/?${params.toString()}`, {
+      responseType: 'blob',
+    });
 
-/**
- * Exportar produtos para Excel
- */
-export async function exportProductsExcel(filters?: ProductFilters) {
-  const params = new URLSearchParams();
-  if (filters?.category) params.append('category', filters.category);
-  if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
-  
-  const response = await api.get(`/inventory/products/export_excel/?${params.toString()}`, {
-    responseType: 'blob',
-  });
-  
-  const url = window.URL.createObjectURL(new Blob([response.data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', 'produtos.xlsx');
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+    if (!response.data) {
+      throw new Error('Resposta vazia da API');
+    }
+    
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `produtos_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Erro ao exportar CSV de produtos:', error);
+    throw error;
+  }
 }
 
 /**
  * Exportar produtos para PDF
  */
 export async function exportProductsPDF(filters?: ProductFilters) {
-  const { default: jsPDF } = await import('jspdf');
-  const { default: autoTable } = await import('jspdf-autotable');
-  
-  const params = new URLSearchParams();
-  if (filters?.category) params.append('category', filters.category);
-  if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
+  try {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+    
+    const params = new URLSearchParams();
+    if (filters?.category) params.append('category', filters.category);
+    if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
 
-  // Buscar dados da API
-  const response = await api.get(`/inventory/products/?${params.toString()}`);
-  const products = response.data.results || response.data || [];
+    // Buscar dados da API
+    const response = await api.get(`/inventory/products/?${params.toString()}`);
+    const products = response.data.results || response.data || [];
 
-  // Criar PDF
-  const doc = new jsPDF();
-  
-  // Título
-  doc.setFontSize(18);
-  doc.text('Relatório de Produtos', 14, 20);
-  
-  // Data de geração
-  doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
+    if (!products || products.length === 0) {
+      throw new Error('Nenhum produto encontrado para exportar');
+    }
 
-  // Mapear categorias
-  const categoryMap: Record<string, string> = {
-    hair_product: 'Cabelo',
-    beard_product: 'Barba',
-    skin_product: 'Pele',
-    styling: 'Styling',
-    tools: 'Ferramentas',
-    other: 'Outro',
-  };
+    // Criar PDF
+    const doc = new jsPDF();
+    
+    // Título
+    doc.setFontSize(18);
+    doc.text('Relatório de Produtos', 14, 20);
+    
+    // Data de geração
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
 
-  // Preparar dados da tabela
-  const tableData = products.map((product: Product) => [
-    product.name || '-',
-    product.category_display || categoryMap[product.category] || '-',
-    product.sku || '-',
-    `R$ ${parseFloat(product.cost_price).toFixed(2)}`,
-    `R$ ${parseFloat(product.sale_price).toFixed(2)}`,
-    String(product.stock_quantity || 0),
-    product.is_active ? 'Sim' : 'Não',
-  ]);
+    // Mapear categorias
+    const categoryMap: Record<string, string> = {
+      hair_product: 'Cabelo',
+      beard_product: 'Barba',
+      skin_product: 'Pele',
+      styling: 'Styling',
+      tools: 'Ferramentas',
+      other: 'Outro',
+    };
 
-  // Criar tabela
-  autoTable(doc, {
-    startY: 35,
-    head: [['Produto', 'Categoria', 'SKU', 'Custo', 'Venda', 'Estoque', 'Ativo']],
-    body: tableData,
-    styles: {
-      fontSize: 8,
-      cellPadding: 2,
-    },
-    headStyles: {
-      fillColor: [79, 70, 229], // Indigo
-      textColor: 255,
-      fontStyle: 'bold',
-    },
-    alternateRowStyles: {
-      fillColor: [245, 245, 245],
-    },
-    columnStyles: {
-      0: { cellWidth: 45 }, // Produto
-      1: { cellWidth: 30 }, // Categoria
-      2: { cellWidth: 25 }, // SKU
-      3: { cellWidth: 25 }, // Custo
-      4: { cellWidth: 25 }, // Venda
-      5: { cellWidth: 20 }, // Estoque
-      6: { cellWidth: 20 }, // Ativo
-    },
-  });
+    // Preparar dados da tabela
+    const tableData = products.map((product: Product) => [
+      product.name || '-',
+      product.category_display || categoryMap[product.category] || '-',
+      product.sku || '-',
+      `R$ ${parseFloat(product.cost_price).toFixed(2)}`,
+      `R$ ${parseFloat(product.sale_price).toFixed(2)}`,
+      String(product.stock_quantity || 0),
+      product.is_active ? 'Sim' : 'Não',
+    ]);
 
-  // Salvar PDF
-  doc.save('produtos.pdf');
+    // Criar tabela
+    autoTable(doc, {
+      startY: 35,
+      head: [['Produto', 'Categoria', 'SKU', 'Custo', 'Venda', 'Estoque', 'Ativo']],
+      body: tableData,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [79, 70, 229], // Indigo
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      columnStyles: {
+        0: { cellWidth: 45 }, // Produto
+        1: { cellWidth: 30 }, // Categoria
+        2: { cellWidth: 25 }, // SKU
+        3: { cellWidth: 25 }, // Custo
+        4: { cellWidth: 25 }, // Venda
+        5: { cellWidth: 20 }, // Estoque
+        6: { cellWidth: 20 }, // Ativo
+      },
+    });
+
+    // Salvar PDF
+    const date = new Date().toISOString().split('T')[0];
+    doc.save(`produtos_${date}.pdf`);
+  } catch (error) {
+    console.error('Erro ao exportar PDF de produtos:', error);
+    throw error;
+  }
 }

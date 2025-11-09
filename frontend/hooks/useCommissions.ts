@@ -280,23 +280,34 @@ export async function exportCommissionsCSV(filters?: {
   date_from?: string;
   date_to?: string;
 }) {
-  const params = new URLSearchParams();
-  if (filters?.status) params.append('status', filters.status);
-  if (filters?.professional) params.append('professional', filters.professional.toString());
-  if (filters?.date_from) params.append('date_from', filters.date_from);
-  if (filters?.date_to) params.append('date_to', filters.date_to);
-  
-  const response = await api.get(`/commissions/export_csv/?${params.toString()}`, {
-    responseType: 'blob',
-  });
-  
-  const url = window.URL.createObjectURL(new Blob([response.data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', 'comissoes.csv');
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  try {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.professional) params.append('professional', filters.professional.toString());
+    if (filters?.date_from) params.append('date_from', filters.date_from);
+    if (filters?.date_to) params.append('date_to', filters.date_to);
+    
+    const response = await api.get(`/commissions/export_csv/?${params.toString()}`, {
+      responseType: 'blob',
+    });
+
+    if (!response.data) {
+      throw new Error('Resposta vazia da API');
+    }
+    
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `comissoes_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Erro ao exportar CSV de comissões:', error);
+    throw error;
+  }
 }
 
 /**
@@ -308,29 +319,34 @@ export async function exportCommissionsPDF(filters?: {
   date_from?: string;
   date_to?: string;
 }) {
-  const { default: jsPDF } = await import('jspdf');
-  const { default: autoTable } = await import('jspdf-autotable');
-  
-  const params = new URLSearchParams();
-  if (filters?.status) params.append('status', filters.status);
-  if (filters?.professional) params.append('professional', filters.professional.toString());
-  if (filters?.date_from) params.append('date_from', filters.date_from);
-  if (filters?.date_to) params.append('date_to', filters.date_to);
+  try {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+    
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.professional) params.append('professional', filters.professional.toString());
+    if (filters?.date_from) params.append('date_from', filters.date_from);
+    if (filters?.date_to) params.append('date_to', filters.date_to);
 
-  // Buscar dados da API
-  const response = await api.get(`/commissions/commissions/?${params.toString()}`);
-  const commissions = response.data.results || response.data || [];
+    // Buscar dados da API
+    const response = await api.get(`/commissions/commissions/?${params.toString()}`);
+    const commissions = response.data.results || response.data || [];
 
-  // Criar PDF
-  const doc = new jsPDF();
-  
-  // Título
-  doc.setFontSize(18);
-  doc.text('Relatório de Comissões', 14, 20);
-  
-  // Data de geração
-  doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
+    if (!commissions || commissions.length === 0) {
+      throw new Error('Nenhuma comissão encontrada para exportar');
+    }
+
+    // Criar PDF
+    const doc = new jsPDF();
+    
+    // Título
+    doc.setFontSize(18);
+    doc.text('Relatório de Comissões', 14, 20);
+    
+    // Data de geração
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
 
   // Mapear status
   const statusMap: Record<string, string> = {
@@ -382,5 +398,10 @@ export async function exportCommissionsPDF(filters?: {
   });
 
   // Salvar PDF
-  doc.save('comissoes.pdf');
+  const filename = `comissoes_${new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(filename);
+  } catch (error) {
+    console.error('Erro ao exportar PDF de comissões:', error);
+    throw error;
+  }
 }

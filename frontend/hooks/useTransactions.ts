@@ -209,56 +209,70 @@ export function useDeleteTransaction() {
  * Exporta transações em formato CSV
  */
 export async function exportTransactionsCSV(filters?: TransactionFilters) {
-  const params = new URLSearchParams();
-  if (filters?.date) params.append('date', filters.date);
-  if (filters?.start_date) params.append('start_date', filters.start_date);
-  if (filters?.end_date) params.append('end_date', filters.end_date);
-  if (filters?.type) params.append('type', filters.type);
-  if (filters?.payment_method) params.append('payment_method', filters.payment_method);
+  try {
+    const params = new URLSearchParams();
+    if (filters?.date) params.append('date', filters.date);
+    if (filters?.start_date) params.append('start_date', filters.start_date);
+    if (filters?.end_date) params.append('end_date', filters.end_date);
+    if (filters?.type) params.append('type', filters.type);
+    if (filters?.payment_method) params.append('payment_method', filters.payment_method);
 
-  const response = await api.get(`/financial/transactions/export_csv/?${params.toString()}`, {
-    responseType: 'blob',
-  });
+    const response = await api.get(`/financial/transactions/export_csv/?${params.toString()}`, {
+      responseType: 'blob',
+    });
 
-  const blob = new Blob([response.data], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'transacoes.csv';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+    if (!response.data) {
+      throw new Error('Resposta vazia da API');
+    }
+
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `transacoes_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Erro ao exportar CSV de transações:', error);
+    throw error;
+  }
 }
 
 /**
  * Exporta transações em formato PDF
  */
 export async function exportTransactionsPDF(filters?: TransactionFilters) {
-  const { default: jsPDF } = await import('jspdf');
-  const { default: autoTable } = await import('jspdf-autotable');
-  
-  const params = new URLSearchParams();
-  if (filters?.date) params.append('date', filters.date);
-  if (filters?.start_date) params.append('start_date', filters.start_date);
-  if (filters?.end_date) params.append('end_date', filters.end_date);
-  if (filters?.type) params.append('type', filters.type);
-  if (filters?.payment_method) params.append('payment_method', filters.payment_method);
+  try {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+    
+    const params = new URLSearchParams();
+    if (filters?.date) params.append('date', filters.date);
+    if (filters?.start_date) params.append('start_date', filters.start_date);
+    if (filters?.end_date) params.append('end_date', filters.end_date);
+    if (filters?.type) params.append('type', filters.type);
+    if (filters?.payment_method) params.append('payment_method', filters.payment_method);
 
-  // Buscar dados da API
-  const response = await api.get(`/financial/transactions/?${params.toString()}`);
-  const transactions = response.data.results || response.data || [];
+    // Buscar dados da API
+    const response = await api.get(`/financial/transactions/?${params.toString()}`);
+    const transactions = response.data.results || response.data || [];
 
-  // Criar PDF
-  const doc = new jsPDF();
-  
-  // Título
-  doc.setFontSize(18);
-  doc.text('Relatório de Transações', 14, 20);
-  
-  // Data de geração
-  doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
+    if (!transactions || transactions.length === 0) {
+      throw new Error('Nenhuma transação encontrada para exportar');
+    }
+
+    // Criar PDF
+    const doc = new jsPDF();
+    
+    // Título
+    doc.setFontSize(18);
+    doc.text('Relatório de Transações', 14, 20);
+    
+    // Data de geração
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
 
   // Mapear tipos
   const typeMap: Record<string, string> = {
@@ -321,5 +335,10 @@ export async function exportTransactionsPDF(filters?: TransactionFilters) {
   });
 
   // Salvar PDF
-  doc.save('transacoes.pdf');
+  const filename = `transacoes_${new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(filename);
+  } catch (error) {
+    console.error('Erro ao exportar PDF de transações:', error);
+    throw error;
+  }
 }
