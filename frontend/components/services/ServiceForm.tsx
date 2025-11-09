@@ -118,18 +118,23 @@ export function ServiceForm({ service, onSubmit, onCancel, isLoading }: ServiceF
         {/* Preço */}
         <div className="space-y-2">
           <Label htmlFor="price">
-            Preço (R$) <span className="text-red-500">*</span>
+            Preço <span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="price"
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.price}
-            onChange={(e) => handleChange('price', e.target.value)}
-            placeholder="35.00"
-            className={errors.price ? 'border-red-500' : ''}
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+              R$
+            </span>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.price}
+              onChange={(e) => handleChange('price', e.target.value)}
+              placeholder="35,00"
+              className={`pl-10 ${errors.price ? 'border-red-500' : ''}`}
+            />
+          </div>
           {errors.price && (
             <p className="text-sm text-red-500">{errors.price}</p>
           )}

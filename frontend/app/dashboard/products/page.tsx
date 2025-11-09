@@ -14,7 +14,6 @@ import {
   useRemoveStock,
   useProductSummary,
   exportProductsCSV,
-  exportProductsExcel,
   exportProductsPDF,
   Product,
   CreateProductInput
@@ -283,22 +282,6 @@ export default function ProductsPage() {
     }
   };
 
-  const handleExportExcel = async () => {
-    try {
-      await exportProductsExcel({});
-      toast({
-        title: 'Exportação concluída',
-        description: 'Os produtos foram exportados para Excel.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Ocorreu um erro ao exportar os produtos.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const handleExportPDF = async () => {
     try {
       await exportProductsPDF({});
@@ -330,14 +313,10 @@ export default function ProductsPage() {
             <Plus className="h-4 w-4 mr-2" />
             Novo Produto
           </Button>
-          <div className="grid grid-cols-3 gap-2 sm:flex">
+          <div className="grid grid-cols-2 gap-2 sm:flex">
             <Button variant="outline" onClick={handleExportPDF} size="sm" className="px-3">
               <FileText className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">PDF</span>
-            </Button>
-            <Button variant="outline" onClick={handleExportExcel} size="sm" className="px-3">
-              <FileText className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Excel</span>
             </Button>
             <Button variant="outline" onClick={handleExportCSV} size="sm" className="px-3">
               <Download className="h-4 w-4 sm:mr-2" />

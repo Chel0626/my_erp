@@ -338,54 +338,69 @@ export function useCustomerSummary() {
  * Exporta clientes em formato CSV
  */
 export async function exportCustomersCSV(filters?: CustomerFilters) {
-  const params = new URLSearchParams();
-  if (filters?.tag) params.append('tag', filters.tag);
-  if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
-  if (filters?.gender) params.append('gender', filters.gender);
-  if (filters?.search) params.append('search', filters.search);
+  try {
+    const params = new URLSearchParams();
+    if (filters?.tag) params.append('tag', filters.tag);
+    if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
+    if (filters?.gender) params.append('gender', filters.gender);
+    if (filters?.search) params.append('search', filters.search);
 
-  const response = await api.get(`/customers/customers/export_csv/?${params.toString()}`, {
-    responseType: 'blob',
-  });
+    const response = await api.get(`/customers/customers/export_csv/?${params.toString()}`, {
+      responseType: 'blob',
+    });
 
-  const blob = new Blob([response.data], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'clientes.csv';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+    // Verificar se a resposta é válida
+    if (!response.data) {
+      throw new Error('Resposta vazia da API');
+    }
+
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `clientes_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Erro ao exportar CSV:', error);
+    throw error;
+  }
 }
 
 /**
  * Exporta clientes em formato PDF
  */
 export async function exportCustomersPDF(filters?: CustomerFilters) {
-  const { default: jsPDF } = await import('jspdf');
-  const { default: autoTable } = await import('jspdf-autotable');
-  
-  const params = new URLSearchParams();
-  if (filters?.tag) params.append('tag', filters.tag);
-  if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
-  if (filters?.gender) params.append('gender', filters.gender);
-  if (filters?.search) params.append('search', filters.search);
+  try {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+    
+    const params = new URLSearchParams();
+    if (filters?.tag) params.append('tag', filters.tag);
+    if (filters?.is_active !== undefined) params.append('is_active', String(filters.is_active));
+    if (filters?.gender) params.append('gender', filters.gender);
+    if (filters?.search) params.append('search', filters.search);
 
-  // Buscar dados da API
-  const response = await api.get(`/customers/customers/?${params.toString()}`);
-  const customers = response.data.results || response.data || [];
+    // Buscar dados da API
+    const response = await api.get(`/customers/customers/?${params.toString()}`);
+    const customers = response.data.results || response.data || [];
 
-  // Criar PDF
-  const doc = new jsPDF();
-  
-  // Título
-  doc.setFontSize(18);
-  doc.text('Relatório de Clientes', 14, 20);
-  
-  // Data de geração
-  doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
+    if (!customers || customers.length === 0) {
+      throw new Error('Nenhum cliente encontrado para exportar');
+    }
+
+    // Criar PDF
+    const doc = new jsPDF();
+    
+    // Título
+    doc.setFontSize(18);
+    doc.text('Relatório de Clientes', 14, 20);
+    
+    // Data de geração
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, 28);
 
   // Mapear tags
   const tagMap: Record<string, string> = {
@@ -442,5 +457,10 @@ export async function exportCustomersPDF(filters?: CustomerFilters) {
   });
 
   // Salvar PDF
-  doc.save('clientes.pdf');
+  const filename = `clientes_${new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(filename);
+  } catch (error) {
+    console.error('Erro ao exportar PDF:', error);
+    throw error;
+  }
 }

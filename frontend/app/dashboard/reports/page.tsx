@@ -49,7 +49,7 @@ import { CommissionPerformance } from '@/components/reports/CommissionPerformanc
 import { BestSellingProductsChart } from '@/components/reports/BestSellingProductsChart';
 
 // Export utilities
-import { exportReportToPDF, exportReportToExcel, exportReportToCSV } from '@/lib/export/reportExport';
+import { exportReportToPDF, exportReportToCSV } from '@/lib/export/reportExport';
 
 export default function ReportsPage() {
   // Estado dos filtros
@@ -119,20 +119,6 @@ export default function ReportsPage() {
     });
   };
 
-  const handleExportExcel = () => {
-    exportReportToExcel({
-      tenantName: 'Minha Empresa - ERP',
-      period: {
-        start: filters.start_date || format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-        end: filters.end_date || format(new Date(), 'yyyy-MM-dd'),
-      },
-      revenue: revenueChart.data,
-      status: statusDistribution.data,
-      topServices: topServices.data as unknown as Array<Record<string, string | number>>,
-      professionals: professionalPerformance.data as unknown as Array<Record<string, string | number>>,
-    });
-  };
-
   const handleExportCSV = () => {
     exportReportToCSV({
       tenantName: 'Minha Empresa - ERP',
@@ -191,16 +177,6 @@ export default function ReportsPage() {
           >
             <Download className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">PDF</span>
-          </Button>
-          <Button 
-            variant="default"
-            size="sm"
-            onClick={handleExportExcel}
-            disabled={isLoading}
-            className="text-xs"
-          >
-            <Download className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Excel</span>
           </Button>
           <Button 
             variant="default"
