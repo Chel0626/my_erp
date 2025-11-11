@@ -1,32 +1,48 @@
 /**
- * Componente: Saúde da Infraestrutura
+ * Componente: Saúde da Infraestrutura - Estilo NOC
  * Mostra CPU e Memória do servidor
  */
 
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Server, Cpu, HardDrive } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Server, Cpu, HardDrive, Zap } from 'lucide-react';
 import { useInfraMetrics } from '@/hooks/useSystemHealth';
 import { Line } from 'react-chartjs-2';
 import { ChartOptions } from 'chart.js';
-import { cn } from '@/lib/utils';
 
 export default function InfraHealthCard() {
   const { data: metrics, isLoading } = useInfraMetrics();
 
   if (isLoading || !metrics) {
     return (
-      <Card className="animate-pulse">
+      <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/50 border-slate-700/50 backdrop-blur-xl shadow-xl">
         <CardHeader>
-          <CardTitle className="text-lg">Saúde da Infraestrutura</CardTitle>
+          <CardTitle className="text-lg text-white">🖥️ Infraestrutura</CardTitle>
         </CardHeader>
         <CardContent className="h-96 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="text-center space-y-3">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-t-orange-500 border-r-transparent border-b-orange-500 border-l-transparent mx-auto"></div>
+            <p className="text-sm text-slate-400">Carregando métricas...</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
+
+  const cpuColor = metrics.cpu_usage_percentage >= 90 
+    ? 'text-red-400' 
+    : metrics.cpu_usage_percentage >= 70 
+    ? 'text-amber-400' 
+    : 'text-emerald-400';
+
+  const memoryColor = metrics.memory_usage_percentage >= 90 
+    ? 'text-red-400' 
+    : metrics.memory_usage_percentage >= 70 
+    ? 'text-amber-400' 
+    : 'text-emerald-400';
 
   const cpuChartData = {
     labels: metrics.cpu_history.map(h => 
@@ -36,9 +52,12 @@ export default function InfraHealthCard() {
       {
         label: 'CPU %',
         data: metrics.cpu_history.map(h => h.percentage),
-        borderColor: 'rgb(239, 68, 68)',
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderColor: 'rgb(251, 146, 60)',
+        backgroundColor: 'rgba(251, 146, 60, 0.2)',
         tension: 0.4,
+        borderWidth: 3,
+        pointRadius: 0,
+        pointHoverRadius: 6,
       },
     ],
   };
@@ -49,11 +68,14 @@ export default function InfraHealthCard() {
     ),
     datasets: [
       {
-        label: 'Memória %',
+        label: 'RAM %',
         data: metrics.memory_history.map(h => h.percentage),
         borderColor: 'rgb(34, 197, 94)',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        backgroundColor: 'rgba(34, 197, 94, 0.2)',
         tension: 0.4,
+        borderWidth: 3,
+        pointRadius: 0,
+        pointHoverRadius: 6,
       },
     ],
   };
@@ -62,10 +84,15 @@ export default function InfraHealthCard() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleColor: '#fff',
+        bodyColor: '#fb923c',
+        borderColor: 'rgba(251, 146, 60, 0.3)',
+        borderWidth: 1,
+        padding: 12,
+        displayColors: false,
         callbacks: {
           label: (context) => `${(context.parsed.y ?? 0).toFixed(1)}%`,
         },
@@ -75,74 +102,99 @@ export default function InfraHealthCard() {
       y: {
         beginAtZero: true,
         max: 100,
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
         ticks: {
+          color: '#64748b',
           callback: (value) => `${value}%`,
+        },
+      },
+      x: {
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: {
+          color: '#64748b',
+          maxRotation: 0,
         },
       },
     },
   };
 
-  const getCpuColor = (percentage: number) => {
-    if (percentage >= 90) return 'text-red-600';
-    if (percentage >= 70) return 'text-yellow-600';
-    return 'text-green-600';
-  };
-
-  const getMemoryColor = (percentage: number) => {
-    if (percentage >= 90) return 'text-red-600';
-    if (percentage >= 70) return 'text-yellow-600';
-    return 'text-green-600';
-  };
-
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/50 border-slate-700/50 backdrop-blur-xl shadow-xl hover:shadow-2xl transition-all">
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Server className="h-5 w-5" />
-          Saúde da Infraestrutura ({metrics.provider})
+        <CardTitle className="text-lg flex items-center justify-between text-white">
+          <span className="flex items-center gap-2">
+            🖥️ Infraestrutura
+            <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30">
+              {metrics.provider}
+            </Badge>
+          </span>
+          <Server className="h-5 w-5 text-orange-400" />
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Métricas Atuais */}
-        <div className="grid grid-cols-2 gap-4">
+      <CardContent className="space-y-5">
+        {/* Métricas Atuais NOC */}
+        <div className="grid grid-cols-2 gap-3">
           {/* CPU */}
-          <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
-            <div className="flex items-center gap-2 mb-2">
-              <Cpu className="h-5 w-5 text-red-600" />
-              <span className="text-sm font-medium">CPU Atual</span>
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-600/20 to-orange-700/10 border border-orange-500/30 p-4">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full blur-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-2">
+                <Cpu className="h-4 w-4 text-orange-400" />
+                <span className="text-xs font-medium text-orange-300">CPU</span>
+              </div>
+              <p className={`text-4xl font-bold ${cpuColor}`}>
+                {metrics.cpu_usage_percentage.toFixed(1)}
+                <span className="text-xl ml-1">%</span>
+              </p>
             </div>
-            <p className={cn("text-3xl font-bold", getCpuColor(metrics.cpu_usage_percentage))}>
-              {metrics.cpu_usage_percentage.toFixed(1)}%
-            </p>
           </div>
 
-          {/* Memória */}
-          <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="flex items-center gap-2 mb-2">
-              <HardDrive className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium">RAM Atual</span>
+          {/* RAM */}
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 border border-emerald-500/30 p-4">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-2">
+                <HardDrive className="h-4 w-4 text-emerald-400" />
+                <span className="text-xs font-medium text-emerald-300">RAM</span>
+              </div>
+              <p className={`text-4xl font-bold ${memoryColor}`}>
+                {metrics.memory_usage_percentage.toFixed(1)}
+                <span className="text-xl ml-1">%</span>
+              </p>
             </div>
-            <p className={cn("text-3xl font-bold", getMemoryColor(metrics.memory_usage_percentage))}>
-              {metrics.memory_usage_percentage.toFixed(1)}%
-            </p>
           </div>
         </div>
 
         {/* Gráfico de CPU */}
         <div>
-          <h4 className="text-sm font-medium mb-3">Uso de CPU (última hora)</h4>
-          <div className="h-40">
+          <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+            CPU - Última Hora
+          </h4>
+          <div className="h-32 bg-slate-900/50 rounded-lg p-3 border border-slate-700/30">
             <Line data={cpuChartData} options={chartOptions} />
           </div>
         </div>
 
-        {/* Gráfico de Memória */}
+        {/* Gráfico de RAM */}
         <div>
-          <h4 className="text-sm font-medium mb-3">Uso de RAM (última hora)</h4>
-          <div className="h-40">
+          <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            RAM - Última Hora
+          </h4>
+          <div className="h-32 bg-slate-900/50 rounded-lg p-3 border border-slate-700/30">
             <Line data={memoryChartData} options={chartOptions} />
           </div>
         </div>
+
+        {/* Botão de Ação */}
+        <Button
+          variant="outline"
+          className="w-full bg-orange-500/20 border-orange-500/30 text-orange-300 hover:bg-orange-500/30"
+        >
+          <Zap className="h-4 w-4 mr-2" />
+          Otimizar Recursos
+        </Button>
       </CardContent>
     </Card>
   );
