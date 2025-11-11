@@ -105,6 +105,10 @@ SENTRY_PROJECT_SLUG = config('SENTRY_PROJECT_SLUG', default='')
 # =============================================================================
 RAILWAY_API_TOKEN = config('RAILWAY_API_TOKEN', default='')
 
+# UPTIMEROBOT API CREDENTIALS (para Uptime Monitoring)
+# =============================================================================
+UPTIMEROBOT_API_KEY = config('UPTIMEROBOT_API_KEY', default='')
+
 # =============================================================================# Application definition
 
 INSTALLED_APPS = [

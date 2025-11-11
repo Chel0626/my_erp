@@ -571,26 +571,133 @@ class InfraMetricsView(APIView):
 class UptimeStatusView(APIView):
     """
     GET /superadmin/system-health/uptime/status/
-    Retorna status de disponibilidade do sistema
+    Retorna status de disponibilidade do sistema via UptimeRobot API
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
-            # Mock data - você pode integrar com UptimeRobot API
-            # https://uptimerobot.com/api/
+            # Verifica se UptimeRobot API está configurado
+            if not settings.UPTIMEROBOT_API_KEY:
+                return Response({
+                    'error': 'UptimeRobot API não configurado',
+                    'status': 'unknown',
+                    'uptime_percentage': 0,
+                    'response_time_ms': 0,
+                    'last_check': datetime.now().isoformat()
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
             
-            data = {
-                'status': 'up',
-                'uptime_percentage': 99.98,
-                'response_time_ms': 156,
-                'last_check': datetime.now().isoformat()
+            # UptimeRobot API v2 - getMonitors
+            uptimerobot_url = 'https://api.uptimerobot.com/v2/getMonitors'
+            
+            # Formato: application/x-www-form-urlencoded
+            payload = {
+                'api_key': settings.UPTIMEROBOT_API_KEY,
+                'format': 'json',
+                'response_times': '1',  # Inclui tempos de resposta
+                'response_times_limit': '1',  # Apenas o último
+                'custom_uptime_ratios': '1-7-30'  # Uptime de 1, 7 e 30 dias
             }
             
-            return Response(data)
+            response = requests.post(
+                uptimerobot_url,
+                data=payload,
+                timeout=10
+            )
+            
+            if response.status_code != 200:
+                return Response({
+                    'error': f'UptimeRobot API retornou status {response.status_code}',
+                    'status': 'unknown',
+                    'uptime_percentage': 0,
+                    'response_time_ms': 0,
+                    'last_check': datetime.now().isoformat()
+                }, status=status.HTTP_502_BAD_GATEWAY)
+            
+            data = response.json()
+            
+            # Verifica se a resposta foi bem-sucedida
+            if data.get('stat') != 'ok':
+                return Response({
+                    'error': f'UptimeRobot retornou erro: {data.get("error", {}).get("message", "Unknown")}',
+                    'status': 'unknown',
+                    'uptime_percentage': 0,
+                    'response_time_ms': 0,
+                    'last_check': datetime.now().isoformat()
+                }, status=status.HTTP_502_BAD_GATEWAY)
+            
+            monitors = data.get('monitors', [])
+            
+            if not monitors:
+                return Response({
+                    'status': 'no_monitors',
+                    'uptime_percentage': 0,
+                    'response_time_ms': 0,
+                    'last_check': datetime.now().isoformat(),
+                    'message': 'Nenhum monitor configurado no UptimeRobot'
+                })
+            
+            # Pega o primeiro monitor (pode ser customizado para buscar um específico)
+            monitor = monitors[0]
+            
+            # Status do monitor
+            status_map = {
+                0: 'paused',
+                1: 'not_checked_yet',
+                2: 'up',
+                8: 'seems_down',
+                9: 'down'
+            }
+            monitor_status = status_map.get(monitor.get('status'), 'unknown')
+            
+            # Uptime percentage (últimos 30 dias)
+            custom_uptime_ratios = monitor.get('custom_uptime_ratios', ['0', '0', '0'])
+            uptime_30d = float(custom_uptime_ratios[2]) if len(custom_uptime_ratios) > 2 else 0
+            
+            # Response time (último check)
+            response_times = monitor.get('response_times', [])
+            last_response_time = 0
+            if response_times:
+                last_response_time = response_times[0].get('value', 0)
+            
+            # Última verificação
+            last_check_timestamp = monitor.get('last_check_datetime')
+            if last_check_timestamp:
+                last_check = datetime.fromtimestamp(last_check_timestamp).isoformat()
+            else:
+                last_check = datetime.now().isoformat()
+            
+            result = {
+                'status': monitor_status,
+                'uptime_percentage': round(uptime_30d, 2),
+                'response_time_ms': last_response_time,
+                'last_check': last_check,
+                'monitor_name': monitor.get('friendly_name', 'Unknown'),
+                'monitor_url': monitor.get('url', ''),
+                'uptime_1d': float(custom_uptime_ratios[0]) if len(custom_uptime_ratios) > 0 else 0,
+                'uptime_7d': float(custom_uptime_ratios[1]) if len(custom_uptime_ratios) > 1 else 0,
+                'uptime_30d': uptime_30d
+            }
+            
+            return Response(result)
+            
+        except requests.exceptions.Timeout:
+            return Response({
+                'error': 'Timeout ao conectar com UptimeRobot API',
+                'status': 'unknown',
+                'uptime_percentage': 0,
+                'response_time_ms': 0,
+                'last_check': datetime.now().isoformat()
+            }, status=status.HTTP_504_GATEWAY_TIMEOUT)
         except Exception as e:
             sentry_sdk.capture_exception(e)
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({
+                'error': str(e),
+                'status': 'unknown',
+                'uptime_percentage': 0,
+                'response_time_ms': 0,
+                'last_check': datetime.now().isoformat()
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class OnlineUsersView(APIView):
