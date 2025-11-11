@@ -15,6 +15,7 @@ import redis
 import json
 import os
 import requests
+import psutil
 
 
 class SentryHealthView(APIView):
@@ -445,117 +446,105 @@ class RedisInspectKeyView(APIView):
 class InfraMetricsView(APIView):
     """
     GET /superadmin/system-health/infra/metrics/
-    Retorna métricas de infraestrutura (CPU, RAM) via Railway API
+    Retorna métricas REAIS de CPU e RAM do processo Python usando psutil
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
-            # Verifica se Railway API está configurado
-            if not settings.RAILWAY_API_TOKEN:
-                return Response({
-                    'error': 'Railway API não configurado',
-                    'cpu_usage_percentage': 0,
-                    'memory_usage_percentage': 0,
-                    'cpu_history': [],
-                    'memory_history': [],
-                    'provider': 'Railway (não configurado)'
-                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            # Obter o processo atual do Python
+            process = psutil.Process()
             
-            # Railway usa GraphQL API
-            railway_url = 'https://backboard.railway.app/graphql/v2'
-            headers = {
-                'Authorization': f'Bearer {settings.RAILWAY_API_TOKEN}',
-                'Content-Type': 'application/json'
-            }
+            # CPU do processo (percentual de uso nos últimos segundos)
+            cpu_percent = process.cpu_percent(interval=0.1)
             
-            # Query GraphQL para obter métricas do projeto
-            # Nota: Você precisa do Project ID e Service ID específicos
-            # Por enquanto, vamos buscar informações básicas
-            query = """
-            query {
-                me {
-                    projects {
-                        edges {
-                            node {
-                                id
-                                name
-                                services {
-                                    edges {
-                                        node {
-                                            id
-                                            name
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            """
+            # Memória do processo
+            memory_info = process.memory_info()
+            memory_mb = memory_info.rss / (1024 * 1024)  # Converte bytes para MB
             
-            response = requests.post(
-                railway_url,
-                headers=headers,
-                json={'query': query},
-                timeout=10
-            )
+            # Memória do sistema (total disponível)
+            system_memory = psutil.virtual_memory()
+            memory_percent = (memory_info.rss / system_memory.total) * 100
             
+            # CPU do sistema (todos os cores)
+            system_cpu = psutil.cpu_percent(interval=0.1)
+            
+            # Número de threads do processo
+            num_threads = process.num_threads()
+            
+            # Informações do sistema
+            cpu_count = psutil.cpu_count()
+            
+            # Cache: histórico dos últimos 60 minutos (12 pontos x 5 min)
+            cache_key_prefix = 'system_metrics_history'
             now = datetime.now()
             
-            # Por enquanto, Railway API tem limitações de métricas em tempo real
-            # Vamos retornar dados mock, mas com estrutura pronta para quando disponível
-            if response.status_code == 200:
-                railway_data = response.json()
-                
-                # Histórico de CPU (última hora)
-                cpu_history = []
-                for i in range(12):
-                    timestamp = now - timedelta(minutes=i*5)
-                    cpu_history.insert(0, {
-                        'timestamp': timestamp.isoformat(),
-                        'percentage': 30 + (i % 3) * 8  # Mock: 30-46%
-                    })
-                
-                # Histórico de Memória (última hora)
-                memory_history = []
-                for i in range(12):
-                    timestamp = now - timedelta(minutes=i*5)
-                    memory_history.insert(0, {
-                        'timestamp': timestamp.isoformat(),
-                        'percentage': 50 + (i % 4) * 5  # Mock: 50-65%
-                    })
-                
-                data = {
-                    'cpu_usage_percentage': 38.5,
-                    'memory_usage_percentage': 58.2,
-                    'cpu_history': cpu_history,
-                    'memory_history': memory_history,
-                    'provider': 'Railway',
-                    'note': 'Métricas em tempo real limitadas pela API do Railway. Use Railway Dashboard para dados precisos.'
+            # Salva métrica atual no cache
+            current_metrics = {
+                'timestamp': now.isoformat(),
+                'cpu_percent': round(cpu_percent, 2),
+                'memory_percent': round(memory_percent, 2)
+            }
+            
+            # Busca histórico do cache (ou cria novo)
+            history = cache.get(cache_key_prefix, [])
+            history.append(current_metrics)
+            
+            # Mantém apenas últimos 12 pontos (1 hora)
+            if len(history) > 12:
+                history = history[-12:]
+            
+            # Salva no cache por 5 minutos
+            cache.set(cache_key_prefix, history, 300)
+            
+            # Formata histórico de CPU
+            cpu_history = [
+                {
+                    'timestamp': point['timestamp'],
+                    'percentage': point['cpu_percent']
                 }
+                for point in history
+            ]
+            
+            # Formata histórico de Memória
+            memory_history = [
+                {
+                    'timestamp': point['timestamp'],
+                    'percentage': point['memory_percent']
+                }
+                for point in history
+            ]
+            
+            # Se não tiver 12 pontos ainda, preenche com dados atuais
+            while len(cpu_history) < 12:
+                fake_timestamp = now - timedelta(minutes=(12 - len(cpu_history)) * 5)
+                cpu_history.insert(0, {
+                    'timestamp': fake_timestamp.isoformat(),
+                    'percentage': round(cpu_percent, 2)
+                })
+                memory_history.insert(0, {
+                    'timestamp': fake_timestamp.isoformat(),
+                    'percentage': round(memory_percent, 2)
+                })
+            
+            data = {
+                'cpu_usage_percentage': round(cpu_percent, 2),
+                'memory_usage_percentage': round(memory_percent, 2),
+                'cpu_history': cpu_history,
+                'memory_history': memory_history,
+                'provider': 'psutil (Real Data)',
+                'details': {
+                    'process_memory_mb': round(memory_mb, 2),
+                    'system_memory_total_gb': round(system_memory.total / (1024**3), 2),
+                    'system_memory_available_gb': round(system_memory.available / (1024**3), 2),
+                    'system_cpu_percent': round(system_cpu, 2),
+                    'cpu_cores': cpu_count,
+                    'process_threads': num_threads,
+                }
+            }
+            
+            return Response(data)
                 
-                return Response(data)
-            else:
-                return Response({
-                    'error': f'Railway API retornou status {response.status_code}',
-                    'cpu_usage_percentage': 0,
-                    'memory_usage_percentage': 0,
-                    'cpu_history': [],
-                    'memory_history': [],
-                    'provider': 'Railway'
-                }, status=status.HTTP_502_BAD_GATEWAY)
-                
-        except requests.exceptions.Timeout:
-            return Response({
-                'error': 'Timeout ao conectar com Railway API',
-                'cpu_usage_percentage': 0,
-                'memory_usage_percentage': 0,
-                'cpu_history': [],
-                'memory_history': [],
-                'provider': 'Railway'
-            }, status=status.HTTP_504_GATEWAY_TIMEOUT)
         except Exception as e:
             sentry_sdk.capture_exception(e)
             return Response({
@@ -564,7 +553,7 @@ class InfraMetricsView(APIView):
                 'memory_usage_percentage': 0,
                 'cpu_history': [],
                 'memory_history': [],
-                'provider': 'Railway'
+                'provider': 'psutil (Error)'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
