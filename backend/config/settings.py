@@ -129,6 +129,7 @@ INSTALLED_APPS = [
     "superadmin",  # Super Admin Dashboard
     "pos",  # Point of Sale
     "goals",  # Goals and Targets
+    "system_health",  # System Health Monitoring
 ]
 
 SITE_ID = 1
@@ -146,6 +147,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",  # Allauth middleware
     "core.middleware.TenantMiddleware",  # Middleware personalizado para Multi-Tenant
     "core.sentry_middleware.SentryContextMiddleware",  # Adiciona contexto ao Sentry
+    "system_health.middleware.OnlineUsersMiddleware",  # Rastreia usuários online
 ]
 
 ROOT_URLCONF = "config.urls"
