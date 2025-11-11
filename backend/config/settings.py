@@ -94,6 +94,17 @@ if SENTRY_DSN:
     print(f"✅ Sentry inicializado: {SENTRY_ENVIRONMENT} (Release: {SENTRY_RELEASE})")
 else:
     print("⚠️ Sentry DSN não configurado - Monitoramento de erros desabilitado")
+
+# SENTRY API CREDENTIALS (para System Health Dashboard)
+# =============================================================================
+SENTRY_AUTH_TOKEN = config('SENTRY_AUTH_TOKEN', default='')
+SENTRY_ORG_SLUG = config('SENTRY_ORG_SLUG', default='')
+SENTRY_PROJECT_SLUG = config('SENTRY_PROJECT_SLUG', default='')
+
+# RAILWAY API CREDENTIALS (para Infrastructure Monitoring)
+# =============================================================================
+RAILWAY_API_TOKEN = config('RAILWAY_API_TOKEN', default='')
+
 # =============================================================================# Application definition
 
 INSTALLED_APPS = [

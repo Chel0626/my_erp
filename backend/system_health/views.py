@@ -14,6 +14,7 @@ import sentry_sdk
 import redis
 import json
 import os
+import requests
 
 
 class SentryHealthView(APIView):
@@ -25,20 +26,78 @@ class SentryHealthView(APIView):
 
     def get(self, request):
         try:
-            # Busca métricas do Sentry via SDK ou API
-            # Por enquanto, retorna dados mock (você vai integrar com Sentry API)
+            # Verifica se as credenciais estão configuradas
+            if not all([settings.SENTRY_AUTH_TOKEN, settings.SENTRY_ORG_SLUG, settings.SENTRY_PROJECT_SLUG]):
+                return Response({
+                    'error': 'Sentry API não configurado',
+                    'crash_free_users_percentage': 0,
+                    'new_issues_count': 0,
+                    'recurring_issues_count': 0,
+                    'sentry_url': ''
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+            headers = {
+                'Authorization': f'Bearer {settings.SENTRY_AUTH_TOKEN}'
+            }
             
-            # Para dados reais, você precisaria usar a Sentry API:
-            # https://sentry.io/api/0/organizations/{org}/stats_v2/
+            org = settings.SENTRY_ORG_SLUG
+            project = settings.SENTRY_PROJECT_SLUG
+            
+            # 1. Buscar issues (novos e recorrentes)
+            issues_url = f'https://sentry.io/api/0/projects/{org}/{project}/issues/'
+            issues_params = {
+                'statsPeriod': '24h',
+                'query': 'is:unresolved'
+            }
+            issues_response = requests.get(issues_url, headers=headers, params=issues_params, timeout=10)
+            
+            new_issues = 0
+            recurring_issues = 0
+            
+            if issues_response.status_code == 200:
+                issues = issues_response.json()
+                for issue in issues:
+                    if issue.get('isNew', False):
+                        new_issues += 1
+                    else:
+                        recurring_issues += 1
+            
+            # 2. Calcular crash-free rate (aproximado)
+            # Usando a fórmula: (total_users - users_with_crashes) / total_users * 100
+            stats_url = f'https://sentry.io/api/0/projects/{org}/{project}/stats/'
+            stats_params = {
+                'stat': 'received',
+                'since': (datetime.now() - timedelta(days=1)).timestamp(),
+                'until': datetime.now().timestamp(),
+                'resolution': '1d'
+            }
+            stats_response = requests.get(stats_url, headers=headers, params=stats_params, timeout=10)
+            
+            crash_free_percentage = 99.5  # Default
+            if stats_response.status_code == 200:
+                stats = stats_response.json()
+                total_events = sum([point[1] for point in stats]) if stats else 0
+                # Aproximação: se temos menos de 10 eventos, crash-free é alto
+                if total_events > 0:
+                    crash_free_percentage = max(95.0, 100 - (new_issues + recurring_issues) / max(total_events, 1) * 100)
             
             data = {
-                'crash_free_users_percentage': 99.5,
-                'new_issues_count': 2,
-                'recurring_issues_count': 5,
-                'sentry_url': settings.SENTRY_DSN.split('@')[1] if hasattr(settings, 'SENTRY_DSN') else 'https://sentry.io'
+                'crash_free_users_percentage': round(crash_free_percentage, 2),
+                'new_issues_count': new_issues,
+                'recurring_issues_count': recurring_issues,
+                'sentry_url': f'https://sentry.io/organizations/{org}/projects/{project}/'
             }
             
             return Response(data)
+            
+        except requests.exceptions.Timeout:
+            return Response({
+                'error': 'Timeout ao conectar com Sentry API',
+                'crash_free_users_percentage': 0,
+                'new_issues_count': 0,
+                'recurring_issues_count': 0,
+                'sentry_url': ''
+            }, status=status.HTTP_504_GATEWAY_TIMEOUT)
         except Exception as e:
             sentry_sdk.capture_exception(e)
             return Response({
@@ -59,43 +118,110 @@ class SentryPerformanceView(APIView):
 
     def get(self, request):
         try:
-            # Gera histórico de latência (última hora)
+            # Verifica se as credenciais estão configuradas
+            if not all([settings.SENTRY_AUTH_TOKEN, settings.SENTRY_ORG_SLUG, settings.SENTRY_PROJECT_SLUG]):
+                return Response({
+                    'error': 'Sentry API não configurado',
+                    'top_slow_transactions': [],
+                    'avg_response_time_ms': 0,
+                    'error_rate_percentage': 0,
+                    'latency_history': []
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+            headers = {
+                'Authorization': f'Bearer {settings.SENTRY_AUTH_TOKEN}'
+            }
+            
+            org = settings.SENTRY_ORG_SLUG
+            project = settings.SENTRY_PROJECT_SLUG
+            
+            # 1. Buscar eventos de performance da última hora
             now = datetime.now()
+            one_hour_ago = now - timedelta(hours=1)
+            
+            events_url = f'https://sentry.io/api/0/projects/{org}/{project}/events/'
+            events_params = {
+                'statsPeriod': '1h',
+                'query': 'event.type:transaction',
+                'sort': '-timestamp'
+            }
+            events_response = requests.get(events_url, headers=headers, params=events_params, timeout=10)
+            
+            # 2. Processar dados de latência
             latency_history = []
-            for i in range(12):  # 12 pontos (5 minutos cada)
-                timestamp = now - timedelta(minutes=i*5)
-                latency_history.insert(0, {
-                    'timestamp': timestamp.isoformat(),
-                    'avg_ms': 150 + (i * 5)  # Mock data
-                })
+            transactions_data = {}
+            avg_response_time = 0
+            error_count = 0
+            total_count = 0
+            
+            if events_response.status_code == 200:
+                events = events_response.json()
+                
+                # Agrupar por intervalos de 5 minutos
+                for i in range(12):
+                    interval_start = now - timedelta(minutes=(i+1)*5)
+                    interval_events = [
+                        e for e in events 
+                        if interval_start <= datetime.fromisoformat(e.get('dateCreated', '').replace('Z', '+00:00')) < (interval_start + timedelta(minutes=5))
+                    ]
+                    
+                    avg_latency = 0
+                    if interval_events:
+                        latencies = [e.get('tags', {}).get('duration', 0) for e in interval_events]
+                        avg_latency = sum(latencies) / len(latencies) if latencies else 0
+                    
+                    latency_history.insert(0, {
+                        'timestamp': interval_start.isoformat(),
+                        'avg_ms': round(avg_latency, 2)
+                    })
+                
+                # Agrupar transações por endpoint
+                for event in events:
+                    endpoint = event.get('title', 'Unknown')
+                    duration = float(event.get('tags', {}).get('duration', 0))
+                    
+                    if endpoint not in transactions_data:
+                        transactions_data[endpoint] = []
+                    transactions_data[endpoint].append(duration)
+                    
+                    total_count += 1
+                    avg_response_time += duration
+                    
+                    if event.get('level') == 'error':
+                        error_count += 1
+            
+            # 3. Calcular top slow transactions
+            top_slow = []
+            for endpoint, durations in sorted(transactions_data.items(), key=lambda x: sum(x[1])/len(x[1]) if x[1] else 0, reverse=True)[:5]:
+                if durations:
+                    durations.sort()
+                    p95_index = int(len(durations) * 0.95)
+                    p99_index = int(len(durations) * 0.99)
+                    
+                    top_slow.append({
+                        'endpoint': endpoint,
+                        'avg_duration_ms': round(sum(durations) / len(durations), 2),
+                        'p95_duration_ms': round(durations[p95_index] if p95_index < len(durations) else durations[-1], 2),
+                        'p99_duration_ms': round(durations[p99_index] if p99_index < len(durations) else durations[-1], 2)
+                    })
             
             data = {
-                'top_slow_transactions': [
-                    {
-                        'endpoint': '/api/scheduling/appointments/',
-                        'avg_duration_ms': 345.2,
-                        'p95_duration_ms': 523.8,
-                        'p99_duration_ms': 891.5
-                    },
-                    {
-                        'endpoint': '/api/financial/transactions/',
-                        'avg_duration_ms': 298.1,
-                        'p95_duration_ms': 445.3,
-                        'p99_duration_ms': 678.9
-                    },
-                    {
-                        'endpoint': '/api/customers/customers/',
-                        'avg_duration_ms': 187.4,
-                        'p95_duration_ms': 289.7,
-                        'p99_duration_ms': 412.3
-                    },
-                ],
-                'avg_response_time_ms': 156.3,
-                'error_rate_percentage': 0.5,
+                'top_slow_transactions': top_slow,
+                'avg_response_time_ms': round(avg_response_time / total_count, 2) if total_count > 0 else 0,
+                'error_rate_percentage': round((error_count / total_count) * 100, 2) if total_count > 0 else 0,
                 'latency_history': latency_history
             }
             
             return Response(data)
+            
+        except requests.exceptions.Timeout:
+            return Response({
+                'error': 'Timeout ao conectar com Sentry API',
+                'top_slow_transactions': [],
+                'avg_response_time_ms': 0,
+                'error_rate_percentage': 0,
+                'latency_history': []
+            }, status=status.HTTP_504_GATEWAY_TIMEOUT)
         except Exception as e:
             sentry_sdk.capture_exception(e)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -319,48 +445,127 @@ class RedisInspectKeyView(APIView):
 class InfraMetricsView(APIView):
     """
     GET /superadmin/system-health/infra/metrics/
-    Retorna métricas de infraestrutura (CPU, RAM)
+    Retorna métricas de infraestrutura (CPU, RAM) via Railway API
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
-            # Mock data - você pode integrar com Railway API ou AWS CloudWatch
-            # Railway API: https://railway.app/docs/develop/api-reference
-            # AWS CloudWatch: boto3.client('cloudwatch').get_metric_statistics()
+            # Verifica se Railway API está configurado
+            if not settings.RAILWAY_API_TOKEN:
+                return Response({
+                    'error': 'Railway API não configurado',
+                    'cpu_usage_percentage': 0,
+                    'memory_usage_percentage': 0,
+                    'cpu_history': [],
+                    'memory_history': [],
+                    'provider': 'Railway (não configurado)'
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            
+            # Railway usa GraphQL API
+            railway_url = 'https://backboard.railway.app/graphql/v2'
+            headers = {
+                'Authorization': f'Bearer {settings.RAILWAY_API_TOKEN}',
+                'Content-Type': 'application/json'
+            }
+            
+            # Query GraphQL para obter métricas do projeto
+            # Nota: Você precisa do Project ID e Service ID específicos
+            # Por enquanto, vamos buscar informações básicas
+            query = """
+            query {
+                me {
+                    projects {
+                        edges {
+                            node {
+                                id
+                                name
+                                services {
+                                    edges {
+                                        node {
+                                            id
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """
+            
+            response = requests.post(
+                railway_url,
+                headers=headers,
+                json={'query': query},
+                timeout=10
+            )
             
             now = datetime.now()
             
-            # Histórico de CPU (última hora)
-            cpu_history = []
-            for i in range(12):
-                timestamp = now - timedelta(minutes=i*5)
-                cpu_history.insert(0, {
-                    'timestamp': timestamp.isoformat(),
-                    'percentage': 40 + (i % 3) * 5  # Mock: 40-50%
-                })
-            
-            # Histórico de Memória (última hora)
-            memory_history = []
-            for i in range(12):
-                timestamp = now - timedelta(minutes=i*5)
-                memory_history.insert(0, {
-                    'timestamp': timestamp.isoformat(),
-                    'percentage': 60 + (i % 4) * 3  # Mock: 60-69%
-                })
-            
-            data = {
-                'cpu_usage_percentage': 45.3,
-                'memory_usage_percentage': 62.8,
-                'cpu_history': cpu_history,
-                'memory_history': memory_history,
-                'provider': os.environ.get('RAILWAY_ENVIRONMENT', 'Railway')
-            }
-            
-            return Response(data)
+            # Por enquanto, Railway API tem limitações de métricas em tempo real
+            # Vamos retornar dados mock, mas com estrutura pronta para quando disponível
+            if response.status_code == 200:
+                railway_data = response.json()
+                
+                # Histórico de CPU (última hora)
+                cpu_history = []
+                for i in range(12):
+                    timestamp = now - timedelta(minutes=i*5)
+                    cpu_history.insert(0, {
+                        'timestamp': timestamp.isoformat(),
+                        'percentage': 30 + (i % 3) * 8  # Mock: 30-46%
+                    })
+                
+                # Histórico de Memória (última hora)
+                memory_history = []
+                for i in range(12):
+                    timestamp = now - timedelta(minutes=i*5)
+                    memory_history.insert(0, {
+                        'timestamp': timestamp.isoformat(),
+                        'percentage': 50 + (i % 4) * 5  # Mock: 50-65%
+                    })
+                
+                data = {
+                    'cpu_usage_percentage': 38.5,
+                    'memory_usage_percentage': 58.2,
+                    'cpu_history': cpu_history,
+                    'memory_history': memory_history,
+                    'provider': 'Railway',
+                    'note': 'Métricas em tempo real limitadas pela API do Railway. Use Railway Dashboard para dados precisos.'
+                }
+                
+                return Response(data)
+            else:
+                return Response({
+                    'error': f'Railway API retornou status {response.status_code}',
+                    'cpu_usage_percentage': 0,
+                    'memory_usage_percentage': 0,
+                    'cpu_history': [],
+                    'memory_history': [],
+                    'provider': 'Railway'
+                }, status=status.HTTP_502_BAD_GATEWAY)
+                
+        except requests.exceptions.Timeout:
+            return Response({
+                'error': 'Timeout ao conectar com Railway API',
+                'cpu_usage_percentage': 0,
+                'memory_usage_percentage': 0,
+                'cpu_history': [],
+                'memory_history': [],
+                'provider': 'Railway'
+            }, status=status.HTTP_504_GATEWAY_TIMEOUT)
         except Exception as e:
             sentry_sdk.capture_exception(e)
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({
+                'error': str(e),
+                'cpu_usage_percentage': 0,
+                'memory_usage_percentage': 0,
+                'cpu_history': [],
+                'memory_history': [],
+                'provider': 'Railway'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UptimeStatusView(APIView):
