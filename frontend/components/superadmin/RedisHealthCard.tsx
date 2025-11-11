@@ -71,7 +71,7 @@ export default function RedisHealthCard() {
           <span className="flex items-center gap-2">
             💾 Cache Redis
             <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30">
-              {metrics.keys_total.toLocaleString()} keys
+              {metrics.total_keys.toLocaleString()} keys
             </Badge>
           </span>
           <div className="flex items-center gap-1">
@@ -93,11 +93,11 @@ export default function RedisHealthCard() {
             <div className="flex items-center gap-4 mt-3 text-sm">
               <div>
                 <span className="text-slate-400">Hits:</span>
-                <span className="text-emerald-400 font-bold ml-2">{metrics.hits.toLocaleString()}</span>
+                <span className="text-emerald-400 font-bold ml-2">{metrics.keyspace_hits.toLocaleString()}</span>
               </div>
               <div>
                 <span className="text-slate-400">Misses:</span>
-                <span className="text-red-400 font-bold ml-2">{metrics.misses.toLocaleString()}</span>
+                <span className="text-red-400 font-bold ml-2">{metrics.keyspace_misses.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -140,13 +140,6 @@ export default function RedisHealthCard() {
             <p className="text-2xl font-bold text-blue-400">{metrics.connected_clients}</p>
           </div>
 
-          <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30">
-            <div className="flex items-center gap-2 mb-1">
-              <Database className="h-4 w-4 text-purple-400" />
-              <span className="text-xs text-slate-400">OPERAÇÕES/SEG</span>
-            </div>
-            <p className="text-2xl font-bold text-purple-400">{metrics.ops_per_sec.toFixed(0)}</p>
-          </div>
         </div>
 
         {/* Botões de Ação Crítica */}
@@ -165,7 +158,7 @@ export default function RedisHealthCard() {
               <AlertDialogHeader>
                 <AlertDialogTitle className="text-white">⚠️ Limpar Todo Cache?</AlertDialogTitle>
                 <AlertDialogDescription className="text-slate-400">
-                  Esta ação irá remover <strong>TODAS as {metrics.keys_total.toLocaleString()} chaves</strong> do Redis. 
+                  Esta ação irá remover <strong>TODAS as {metrics.total_keys.toLocaleString()} chaves</strong> do Redis. 
                   Esta ação não pode ser desfeita e pode causar lentidão temporária no sistema.
                 </AlertDialogDescription>
               </AlertDialogHeader>
