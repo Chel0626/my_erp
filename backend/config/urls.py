@@ -19,9 +19,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from core.health_check import PublicHealthCheckView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/health/", PublicHealthCheckView.as_view(), name="public-health-check"),  # UptimeRobot
     path("api/core/", include("core.urls")),
     path("api/scheduling/", include("scheduling.urls")),
     path("api/financial/", include("financial.urls")),
