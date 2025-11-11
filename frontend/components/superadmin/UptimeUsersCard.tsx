@@ -56,7 +56,7 @@ export default function UptimeUsersCard() {
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => `${context.parsed.y} usuários`,
+          label: (context) => `${context.parsed.y ?? 0} usuários`,
         },
       },
     },

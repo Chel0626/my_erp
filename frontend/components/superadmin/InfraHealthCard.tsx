@@ -67,7 +67,7 @@ export default function InfraHealthCard() {
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => `${context.parsed.y.toFixed(1)}%`,
+          label: (context) => `${(context.parsed.y ?? 0).toFixed(1)}%`,
         },
       },
     },
@@ -76,7 +76,7 @@ export default function InfraHealthCard() {
         beginAtZero: true,
         max: 100,
         ticks: {
-          callback: (value: any) => `${value}%`,
+          callback: (value) => `${value}%`,
         },
       },
     },

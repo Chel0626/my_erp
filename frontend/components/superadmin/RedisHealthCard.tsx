@@ -39,7 +39,12 @@ export default function RedisHealthCard() {
 
   const [keyToDelete, setKeyToDelete] = useState('');
   const [keyToInspect, setKeyToInspect] = useState('');
-  const [inspectionResult, setInspectionResult] = useState<any>(null);
+  const [inspectionResult, setInspectionResult] = useState<{
+    key: string;
+    type: string;
+    ttl: number | null;
+    value: string | number | object;
+  } | null>(null);
 
   const handleFlushAll = async () => {
     try {
