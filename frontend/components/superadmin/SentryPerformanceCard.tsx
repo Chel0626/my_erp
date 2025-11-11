@@ -71,7 +71,7 @@ export default function SentryPerformanceCard() {
       },
       tooltip: {
         callbacks: {
-          label: (context) => `${context.parsed.y.toFixed(0)} ms`,
+          label: (context) => `${(context.parsed.y ?? 0).toFixed(0)} ms`,
         },
       },
     },
