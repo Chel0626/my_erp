@@ -11,9 +11,9 @@ class Command(BaseCommand):
     help = 'Cria superusuário admin@admin.com se não existir'
 
     def handle(self, *args, **options):
-        email = 'admin@admin.com'
+        email = 'michelhm91@gmail.com'
         password = 'admin123'
-        name = 'Administrador do Sistema'
+        name = 'Michel Henrique Macedo'
         
         if User.objects.filter(email=email).exists():
             user = User.objects.get(email=email)

@@ -11,7 +11,7 @@ load_dotenv('backend/.env')
 BASE_URL = "https://myerp-production-4bb9.up.railway.app/api"
 
 # Credenciais de teste (substitua com suas reais)
-EMAIL = "admin@admin.com"
+EMAIL = "michelhm91@gmail.com"
 PASSWORD = "admin123"
 
 def get_token():
