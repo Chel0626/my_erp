@@ -13,6 +13,8 @@ from .views import (
     InfraMetricsView,
     UptimeStatusView,
     OnlineUsersView,
+    RestartServicesView,
+    EmergencyActionView,
 )
 
 urlpatterns = [
@@ -32,4 +34,8 @@ urlpatterns = [
     # Uptime & Users
     path('uptime/status/', UptimeStatusView.as_view(), name='uptime-status'),
     path('users/online/', OnlineUsersView.as_view(), name='online-users'),
+    
+    # System Actions (Superadmin only)
+    path('restart-services/', RestartServicesView.as_view(), name='restart-services'),
+    path('emergency/', EmergencyActionView.as_view(), name='emergency-action'),
 ]

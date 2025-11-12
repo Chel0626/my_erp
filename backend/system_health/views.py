@@ -774,3 +774,156 @@ class OnlineUsersView(APIView):
                 'active_users': 0,
                 'users_history': []
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RestartServicesView(APIView):
+    """
+    POST /superadmin/system-health/restart-services/
+    Triggera restart dos serviços (Railway redeploy ou placebo)
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Verifica se é superadmin
+        if request.user.role != 'superadmin':
+            return Response(
+                {'error': 'Apenas superadmins podem executar esta ação'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            # Railway não permite restart direto via API sem complexidade
+            # Opção 1: Retornar mensagem placebo
+            # Opção 2: Trigger redeploy via Railway API (requer RAILWAY_API_TOKEN)
+            
+            railway_token = os.getenv('RAILWAY_API_TOKEN')
+            
+            if railway_token:
+                # Tenta trigger redeploy via Railway GraphQL API
+                # https://docs.railway.app/reference/public-api
+                try:
+                    import requests
+                    
+                    query = """
+                    mutation serviceInstanceRedeploy($serviceId: String!, $environmentId: String!) {
+                        serviceInstanceRedeploy(serviceId: $serviceId, environmentId: $environmentId)
+                    }
+                    """
+                    
+                    response = requests.post(
+                        'https://backboard.railway.app/graphql/v2',
+                        headers={
+                            'Authorization': f'Bearer {railway_token}',
+                            'Content-Type': 'application/json'
+                        },
+                        json={
+                            'query': query,
+                            'variables': {
+                                'serviceId': os.getenv('RAILWAY_SERVICE_ID', ''),
+                                'environmentId': os.getenv('RAILWAY_ENVIRONMENT_ID', '')
+                            }
+                        },
+                        timeout=10
+                    )
+                    
+                    if response.status_code == 200:
+                        return Response({
+                            'message': 'Serviço reiniciando via Railway API',
+                            'status': 'success',
+                            'timestamp': datetime.now().isoformat()
+                        })
+                    else:
+                        raise Exception(f'Railway API retornou {response.status_code}')
+                        
+                except Exception as api_error:
+                    # Fallback para mensagem placebo
+                    sentry_sdk.capture_exception(api_error)
+                    return Response({
+                        'message': 'Solicitação de reinício enviada (Railway redeploy manual necessário)',
+                        'status': 'pending',
+                        'note': 'Para reiniciar, acesse: https://railway.app e faça redeploy manual',
+                        'timestamp': datetime.now().isoformat()
+                    })
+            else:
+                # Sem token Railway - apenas mensagem
+                return Response({
+                    'message': 'Reinício de serviços requer configuração de RAILWAY_API_TOKEN',
+                    'status': 'unavailable',
+                    'action': 'Configure RAILWAY_API_TOKEN nas variáveis de ambiente',
+                    'timestamp': datetime.now().isoformat()
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            return Response({
+                'error': str(e),
+                'message': 'Erro ao tentar reiniciar serviços'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class EmergencyActionView(APIView):
+    """
+    POST /superadmin/system-health/emergency/
+    Ativa modo de manutenção ou ação de emergência
+    Body: {"action": "maintenance_on" | "maintenance_off"}
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Verifica se é superadmin
+        if request.user.role != 'superadmin':
+            return Response(
+                {'error': 'Apenas superadmins podem executar esta ação'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        action = request.data.get('action', 'maintenance_on')
+        
+        try:
+            if action == 'maintenance_on':
+                # Ativa modo manutenção no cache (5 horas de duração)
+                cache.set('system_maintenance_mode', True, 18000)
+                
+                # Log no Sentry
+                sentry_sdk.capture_message(
+                    f'🚨 MODO MANUTENÇÃO ATIVADO por {request.user.email}',
+                    level='warning'
+                )
+                
+                return Response({
+                    'message': 'Modo de manutenção ATIVADO',
+                    'status': 'maintenance_on',
+                    'duration': '5 horas',
+                    'activated_by': request.user.email,
+                    'timestamp': datetime.now().isoformat(),
+                    'note': 'Usuários verão mensagem de manutenção em andamento'
+                })
+                
+            elif action == 'maintenance_off':
+                # Desativa modo manutenção
+                cache.delete('system_maintenance_mode')
+                
+                sentry_sdk.capture_message(
+                    f'✅ MODO MANUTENÇÃO DESATIVADO por {request.user.email}',
+                    level='info'
+                )
+                
+                return Response({
+                    'message': 'Modo de manutenção DESATIVADO',
+                    'status': 'operational',
+                    'deactivated_by': request.user.email,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            else:
+                return Response({
+                    'error': f'Ação desconhecida: {action}',
+                    'available_actions': ['maintenance_on', 'maintenance_off']
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            return Response({
+                'error': str(e),
+                'message': 'Erro ao executar ação de emergência'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
