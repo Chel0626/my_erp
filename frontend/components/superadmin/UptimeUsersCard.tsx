@@ -14,9 +14,10 @@ import { Line } from 'react-chartjs-2';
 import { ChartOptions } from 'chart.js';
 
 export default function UptimeUsersCard() {
-  const { data: uptime, isLoading: uptimeLoading } = useUptimeStatus();
-  const { data: users, isLoading: usersLoading } = useOnlineUsers();
+  const { data: uptime, isLoading: uptimeLoading, isFetching: uptimeFetching } = useUptimeStatus();
+  const { data: users, isLoading: usersLoading, isFetching: usersFetching } = useOnlineUsers();
 
+  // Mostra loading screen apenas no carregamento inicial
   if (uptimeLoading || usersLoading) {
     return (
       <Card className="bg-gradient-to-br from-slate-900/90 to-slate-800/50 border-slate-700/50 backdrop-blur-xl shadow-xl">
@@ -32,6 +33,9 @@ export default function UptimeUsersCard() {
       </Card>
     );
   }
+
+  // Indica se está atualizando dados em background
+  const isRefreshing = uptimeFetching || usersFetching;
 
   const isOnline = uptime?.status === 'up';
 
@@ -105,6 +109,14 @@ export default function UptimeUsersCard() {
               {isOnline ? 'ONLINE' : 'OFFLINE'}
             </Badge>
           </span>
+          
+          {/* Indicador de atualização em background */}
+          {isRefreshing && (
+            <div className="flex items-center gap-2 text-xs text-blue-400">
+              <div className="animate-spin rounded-full h-3 w-3 border-2 border-t-blue-400 border-r-transparent border-b-blue-400 border-l-transparent"></div>
+              <span>Atualizando...</span>
+            </div>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
