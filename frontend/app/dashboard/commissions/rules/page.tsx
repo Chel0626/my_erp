@@ -63,7 +63,7 @@ export default function CommissionRulesPage() {
     service: null,
     commission_percentage: "30",
     is_active: true,
-    priority: 0,
+    priority: undefined as any,
   });
 
   const { data: rules = [], isLoading } = useCommissionRules();
@@ -89,7 +89,7 @@ export default function CommissionRulesPage() {
         service: null,
         commission_percentage: "30",
         is_active: true,
-        priority: 0,
+        priority: undefined as any,
       });
     }
     setDialogOpen(true);
@@ -103,7 +103,7 @@ export default function CommissionRulesPage() {
       service: null,
       commission_percentage: "30",
       is_active: true,
-      priority: 0,
+      priority: undefined as any,
     });
   };
 
@@ -364,18 +364,18 @@ export default function CommissionRulesPage() {
                 <Input
                   id="priority"
                   type="number"
-                  min="0"
-                  required
-                  value={formData.priority}
+                  min="1"
+                  placeholder="Ex: 1, 2, 3..."
+                  value={formData.priority ?? ''}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      priority: parseInt(e.target.value) || 0,
+                      priority: e.target.value ? parseInt(e.target.value) : undefined as any,
                     }))
                   }
                 />
                 <p className="text-xs text-muted-foreground">
-                  Maior número = maior prioridade
+                  Maior número = maior prioridade. Deixe vazio para prioridade padrão (0).
                 </p>
               </div>
 
