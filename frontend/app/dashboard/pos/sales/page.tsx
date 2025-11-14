@@ -54,21 +54,21 @@ export default function SalesPage() {
   const paidSales = Array.isArray(sales) ? sales.filter((s: Sale) => s.payment_status === 'paid').length : 0;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
-          <h1 className="text-3xl font-bold">Vendas</h1>
-          <p className="text-muted-foreground">Histórico de vendas realizadas</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Vendas</h1>
+          <p className="text-muted-foreground text-sm">Histórico de vendas realizadas</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => handleExport('csv')}>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => handleExport('csv')} className="flex-1 md:flex-none">
             <Download className="mr-2 h-4 w-4" />
-            Exportar CSV
+            <span className="hidden sm:inline">Exportar </span>CSV
           </Button>
-          <Button variant="outline" onClick={() => handleExport('pdf')}>
+          <Button variant="outline" onClick={() => handleExport('pdf')} className="flex-1 md:flex-none">
             <FileText className="mr-2 h-4 w-4" />
-            Exportar PDF
+            <span className="hidden sm:inline">Exportar </span>PDF
           </Button>
         </div>
       </div>
@@ -104,12 +104,12 @@ export default function SalesPage() {
       </div>
 
       {/* Filtros */}
-      <Card>
+      <Card className="max-w-full overflow-x-hidden">
         <CardHeader>
           <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label>Forma de Pagamento</Label>
               <Select
@@ -178,11 +178,11 @@ export default function SalesPage() {
       </Card>
 
       {/* Tabela de Vendas */}
-      <Card>
+      <Card className="max-w-full overflow-x-hidden">
         <CardHeader>
           <CardTitle>Lista de Vendas</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="max-w-full overflow-x-hidden">
           {isLoading ? (
             <p className="text-center py-8">Carregando...</p>
           ) : sales && sales.length > 0 ? (
@@ -255,13 +255,13 @@ export default function SalesPage() {
               </div>
 
               {/* Cards Mobile */}
-              <div className="md:hidden space-y-4">
+              <div className="md:hidden space-y-4 max-w-full">
                 {Array.isArray(sales) && sales.map((sale: Sale) => (
-                  <Card key={sale.id} className="p-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold">Venda #{sale.id}</p>
+                  <Card key={sale.id} className="p-4 max-w-full overflow-x-hidden">
+                    <div className="space-y-2 max-w-full">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate">Venda #{sale.id}</p>
                           <p className="text-sm text-muted-foreground">
                             {format(new Date(sale.date), "dd/MM/yyyy HH:mm", {
                               locale: ptBR,
@@ -276,20 +276,21 @@ export default function SalesPage() {
                               ? 'destructive'
                               : 'secondary'
                           }
+                          className="shrink-0"
                         >
                           {sale.payment_status_display}
                         </Badge>
                       </div>
                       
-                      <div className="text-sm space-y-1">
-                        <p><span className="font-medium">Cliente:</span> {sale.customer_details?.name || 'Cliente Avulso'}</p>
-                        <p><span className="font-medium">Vendedor:</span> {sale.user_details.first_name} {sale.user_details.last_name}</p>
+                      <div className="text-sm space-y-1 max-w-full">
+                        <p className="truncate"><span className="font-medium">Cliente:</span> {sale.customer_details?.name || 'Cliente Avulso'}</p>
+                        <p className="truncate"><span className="font-medium">Vendedor:</span> {sale.user_details.first_name} {sale.user_details.last_name}</p>
                         <p><span className="font-medium">Itens:</span> {sale.items.length}</p>
-                        <p><span className="font-medium">Pagamento:</span> {sale.payment_method_display}</p>
+                        <p className="truncate"><span className="font-medium">Pagamento:</span> {sale.payment_method_display}</p>
                       </div>
                       
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <p className="text-lg font-semibold">
+                      <div className="flex justify-between items-center pt-2 border-t gap-2">
+                        <p className="text-lg font-semibold whitespace-nowrap">
                           R$ {parseFloat(sale.total).toFixed(2)}
                         </p>
                         {sale.payment_status !== 'cancelled' && (
@@ -298,6 +299,7 @@ export default function SalesPage() {
                             variant="ghost"
                             onClick={() => handleCancelSale(sale.id)}
                             disabled={cancelSale.isPending}
+                            className="shrink-0"
                           >
                             <X className="h-4 w-4 mr-1" />
                             Cancelar
