@@ -204,72 +204,87 @@ export function useCashSummary() {
 // ========== EXPORT FUNCTIONS ==========
 
 export async function exportSalesCSV(params?: any) {
-  const response = await api.get(POS_API.exportCSV, {
-    params,
-    responseType: 'blob',
-  });
-  
-  const url = window.URL.createObjectURL(new Blob([response.data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', 'vendas.csv');
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  try {
+    const response = await api.get(POS_API.exportCSV, {
+      params,
+      responseType: 'blob',
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'vendas.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Erro ao exportar CSV:', error);
+    throw error;
+  }
 }
 
 export async function exportSalesPDF(params?: any) {
-  // Importação dinâmica do jsPDF
-  const jsPDF = (await import('jspdf')).default;
-  const autoTable = (await import('jspdf-autotable')).default;
-  
-  // Buscar dados das vendas
-  const { data: sales } = await api.get<Sale[]>(POS_API.sales, { params });
-  
-  // Criar documento PDF
-  const doc = new jsPDF();
-  
-  // Título
-  doc.setFontSize(18);
-  doc.text('Relatório de Vendas', 14, 22);
-  
-  // Data de geração
-  doc.setFontSize(11);
-  doc.setTextColor(100);
-  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
-  
-  // Criar tabela
-  autoTable(doc, {
-    startY: 35,
-    head: [['ID', 'Data', 'Cliente', 'Vendedor', 'Total', 'Pagamento', 'Status']],
-    body: sales.map((sale) => [
-      `#${sale.id}`,
-      new Date(sale.date).toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      sale.customer_details?.name || 'Cliente Avulso',
-      `${sale.user_details.first_name} ${sale.user_details.last_name}`,
-      `R$ ${parseFloat(sale.total).toFixed(2)}`,
-      sale.payment_method_display,
-      sale.payment_status_display,
-    ]),
-    theme: 'grid',
-    headStyles: { fillColor: [71, 85, 105] }, // slate-700
-    styles: { fontSize: 9 },
-  });
-  
-  // Total geral
-  const totalSales = sales.reduce((acc, sale) => acc + parseFloat(sale.total), 0);
-  const finalY = (doc as any).lastAutoTable.finalY || 35;
-  
-  doc.setFontSize(12);
-  doc.setTextColor(0);
-  doc.text(`Total Geral: R$ ${totalSales.toFixed(2)}`, 14, finalY + 10);
-  
-  // Download
-  doc.save('vendas.pdf');
+  try {
+    // Importação dinâmica do jsPDF
+    const jsPDF = (await import('jspdf')).default;
+    await import('jspdf-autotable');
+    
+    // Buscar dados das vendas
+    const { data: sales } = await api.get<Sale[]>(POS_API.sales, { params });
+    
+    if (!sales || sales.length === 0) {
+      throw new Error('Nenhuma venda encontrada para exportar');
+    }
+    
+    // Criar documento PDF
+    const doc = new jsPDF() as any;
+    
+    // Título
+    doc.setFontSize(18);
+    doc.text('Relatório de Vendas', 14, 22);
+    
+    // Data de geração
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+    
+    // Criar tabela
+    doc.autoTable({
+      startY: 35,
+      head: [['ID', 'Data', 'Cliente', 'Vendedor', 'Total', 'Pagamento', 'Status']],
+      body: sales.map((sale) => [
+        `#${sale.id}`,
+        new Date(sale.date).toLocaleString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        sale.customer_details?.name || 'Cliente Avulso',
+        `${sale.user_details.first_name} ${sale.user_details.last_name}`,
+        `R$ ${parseFloat(sale.total).toFixed(2)}`,
+        sale.payment_method_display,
+        sale.payment_status_display,
+      ]),
+      theme: 'grid',
+      headStyles: { fillColor: [71, 85, 105] }, // slate-700
+      styles: { fontSize: 9 },
+    });
+    
+    // Total geral
+    const totalSales = sales.reduce((acc, sale) => acc + parseFloat(sale.total), 0);
+    const finalY = doc.lastAutoTable.finalY || 35;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Total Geral: R$ ${totalSales.toFixed(2)}`, 14, finalY + 10);
+    
+    // Download
+    doc.save('vendas.pdf');
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    throw error;
+  }
 }

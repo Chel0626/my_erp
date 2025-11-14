@@ -45,8 +45,10 @@ export default function SalesPage() {
         await exportSalesPDF(filters);
       }
       toast.success(`Exportação ${format.toUpperCase()} realizada com sucesso!`);
-    } catch (error) {
-      toast.error('Erro ao exportar');
+    } catch (error: any) {
+      console.error('Erro ao exportar:', error);
+      const message = error?.message || error?.response?.data?.message || 'Erro ao exportar vendas';
+      toast.error(message);
     }
   };
 
