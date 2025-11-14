@@ -171,6 +171,13 @@ class Sale(TenantAwareModel):
         verbose_name = 'Venda'
         verbose_name_plural = 'Vendas'
         ordering = ['-date']
+        indexes = [
+            models.Index(fields=['tenant', '-date']),
+            models.Index(fields=['tenant', 'payment_status', '-date']),
+            models.Index(fields=['tenant', 'payment_method', '-date']),
+            models.Index(fields=['cash_register', '-date']),
+            models.Index(fields=['customer', '-date']),
+        ]
     
     def __str__(self):
         customer_name = self.customer.name if self.customer else 'Cliente Avulso'
