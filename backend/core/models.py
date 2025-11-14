@@ -18,8 +18,57 @@ class Tenant(models.Model):
         ('premium', 'Premium'),
     ]
 
+    # Identificação Básica
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Nome da Empresa', max_length=255)
+    business_name = models.CharField('Razão Social', max_length=255, blank=True)
+    trade_name = models.CharField('Nome Fantasia', max_length=255, blank=True)
+    
+    # Documentação
+    cnpj = models.CharField('CNPJ', max_length=18, unique=True, null=True, blank=True)
+    state_registration = models.CharField('Inscrição Estadual', max_length=20, blank=True)
+    municipal_registration = models.CharField('Inscrição Municipal', max_length=20, blank=True)
+    
+    # Endereço
+    address_street = models.CharField('Logradouro', max_length=255, blank=True)
+    address_number = models.CharField('Número', max_length=20, blank=True)
+    address_complement = models.CharField('Complemento', max_length=100, blank=True)
+    address_neighborhood = models.CharField('Bairro', max_length=100, blank=True)
+    address_city = models.CharField('Cidade', max_length=100, blank=True)
+    address_state = models.CharField('Estado', max_length=2, blank=True)
+    address_zipcode = models.CharField('CEP', max_length=9, blank=True)
+    
+    # Contato
+    phone = models.CharField('Telefone', max_length=20, blank=True)
+    whatsapp = models.CharField('WhatsApp', max_length=20, blank=True)
+    email = models.EmailField('Email', blank=True)
+    website = models.URLField('Website', blank=True)
+    
+    # Branding
+    logo = models.ImageField('Logo', upload_to='tenants/logos/', null=True, blank=True)
+    primary_color = models.CharField('Cor Primária', max_length=7, default='#000000')
+    
+    # Certificado Digital para NF-e
+    digital_certificate = models.FileField(
+        'Certificado Digital (.pfx)',
+        upload_to='tenants/certificates/',
+        null=True,
+        blank=True,
+        help_text='Arquivo .pfx do certificado A1'
+    )
+    certificate_password = models.CharField(
+        'Senha do Certificado',
+        max_length=255,
+        blank=True,
+        help_text='Armazenado criptografado'
+    )
+    certificate_expiry = models.DateField(
+        'Validade do Certificado',
+        null=True,
+        blank=True
+    )
+    
+    # Sistema
     owner = models.ForeignKey(
         'User',
         on_delete=models.PROTECT,
@@ -91,6 +140,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField('Email', unique=True)
     name = models.CharField('Nome Completo', max_length=255)
+    
+    # SSO (Social Sign-On)
+    google_id = models.CharField('Google ID', max_length=255, unique=True, null=True, blank=True)
+    google_email = models.EmailField('Google Email', null=True, blank=True)
+    profile_picture = models.URLField('Foto de Perfil', blank=True)
+    
     tenant = models.ForeignKey(
         Tenant,
         on_delete=models.CASCADE,

@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .models import Tenant, User
 from .serializers import (
@@ -16,9 +17,13 @@ from .serializers import (
     UserSerializer,
     SignUpSerializer,
     InviteUserSerializer,
-    ChangePasswordSerializer
+    ChangePasswordSerializer,
+    GoogleOAuthLoginSerializer,
+    TenantCertificateSerializer,
 )
 from .permissions import IsTenantAdmin, IsSameTenant, IsOwnerOrAdmin
+from .oauth import get_or_create_google_user
+from .certificate import CertificateManager
 
 User = get_user_model()
 
@@ -197,3 +202,116 @@ class PublicTokenObtainPairView(TokenObtainPairView):
     usando apenas o email e a senha.
     """
     permission_classes = [AllowAny]
+
+
+class GoogleOAuthLoginView(generics.GenericAPIView):
+    """
+    API endpoint para login/cadastro com Google OAuth
+    
+    POST /api/auth/google/
+    {
+        "token": "google_id_token_aqui"
+    }
+    """
+    serializer_class = GoogleOAuthLoginSerializer
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        google_data = serializer.validated_data
+        
+        # Obtém ou cria usuário
+        user = get_or_create_google_user(google_data)
+        
+        # Gera tokens JWT
+        refresh = RefreshToken.for_user(user)
+        
+        return Response({
+            'user': UserSerializer(user).data,
+            'tenant': TenantSerializer(user.tenant).data if user.tenant else None,
+            'tokens': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            },
+            'is_new_user': not user.tenant,  # Se não tem tenant, é novo usuário
+        }, status=status.HTTP_200_OK)
+
+
+class TenantCertificateView(generics.GenericAPIView):
+    """
+    API endpoint para gerenciamento de certificado digital do tenant
+    
+    POST /api/tenants/certificate/upload/
+    PUT /api/tenants/certificate/update/
+    DELETE /api/tenants/certificate/remove/
+    GET /api/tenants/certificate/info/
+    """
+    permission_classes = [IsAuthenticated, IsTenantAdmin]
+    serializer_class = TenantCertificateSerializer
+    
+    def get_queryset(self):
+        return Tenant.objects.filter(id=self.request.user.tenant.id)
+    
+    def post(self, request):
+        """Upload de certificado digital"""
+        if not request.user.tenant:
+            return Response(
+                {'error': 'Você não está associado a nenhuma empresa'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        certificate_file = serializer.validated_data['certificate_file']
+        password = serializer.validated_data['password']
+        
+        try:
+            cert_manager = CertificateManager(request.user.tenant)
+            cert_info = cert_manager.install_certificate(certificate_file, password)
+            
+            return Response({
+                'message': 'Certificado instalado com sucesso',
+                'certificate': cert_info,
+            }, status=status.HTTP_200_OK)
+            
+        except DjangoValidationError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def delete(self, request):
+        """Remove certificado digital"""
+        if not request.user.tenant:
+            return Response(
+                {'error': 'Você não está associado a nenhuma empresa'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        cert_manager = CertificateManager(request.user.tenant)
+        cert_manager.remove_certificate()
+        
+        return Response({
+            'message': 'Certificado removido com sucesso'
+        }, status=status.HTTP_200_OK)
+    
+    def get(self, request):
+        """Informações do certificado instalado"""
+        if not request.user.tenant:
+            return Response(
+                {'error': 'Você não está associado a nenhuma empresa'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        cert_manager = CertificateManager(request.user.tenant)
+        cert_info = cert_manager.get_certificate_info()
+        
+        if not cert_info:
+            return Response({
+                'message': 'Nenhum certificado instalado'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response(cert_info, status=status.HTTP_200_OK)

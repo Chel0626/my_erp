@@ -4,7 +4,13 @@ URLs da app core (Multi-Tenant)
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import SignUpView, UserViewSet, TenantViewSet
+from .views import (
+    SignUpView,
+    UserViewSet,
+    TenantViewSet,
+    GoogleOAuthLoginView,
+    TenantCertificateView,
+)
 from .health_views import (
     health_check,
     sentry_test_error,
@@ -20,6 +26,12 @@ urlpatterns = [
     # Auth endpoints - usando dj-rest-auth
     path('auth/', include('dj_rest_auth.urls')),  # Inclui login, logout, user, password reset
     path('auth/signup/', SignUpView.as_view(), name='signup'),
+    path('auth/google/', GoogleOAuthLoginView.as_view(), name='google-oauth'),
+    
+    # Tenant Certificate Management
+    path('tenants/certificate/upload/', TenantCertificateView.as_view(), name='tenant-certificate-upload'),
+    path('tenants/certificate/info/', TenantCertificateView.as_view(), name='tenant-certificate-info'),
+    path('tenants/certificate/remove/', TenantCertificateView.as_view(), name='tenant-certificate-remove'),
     
     # Health Check & Monitoring
     path('health/', health_check, name='health-check'),

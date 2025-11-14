@@ -426,3 +426,15 @@ REST_USE_JWT = True
 JWT_AUTH_COOKIE = 'auth-token'
 JWT_AUTH_REFRESH_COOKIE = 'refresh-token'
 JWT_AUTH_HTTPONLY = False
+
+# =============================================================================
+# GOOGLE OAUTH CONFIGURATION
+# =============================================================================
+GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='')
+GOOGLE_OAUTH_CLIENT_SECRET = config('GOOGLE_OAUTH_CLIENT_SECRET', default='')
+
+# =============================================================================
+# MEDIA FILES CONFIGURATION (for certificates and logos)
+# =============================================================================
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

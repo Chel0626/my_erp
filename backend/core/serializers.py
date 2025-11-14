@@ -5,6 +5,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from .models import Tenant, User
+from .oauth import GoogleOAuthSerializer
 
 
 class TenantSerializer(serializers.ModelSerializer):
@@ -12,8 +13,17 @@ class TenantSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Tenant
-        fields = ['id', 'name', 'plan', 'is_active', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = [
+            'id', 'name', 'business_name', 'trade_name', 'cnpj',
+            'state_registration', 'municipal_registration',
+            'address_street', 'address_number', 'address_complement',
+            'address_neighborhood', 'address_city', 'address_state', 'address_zipcode',
+            'phone', 'whatsapp', 'email', 'website',
+            'logo', 'primary_color',
+            'certificate_expiry',
+            'plan', 'is_active', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'certificate_expiry']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,8 +32,12 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['id', 'email', 'name', 'tenant', 'tenant_name', 'role', 'is_active', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = [
+            'id', 'email', 'name', 'tenant', 'tenant_name', 'role',
+            'google_id', 'google_email', 'profile_picture',
+            'is_active', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'google_id', 'google_email']
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -192,3 +206,23 @@ class CustomJWTSerializer(serializers.Serializer):
     access = serializers.CharField(read_only=True)
     refresh = serializers.CharField(read_only=True)
     user = UserSerializer(read_only=True)
+
+
+class GoogleOAuthLoginSerializer(GoogleOAuthSerializer):
+    """
+    Serializer para login/cadastro com Google OAuth
+    Herda validação de token do GoogleOAuthSerializer
+    """
+    pass
+
+
+class TenantCertificateSerializer(serializers.Serializer):
+    """Serializer para upload de certificado digital"""
+    certificate_file = serializers.FileField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+    
+    def validate_certificate_file(self, value):
+        """Valida se o arquivo é .pfx"""
+        if not value.name.endswith('.pfx'):
+            raise serializers.ValidationError('Apenas arquivos .pfx são aceitos')
+        return value
