@@ -6,11 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
+import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { Scissors } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -29,6 +33,15 @@ export default function LoginPage() {
       setError(error.message || 'Erro ao fazer login');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = (tokens: any, userData: any) => {
+    // Se é novo usuário (sem tenant), redireciona para onboarding
+    if (userData.is_new_user || !userData.tenant) {
+      router.push('/onboarding');
+    } else {
+      router.push('/dashboard');
     }
   };
 
@@ -90,6 +103,22 @@ export default function LoginPage() {
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Ou continue com
+                </span>
+              </div>
+            </div>
+
+            <GoogleSignInButton 
+              onSuccess={handleGoogleSuccess}
+              disabled={loading}
+            />
 
             <div className="text-sm text-center text-muted-foreground">
               Ainda não tem uma conta?{' '}

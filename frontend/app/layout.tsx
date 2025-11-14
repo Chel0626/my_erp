@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { GoogleAuthProvider } from "@/contexts/GoogleAuthProvider";
 import { QueryProvider } from "@/contexts/QueryProvider";
 import { Toaster } from "sonner";
 
@@ -24,9 +25,11 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={`${inter.variable} font-sans antialiased`}>
         <QueryProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <GoogleAuthProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </GoogleAuthProvider>
         </QueryProvider>
         <Toaster position="top-right" richColors />
       </body>

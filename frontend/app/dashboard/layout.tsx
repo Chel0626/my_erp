@@ -19,7 +19,8 @@ import {
   ShoppingCart,
   Receipt,
   Wallet,
-  Target
+  Target,
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -143,6 +144,13 @@ export default function DashboardLayout({
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </div>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings/company" className="flex items-center cursor-pointer">
+                      <Building2 className="mr-2 h-4 w-4" />
+                      Configurações da Empresa
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sair
