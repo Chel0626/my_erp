@@ -186,69 +186,129 @@ export default function SalesPage() {
           {isLoading ? (
             <p className="text-center py-8">Carregando...</p>
           ) : sales && sales.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Vendedor</TableHead>
-                  <TableHead>Itens</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Pagamento</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Tabela Desktop */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Vendedor</TableHead>
+                      <TableHead>Itens</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Pagamento</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.isArray(sales) && sales.map((sale: Sale) => (
+                      <TableRow key={sale.id}>
+                        <TableCell>#{sale.id}</TableCell>
+                        <TableCell>
+                          {format(new Date(sale.date), "dd/MM/yyyy HH:mm", {
+                            locale: ptBR,
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          {sale.customer_details?.name || 'Cliente Avulso'}
+                        </TableCell>
+                        <TableCell>
+                          {sale.user_details.first_name} {sale.user_details.last_name}
+                        </TableCell>
+                        <TableCell>{sale.items.length}</TableCell>
+                        <TableCell className="font-semibold">
+                          R$ {parseFloat(sale.total).toFixed(2)}
+                        </TableCell>
+                        <TableCell>{sale.payment_method_display}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              sale.payment_status === 'paid'
+                                ? 'default'
+                                : sale.payment_status === 'cancelled'
+                                ? 'destructive'
+                                : 'secondary'
+                            }
+                          >
+                            {sale.payment_status_display}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {sale.payment_status !== 'cancelled' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleCancelSale(sale.id)}
+                              disabled={cancelSale.isPending}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Cards Mobile */}
+              <div className="md:hidden space-y-4">
                 {Array.isArray(sales) && sales.map((sale: Sale) => (
-                  <TableRow key={sale.id}>
-                    <TableCell>#{sale.id}</TableCell>
-                    <TableCell>
-                      {format(new Date(sale.date), "dd/MM/yyyy HH:mm", {
-                        locale: ptBR,
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      {sale.customer_details?.name || 'Cliente Avulso'}
-                    </TableCell>
-                    <TableCell>
-                      {sale.user_details.first_name} {sale.user_details.last_name}
-                    </TableCell>
-                    <TableCell>{sale.items.length}</TableCell>
-                    <TableCell className="font-semibold">
-                      R$ {parseFloat(sale.total).toFixed(2)}
-                    </TableCell>
-                    <TableCell>{sale.payment_method_display}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          sale.payment_status === 'paid'
-                            ? 'default'
-                            : sale.payment_status === 'cancelled'
-                            ? 'destructive'
-                            : 'secondary'
-                        }
-                      >
-                        {sale.payment_status_display}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {sale.payment_status !== 'cancelled' && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleCancelSale(sale.id)}
-                          disabled={cancelSale.isPending}
+                  <Card key={sale.id} className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold">Venda #{sale.id}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(sale.date), "dd/MM/yyyy HH:mm", {
+                              locale: ptBR,
+                            })}
+                          </p>
+                        </div>
+                        <Badge
+                          variant={
+                            sale.payment_status === 'paid'
+                              ? 'default'
+                              : sale.payment_status === 'cancelled'
+                              ? 'destructive'
+                              : 'secondary'
+                          }
                         >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                          {sale.payment_status_display}
+                        </Badge>
+                      </div>
+                      
+                      <div className="text-sm space-y-1">
+                        <p><span className="font-medium">Cliente:</span> {sale.customer_details?.name || 'Cliente Avulso'}</p>
+                        <p><span className="font-medium">Vendedor:</span> {sale.user_details.first_name} {sale.user_details.last_name}</p>
+                        <p><span className="font-medium">Itens:</span> {sale.items.length}</p>
+                        <p><span className="font-medium">Pagamento:</span> {sale.payment_method_display}</p>
+                      </div>
+                      
+                      <div className="flex justify-between items-center pt-2 border-t">
+                        <p className="text-lg font-semibold">
+                          R$ {parseFloat(sale.total).toFixed(2)}
+                        </p>
+                        {sale.payment_status !== 'cancelled' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleCancelSale(sale.id)}
+                            disabled={cancelSale.isPending}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Cancelar
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           ) : (
             <p className="text-center text-muted-foreground py-8">
               Nenhuma venda encontrada
