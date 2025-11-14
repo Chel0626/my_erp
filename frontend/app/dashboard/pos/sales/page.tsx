@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useSales, useCancelSale, exportSalesCSV, exportSalesExcel } from '@/hooks/usePOS';
+import { useSales, useCancelSale, exportSalesCSV, exportSalesPDF } from '@/hooks/usePOS';
 import type { Sale } from '@/types/pos';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -37,12 +37,12 @@ export default function SalesPage() {
     }
   };
 
-  const handleExport = async (format: 'csv' | 'excel') => {
+  const handleExport = async (format: 'csv' | 'pdf') => {
     try {
       if (format === 'csv') {
         await exportSalesCSV(filters);
       } else {
-        await exportSalesExcel(filters);
+        await exportSalesPDF(filters);
       }
       toast.success(`Exportação ${format.toUpperCase()} realizada com sucesso!`);
     } catch (error) {
@@ -66,9 +66,9 @@ export default function SalesPage() {
             <Download className="mr-2 h-4 w-4" />
             Exportar CSV
           </Button>
-          <Button variant="outline" onClick={() => handleExport('excel')}>
+          <Button variant="outline" onClick={() => handleExport('pdf')}>
             <FileText className="mr-2 h-4 w-4" />
-            Exportar Excel
+            Exportar PDF
           </Button>
         </div>
       </div>
