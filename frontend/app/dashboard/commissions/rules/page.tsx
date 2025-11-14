@@ -63,7 +63,7 @@ export default function CommissionRulesPage() {
     service: null,
     commission_percentage: "30",
     is_active: true,
-    priority: undefined as any,
+    priority: undefined,
   });
 
   const { data: rules = [], isLoading } = useCommissionRules();
@@ -89,7 +89,7 @@ export default function CommissionRulesPage() {
         service: null,
         commission_percentage: "30",
         is_active: true,
-        priority: undefined as any,
+        priority: undefined,
       });
     }
     setDialogOpen(true);
@@ -103,7 +103,7 @@ export default function CommissionRulesPage() {
       service: null,
       commission_percentage: "30",
       is_active: true,
-      priority: undefined as any,
+      priority: undefined,
     });
   };
 
@@ -370,7 +370,7 @@ export default function CommissionRulesPage() {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      priority: e.target.value ? parseInt(e.target.value) : undefined as any,
+                      priority: e.target.value ? parseInt(e.target.value) : undefined,
                     }))
                   }
                 />
