@@ -2,11 +2,11 @@
 Sistema de autenticação SSO com Google OAuth 2.0
 """
 try:
-    from google.oauth2 import id_token
-    from google.auth.transport import requests
+    import requests as http_requests
     GOOGLE_AUTH_AVAILABLE = True
 except ImportError:
     GOOGLE_AUTH_AVAILABLE = False
+    http_requests = None
     
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -36,9 +36,10 @@ class GoogleOAuthSerializer(serializers.Serializer):
     
     def get_user_info_from_token(self, access_token):
         """Obtém informações do usuário usando access token"""
-        try:
-            import requests as http_requests
+        if not GOOGLE_AUTH_AVAILABLE:
+            raise AuthenticationFailed('Google OAuth não está disponível (dependências não instaladas)')
             
+        try:
             response = http_requests.get(
                 'https://www.googleapis.com/oauth2/v2/userinfo',
                 headers={'Authorization': f'Bearer {access_token}'}
@@ -62,65 +63,6 @@ class GoogleOAuthSerializer(serializers.Serializer):
             raise
         except Exception as e:
             raise AuthenticationFailed(f'Erro ao obter dados do usuário: {str(e)}')
-    
-    def validate_token(self, token):
-        """Valida o token do Google e retorna as informações do usuário"""
-        if not GOOGLE_AUTH_AVAILABLE:
-            raise AuthenticationFailed('Google OAuth não está disponível (dependências não instaladas)')
-            
-        if not settings.GOOGLE_OAUTH_CLIENT_ID:
-            raise AuthenticationFailed('Google OAuth não está configurado')
-            
-        try:
-            # Primeiro tenta como ID token
-            try:
-                idinfo = id_token.verify_oauth2_token(
-                    token,
-                    requests.Request(),
-                    settings.GOOGLE_OAUTH_CLIENT_ID
-                )
-                
-                # Verifica se o token é do nosso app
-                if idinfo['aud'] != settings.GOOGLE_OAUTH_CLIENT_ID:
-                    raise AuthenticationFailed('Token inválido')
-                
-                # Extrai informações do usuário
-                google_id = idinfo['sub']
-                email = idinfo.get('email')
-                name = idinfo.get('name', '')
-                picture = idinfo.get('picture', '')
-                
-            except (ValueError, Exception):
-                # Se falhar, tenta como access token usando a API do Google
-                import requests as http_requests
-                response = http_requests.get(
-                    'https://www.googleapis.com/oauth2/v2/userinfo',
-                    headers={'Authorization': f'Bearer {token}'}
-                )
-                
-                if response.status_code != 200:
-                    raise AuthenticationFailed('Token inválido ou expirado')
-                
-                user_info = response.json()
-                google_id = user_info.get('id')
-                email = user_info.get('email')
-                name = user_info.get('name', '')
-                picture = user_info.get('picture', '')
-            
-            if not email:
-                raise AuthenticationFailed('Email não fornecido pelo Google')
-            
-            return {
-                'google_id': google_id,
-                'email': email,
-                'name': name,
-                'picture': picture,
-            }
-            
-        except AuthenticationFailed:
-            raise
-        except Exception as e:
-            raise AuthenticationFailed(f'Erro ao validar token: {str(e)}')
 
 
 def get_or_create_google_user(google_data):
