@@ -317,17 +317,25 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 
 
 # =============================================================================
-# Storage: Cloudflare R2 (S3 Compatible)
+# Storage: Cloudflare R2 (S3 Compatible) - OPCIONAL
 # =============================================================================
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='')
+AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default='')
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
 AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='auto')
-AWS_S3_ADDRESSING_STYLE = 'virtual'  # Cloudflare R2 requer addressing virtual
-AWS_S3_SIGNATURE_VERSION = 's3v4'
-AWS_DEFAULT_ACL = None
+
+# Só configura S3 storage se as credenciais estiverem presentes
+if AWS_STORAGE_BUCKET_NAME and AWS_S3_ENDPOINT_URL and AWS_ACCESS_KEY_ID:
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_S3_ADDRESSING_STYLE = 'virtual'  # Cloudflare R2 requer addressing virtual
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_DEFAULT_ACL = None
+    print("✅ Storage: Cloudflare R2")
+else:
+    # Fallback para storage local
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    print("⚠️  Storage: Local (R2 não configurado)")
 
 # =============================================================================
 # Cache: Redis (Upstash REST API)
