@@ -18,7 +18,90 @@ User = get_user_model()
 
 class GoogleOAuthSerializer(serializers.Serializer):
     """Serializer para login com Google"""
-    token = serializers.CharField(required=True)
+    token = serializers.CharField(required=False)
+    code = serializers.CharField(required=False)
+    redirect_uri = serializers.CharField(required=False)
+    
+    def validate(self, attrs):
+        """Valida o token ou código do Google"""
+        token = attrs.get('token')
+        code = attrs.get('code')
+        
+        if not token and not code:
+            raise serializers.ValidationError('Token ou code é obrigatório')
+        
+        if code:
+            # Troca o código por tokens
+            attrs['user_data'] = self.exchange_code_for_tokens(code, attrs.get('redirect_uri', ''))
+        else:
+            # Valida o token diretamente
+            attrs['user_data'] = self.validate_token(token)
+        
+        return attrs
+    
+    def exchange_code_for_tokens(self, code, redirect_uri):
+        """Troca o código de autorização por um access token"""
+        if not GOOGLE_AUTH_AVAILABLE:
+            raise AuthenticationFailed('Google OAuth não está disponível')
+        
+        if not settings.GOOGLE_OAUTH_CLIENT_ID or not settings.GOOGLE_OAUTH_CLIENT_SECRET:
+            raise AuthenticationFailed('Google OAuth não está configurado corretamente')
+        
+        try:
+            import requests as http_requests
+            
+            # Troca o código por tokens
+            response = http_requests.post(
+                'https://oauth2.googleapis.com/token',
+                data={
+                    'code': code,
+                    'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
+                    'client_secret': settings.GOOGLE_OAUTH_CLIENT_SECRET,
+                    'redirect_uri': redirect_uri,
+                    'grant_type': 'authorization_code',
+                }
+            )
+            
+            if response.status_code != 200:
+                raise AuthenticationFailed(f'Erro ao trocar código: {response.text}')
+            
+            tokens = response.json()
+            access_token = tokens.get('access_token')
+            
+            if not access_token:
+                raise AuthenticationFailed('Access token não recebido')
+            
+            # Obtém informações do usuário com o access token
+            return self.get_user_info_from_token(access_token)
+            
+        except AuthenticationFailed:
+            raise
+        except Exception as e:
+            raise AuthenticationFailed(f'Erro ao processar código: {str(e)}')
+    
+    def get_user_info_from_token(self, access_token):
+        """Obtém informações do usuário usando access token"""
+        try:
+            import requests as http_requests
+            
+            response = http_requests.get(
+                'https://www.googleapis.com/oauth2/v2/userinfo',
+                headers={'Authorization': f'Bearer {access_token}'}
+            )
+            
+            if response.status_code != 200:
+                raise AuthenticationFailed('Erro ao obter informações do usuário')
+            
+            user_info = response.json()
+            
+            return {
+                'google_id': user_info.get('id'),
+                'email': user_info.get('email'),
+                'name': user_info.get('name', ''),
+                'picture': user_info.get('picture', ''),
+            }
+        except Exception as e:
+            raise AuthenticationFailed(f'Erro ao obter dados do usuário: {str(e)}')
     
     def validate_token(self, token):
         """Valida o token do Google e retorna as informações do usuário"""

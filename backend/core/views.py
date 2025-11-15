@@ -220,7 +220,8 @@ class GoogleOAuthLoginView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        google_data = serializer.validated_data
+        # Pega os dados do usuário validados
+        google_data = serializer.validated_data.get('user_data')
         
         # Obtém ou cria usuário
         user = get_or_create_google_user(google_data)
