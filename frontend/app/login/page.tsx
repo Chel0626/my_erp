@@ -37,9 +37,15 @@ export default function LoginPage() {
   };
 
   const handleGoogleSuccess = (tokens: { access: string; refresh: string }, userData: unknown) => {
-    // Backend já cria tenant automaticamente para novos usuários OAuth
-    // Sempre redireciona para dashboard
-    router.push('/dashboard');
+    const data = userData as { is_new_user?: boolean };
+    
+    if (data.is_new_user) {
+      // Novo usuário: redireciona para configuração do estabelecimento
+      router.push('/dashboard/settings/company');
+    } else {
+      // Usuário existente: vai direto para dashboard
+      router.push('/dashboard');
+    }
   };
 
   return (

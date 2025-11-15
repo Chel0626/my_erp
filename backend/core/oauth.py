@@ -73,7 +73,7 @@ def get_or_create_google_user(google_data):
         google_data: Dicionário com google_id, email, name, picture
         
     Returns:
-        User: Instância do usuário
+        tuple: (User, is_new_user) - Instância do usuário e flag se foi criado agora
     """
     google_id = google_data['google_id']
     email = google_data['email']
@@ -90,7 +90,7 @@ def get_or_create_google_user(google_data):
         if google_data.get('picture') and user.profile_picture != google_data['picture']:
             user.profile_picture = google_data['picture']
         user.save()
-        return user
+        return user, False  # Usuário existente
     
     # Tenta encontrar usuário pelo email
     user = User.objects.filter(email=email).first()
@@ -102,7 +102,7 @@ def get_or_create_google_user(google_data):
         if google_data.get('picture'):
             user.profile_picture = google_data['picture']
         user.save()
-        return user
+        return user, False  # Usuário existente
     
     # Cria novo usuário
     # Para Google OAuth, cria automaticamente um tenant pessoal
@@ -134,7 +134,7 @@ def get_or_create_google_user(google_data):
         tenant.owner = user
         tenant.save()
     
-    return user
+    return user, True  # Novo usuário criado
 
 
 def unlink_google_account(user):

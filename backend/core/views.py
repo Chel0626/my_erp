@@ -224,7 +224,7 @@ class GoogleOAuthLoginView(generics.GenericAPIView):
         google_data = serializer.validated_data.get('user_data')
         
         # Obtém ou cria usuário
-        user = get_or_create_google_user(google_data)
+        user, is_new_user = get_or_create_google_user(google_data)
         
         # Gera tokens JWT
         refresh = RefreshToken.for_user(user)
@@ -236,7 +236,7 @@ class GoogleOAuthLoginView(generics.GenericAPIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             },
-            'is_new_user': not user.tenant,  # Se não tem tenant, é novo usuário
+            'is_new_user': is_new_user,  # True se acabou de criar o usuário
         }, status=status.HTTP_200_OK)
 
 
