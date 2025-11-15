@@ -37,15 +37,21 @@ export default function LoginPage() {
   };
 
   const handleGoogleSuccess = (tokens: { access: string; refresh: string }, userData: unknown) => {
-    const data = userData as { is_new_user?: boolean };
+    const data = userData as { is_new_user?: boolean; user?: { role?: string } };
     
+    // Novos usuários: configurar estabelecimento
     if (data.is_new_user) {
-      // Novo usuário: redireciona para configuração do estabelecimento
       router.push('/dashboard/settings/company');
-    } else {
-      // Usuário existente: vai direto para dashboard
-      router.push('/dashboard');
+      return;
     }
+    
+    // Usuários existentes: direto para dashboard
+    router.push('/dashboard');
+  };
+
+  const handleGoogleError = (error: unknown) => {
+    console.error('Erro no Google OAuth:', error);
+    setError('Erro ao fazer login com Google. Tente novamente ou use login tradicional.');
   };
 
   return (
@@ -122,6 +128,7 @@ export default function LoginPage() {
 
                 <GoogleSignInButton 
                   onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
                   disabled={loading}
                 />
               </>
