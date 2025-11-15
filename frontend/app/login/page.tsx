@@ -36,9 +36,10 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSuccess = (tokens: { access: string; refresh: string }, userData: { is_new_user?: boolean; tenant?: unknown }) => {
+  const handleGoogleSuccess = (tokens: { access: string; refresh: string }, userData: unknown) => {
+    const data = userData as { is_new_user?: boolean; tenant?: unknown };
     // Se é novo usuário (sem tenant), redireciona para onboarding
-    if (userData.is_new_user || !userData.tenant) {
+    if (data.is_new_user || !data.tenant) {
       router.push('/onboarding');
     } else {
       router.push('/dashboard');
