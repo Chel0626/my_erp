@@ -265,14 +265,15 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
-        'user': '1000/hour'
-    },
+    # THROTTLE TEMPORARIAMENTE DESABILITADO - causava erro de comparação str/float
+    # 'DEFAULT_THROTTLE_CLASSES': [
+    #     'rest_framework.throttling.AnonRateThrottle',
+    #     'rest_framework.throttling.UserRateThrottle'
+    # ],
+    # 'DEFAULT_THROTTLE_RATES': {
+    #     'anon': '100/hour',
+    #     'user': '1000/hour'
+    # },
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
@@ -430,8 +431,9 @@ JWT_AUTH_HTTPONLY = False
 # =============================================================================
 # GOOGLE OAUTH CONFIGURATION
 # =============================================================================
-GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='')
-GOOGLE_OAUTH_CLIENT_SECRET = config('GOOGLE_OAUTH_CLIENT_SECRET', default='')
+# Nota: Railway usa GOOGLE_CLIENT_ID, mas settings precisa de GOOGLE_OAUTH_CLIENT_ID
+GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
+GOOGLE_OAUTH_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
 
 # =============================================================================
 # MEDIA FILES CONFIGURATION (for certificates and logos)
