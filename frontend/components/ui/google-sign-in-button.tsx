@@ -49,6 +49,10 @@ export function GoogleSignInButton({
         // Salva tokens no localStorage
         localStorage.setItem('access_token', data.tokens.access);
         localStorage.setItem('refresh_token', data.tokens.refresh);
+        
+        // Salva também nos cookies para o middleware funcionar
+        document.cookie = `access_token=${data.tokens.access}; path=/; max-age=3600`; // 1 hora
+        document.cookie = `refresh_token=${data.tokens.refresh}; path=/; max-age=86400`; // 24 horas
 
         toast.success('Login realizado com sucesso!');
         

@@ -36,7 +36,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSuccess = (tokens: { access: string; refresh: string }, userData: unknown) => {
+  const handleGoogleSuccess = async (tokens: { access: string; refresh: string }, userData: unknown) => {
     const data = userData as { 
       is_new_user?: boolean; 
       user?: { 
@@ -52,6 +52,9 @@ export default function LoginPage() {
       role: data.user?.role,
       has_tenant: !!data.tenant 
     });
+    
+    // Pequeno delay para garantir que cookies foram salvos
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Superadmin: vai para /superadmin
     if (data.user?.role === 'superadmin') {
