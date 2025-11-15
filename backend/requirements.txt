@@ -15,10 +15,12 @@ whitenoise>=6.6.0
 # google-auth-oauthlib>=1.2.0
 
 # Certificado Digital / NF-e (OPCIONAL - para upload de certificado)
-# Instale com: pip install cryptography pyOpenSSL Pillow
+# Instale com: pip install cryptography pyOpenSSL
 # cryptography>=41.0.0
 # pyOpenSSL>=24.0.0
-# Pillow>=10.0.0
+
+# Imagens (OBRIGATÓRIO - para logos do tenant)
+Pillow>=10.0.0
 
 # PostgreSQL
 psycopg2-binary>=2.9.9
