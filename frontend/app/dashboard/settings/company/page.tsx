@@ -4,9 +4,10 @@
  */
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CertificateManager } from '@/components/tenant/certificate-manager';
+import { CompanyInfoForm } from '@/components/tenant/company-info-form';
+import { CompanySettings } from '@/components/tenant/company-settings';
 import { Building2, FileKey, Settings } from 'lucide-react';
 
 export default function CompanySettingsPage() {
@@ -19,7 +20,7 @@ export default function CompanySettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="certificate" className="space-y-6">
+      <Tabs defaultValue="info" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="info" className="gap-2">
             <Building2 className="h-4 w-4" />
@@ -36,19 +37,7 @@ export default function CompanySettingsPage() {
         </TabsList>
 
         <TabsContent value="info">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informações da Empresa</CardTitle>
-              <CardDescription>
-                Dados cadastrais e contato da empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Em desenvolvimento...
-              </p>
-            </CardContent>
-          </Card>
+          <CompanyInfoForm />
         </TabsContent>
 
         <TabsContent value="certificate">
@@ -56,19 +45,7 @@ export default function CompanySettingsPage() {
         </TabsContent>
 
         <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configurações Gerais</CardTitle>
-              <CardDescription>
-                Preferências e personalizações do sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Em desenvolvimento...
-              </p>
-            </CardContent>
-          </Card>
+          <CompanySettings />
         </TabsContent>
       </Tabs>
     </div>
