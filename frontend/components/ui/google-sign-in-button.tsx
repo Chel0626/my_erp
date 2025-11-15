@@ -26,34 +26,17 @@ export function GoogleSignInButton({
   const [isLoading, setIsLoading] = useState(false);
 
   const login = useGoogleLogin({
-    onSuccess: async (codeResponse) => {
+    onSuccess: async (tokenResponse) => {
       setIsLoading(true);
       try {
-        // Troca o código de autorização por um ID token
-        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            code: codeResponse.code,
-            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
-            client_secret: '', // Não precisa em fluxo PKCE
-            redirect_uri: window.location.origin,
-            grant_type: 'authorization_code',
-          }),
-        });
-
-        const tokenData = await tokenResponse.json();
-
-        // Envia o ID token para o backend
+        // Envia o access token para o backend
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/core/auth/google/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            token: tokenData.id_token,
+            token: tokenResponse.access_token,
           }),
         });
 
@@ -92,7 +75,6 @@ export function GoogleSignInButton({
         onError(error);
       }
     },
-    flow: 'auth-code',
   });
 
   return (

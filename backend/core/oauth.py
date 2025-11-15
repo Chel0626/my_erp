@@ -29,22 +29,40 @@ class GoogleOAuthSerializer(serializers.Serializer):
             raise AuthenticationFailed('Google OAuth não está configurado')
             
         try:
-            # Verifica o token ID com o Google
-            idinfo = id_token.verify_oauth2_token(
-                token,
-                requests.Request(),
-                settings.GOOGLE_OAUTH_CLIENT_ID
-            )
-            
-            # Verifica se o token é do nosso app
-            if idinfo['aud'] != settings.GOOGLE_OAUTH_CLIENT_ID:
-                raise AuthenticationFailed('Token inválido')
-            
-            # Extrai informações do usuário
-            google_id = idinfo['sub']
-            email = idinfo.get('email')
-            name = idinfo.get('name', '')
-            picture = idinfo.get('picture', '')
+            # Primeiro tenta como ID token
+            try:
+                idinfo = id_token.verify_oauth2_token(
+                    token,
+                    requests.Request(),
+                    settings.GOOGLE_OAUTH_CLIENT_ID
+                )
+                
+                # Verifica se o token é do nosso app
+                if idinfo['aud'] != settings.GOOGLE_OAUTH_CLIENT_ID:
+                    raise AuthenticationFailed('Token inválido')
+                
+                # Extrai informações do usuário
+                google_id = idinfo['sub']
+                email = idinfo.get('email')
+                name = idinfo.get('name', '')
+                picture = idinfo.get('picture', '')
+                
+            except (ValueError, Exception):
+                # Se falhar, tenta como access token usando a API do Google
+                import requests as http_requests
+                response = http_requests.get(
+                    'https://www.googleapis.com/oauth2/v2/userinfo',
+                    headers={'Authorization': f'Bearer {token}'}
+                )
+                
+                if response.status_code != 200:
+                    raise AuthenticationFailed('Token inválido ou expirado')
+                
+                user_info = response.json()
+                google_id = user_info.get('id')
+                email = user_info.get('email')
+                name = user_info.get('name', '')
+                picture = user_info.get('picture', '')
             
             if not email:
                 raise AuthenticationFailed('Email não fornecido pelo Google')
@@ -56,8 +74,10 @@ class GoogleOAuthSerializer(serializers.Serializer):
                 'picture': picture,
             }
             
-        except ValueError as e:
-            raise AuthenticationFailed(f'Token inválido: {str(e)}')
+        except AuthenticationFailed:
+            raise
+        except Exception as e:
+            raise AuthenticationFailed(f'Erro ao validar token: {str(e)}')
 
 
 def get_or_create_google_user(google_data):
