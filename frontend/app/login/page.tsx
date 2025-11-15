@@ -37,15 +37,38 @@ export default function LoginPage() {
   };
 
   const handleGoogleSuccess = (tokens: { access: string; refresh: string }, userData: unknown) => {
-    const data = userData as { is_new_user?: boolean; user?: { role?: string } };
+    const data = userData as { 
+      is_new_user?: boolean; 
+      user?: { 
+        role?: string;
+        id?: string;
+        email?: string;
+      };
+      tenant?: unknown;
+    };
+    
+    console.log('✅ Google OAuth Success:', { 
+      is_new_user: data.is_new_user, 
+      role: data.user?.role,
+      has_tenant: !!data.tenant 
+    });
+    
+    // Superadmin: vai para /superadmin
+    if (data.user?.role === 'superadmin') {
+      console.log('🔑 Redirecionando superadmin para /superadmin');
+      router.push('/superadmin');
+      return;
+    }
     
     // Novos usuários: configurar estabelecimento
     if (data.is_new_user) {
+      console.log('🆕 Redirecionando novo usuário para configuração');
       router.push('/dashboard/settings/company');
       return;
     }
     
     // Usuários existentes: direto para dashboard
+    console.log('👤 Redirecionando usuário para dashboard');
     router.push('/dashboard');
   };
 
