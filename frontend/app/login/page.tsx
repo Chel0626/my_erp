@@ -104,21 +104,25 @@ export default function LoginPage() {
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Ou continue com
-                </span>
-              </div>
-            </div>
+            {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Ou continue com
+                    </span>
+                  </div>
+                </div>
 
-            <GoogleSignInButton 
-              onSuccess={handleGoogleSuccess}
-              disabled={loading}
-            />
+                <GoogleSignInButton 
+                  onSuccess={handleGoogleSuccess}
+                  disabled={loading}
+                />
+              </>
+            )}
 
             <div className="text-sm text-center text-muted-foreground">
               Ainda não tem uma conta?{' '}
