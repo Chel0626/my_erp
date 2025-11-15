@@ -28,15 +28,15 @@ export default function LoginPage() {
     try {
       await login(email, password);
     } catch (err: unknown) {
-      const error = err as { message?: string };
+      const error = err instanceof Error ? err : new Error('Erro ao fazer login');
       console.error('❌ Erro capturado no handleSubmit:', err);
-      setError(error.message || 'Erro ao fazer login');
+      setError(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSuccess = (tokens: any, userData: any) => {
+  const handleGoogleSuccess = (tokens: { access: string; refresh: string }, userData: { is_new_user?: boolean; tenant?: unknown }) => {
     // Se é novo usuário (sem tenant), redireciona para onboarding
     if (userData.is_new_user || !userData.tenant) {
       router.push('/onboarding');

@@ -52,8 +52,9 @@ export function CertificateManager() {
     try {
       const response = await api.get('/core/tenants/certificate/info/');
       setCertificateInfo(response.data);
-    } catch (error: any) {
-      if (error.response?.status !== 404) {
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number } };
+      if (err.response?.status !== 404) {
         console.error('Erro ao carregar certificado:', error);
       }
       setCertificateInfo(null);
@@ -95,9 +96,10 @@ export function CertificateManager() {
       setCertificateInfo(response.data.certificate);
       setCertificateFile(null);
       setPassword('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao fazer upload:', error);
-      toast.error(error.response?.data?.error || 'Erro ao instalar certificado');
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || 'Erro ao instalar certificado');
     } finally {
       setIsUploading(false);
     }
@@ -112,7 +114,7 @@ export function CertificateManager() {
       await api.delete('/core/tenants/certificate/remove/');
       toast.success('Certificado removido com sucesso');
       setCertificateInfo(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao remover certificado:', error);
       toast.error('Erro ao remover certificado');
     }

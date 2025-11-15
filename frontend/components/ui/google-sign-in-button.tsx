@@ -11,8 +11,8 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface GoogleSignInButtonProps {
-  onSuccess?: (tokens: { access: string; refresh: string }, userData: any) => void;
-  onError?: (error: any) => void;
+  onSuccess?: (tokens: { access: string; refresh: string }, userData: unknown) => void;
+  onError?: (error: unknown) => void;
   text?: string;
   disabled?: boolean;
 }
@@ -72,9 +72,10 @@ export function GoogleSignInButton({
         if (onSuccess) {
           onSuccess(data.tokens, data);
         }
-      } catch (error: any) {
-        console.error('Erro no login com Google:', error);
-        toast.error(error.message || 'Erro ao fazer login com Google');
+      } catch (error: unknown) {
+        const err = error as Error;
+        console.error('Erro no login com Google:', err);
+        toast.error(err.message || 'Erro ao fazer login com Google');
         
         if (onError) {
           onError(error);
