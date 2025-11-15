@@ -22,9 +22,13 @@ class SaleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsTenantUser]
     
     def get_queryset(self):
-        queryset = Sale.objects.filter(
-            tenant=self.request.user.tenant
-        ).select_related('customer', 'user', 'cash_register').prefetch_related('items')
+        # Superadmin pode ver todas as vendas
+        if self.request.user.is_superuser:
+            queryset = Sale.objects.all()
+        else:
+            queryset = Sale.objects.filter(tenant=self.request.user.tenant)
+            
+        queryset = queryset.select_related('customer', 'user', 'cash_register').prefetch_related('items')
         
         # Filtros
         customer_id = self.request.query_params.get('customer')

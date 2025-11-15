@@ -80,10 +80,15 @@ class IsOwnerOrAdmin(permissions.BasePermission):
 class IsTenantUser(permissions.BasePermission):
     """
     Permissão básica que verifica se o usuário está autenticado e tem um tenant
+    Exceção: Superadmins podem acessar sem tenant
     """
     message = 'Você precisa estar autenticado e vinculado a um tenant.'
 
     def has_permission(self, request, view):
+        # Superadmins têm acesso total
+        if request.user and request.user.is_authenticated and request.user.is_superuser:
+            return True
+            
         return (
             request.user and
             request.user.is_authenticated and
