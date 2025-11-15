@@ -15,6 +15,11 @@ from rest_framework.exceptions import AuthenticationFailed
 
 User = get_user_model()
 
+# Import Tenant para criar workspace automático em OAuth
+def get_tenant_model():
+    from .models import Tenant
+    return Tenant
+
 
 class GoogleOAuthSerializer(serializers.Serializer):
     """Serializer para login com Google"""
@@ -203,14 +208,34 @@ def get_or_create_google_user(google_data):
         return user
     
     # Cria novo usuário
-    user = User.objects.create_user(
-        email=email,
-        name=google_data.get('name', email.split('@')[0]),
-        google_id=google_id,
-        google_email=email,
-        profile_picture=google_data.get('picture', ''),
-        is_active=True,
-    )
+    # Para Google OAuth, cria automaticamente um tenant pessoal
+    from django.db import transaction
+    
+    Tenant = get_tenant_model()
+    
+    with transaction.atomic():
+        # Cria o tenant primeiro
+        tenant = Tenant.objects.create(
+            name=f"{google_data.get('name', email.split('@')[0])}'s Workspace",
+            plan='basico',
+            is_active=True
+        )
+        
+        # Cria o usuário como owner do tenant
+        user = User.objects.create_user(
+            email=email,
+            name=google_data.get('name', email.split('@')[0]),
+            google_id=google_id,
+            google_email=email,
+            profile_picture=google_data.get('picture', ''),
+            tenant=tenant,
+            role='admin',
+            is_active=True,
+        )
+        
+        # Define o usuário como owner do tenant
+        tenant.owner = user
+        tenant.save()
     
     return user
 
