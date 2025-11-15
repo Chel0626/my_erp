@@ -26,25 +26,24 @@ export function GoogleSignInButton({
   const [isLoading, setIsLoading] = useState(false);
 
   const login = useGoogleLogin({
-    onSuccess: async (codeResponse) => {
+    onSuccess: async (tokenResponse) => {
       setIsLoading(true);
       try {
-        // Envia o código de autorização para o backend
+        // Envia o access token para o backend
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/core/auth/google/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            code: codeResponse.code,
-            redirect_uri: window.location.origin,
+            token: tokenResponse.access_token,
           }),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Erro ao fazer login com Google');
+          throw new Error(data.error || data.detail || 'Erro ao fazer login com Google');
         }
 
         // Salva tokens no localStorage
@@ -76,7 +75,6 @@ export function GoogleSignInButton({
         onError(error);
       }
     },
-    flow: 'auth-code',
   });
 
   return (
