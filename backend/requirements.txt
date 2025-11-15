@@ -22,6 +22,9 @@ whitenoise>=6.6.0
 # Imagens (OBRIGATÓRIO - para logos do tenant)
 Pillow>=10.0.0
 
+# HTTP Requests (para OAuth)
+requests>=2.31.0
+
 # PostgreSQL
 psycopg2-binary>=2.9.9
 
