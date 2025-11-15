@@ -37,13 +37,9 @@ export default function LoginPage() {
   };
 
   const handleGoogleSuccess = (tokens: { access: string; refresh: string }, userData: unknown) => {
-    const data = userData as { is_new_user?: boolean; tenant?: unknown };
-    // Se é novo usuário (sem tenant), redireciona para onboarding
-    if (data.is_new_user || !data.tenant) {
-      router.push('/onboarding');
-    } else {
-      router.push('/dashboard');
-    }
+    // Backend já cria tenant automaticamente para novos usuários OAuth
+    // Sempre redireciona para dashboard
+    router.push('/dashboard');
   };
 
   return (
