@@ -8,15 +8,17 @@ django-allauth>=0.57.0
 dj-rest-auth>=5.0.0
 whitenoise>=6.6.0
 
-# SSO / OAuth
-social-auth-app-django>=5.4.0
-google-auth>=2.27.0
-google-auth-oauthlib>=1.2.0
+# SSO / OAuth (OPCIONAL - para Google Sign-In)
+# Instale com: pip install google-auth google-auth-oauthlib social-auth-app-django
+# social-auth-app-django>=5.4.0
+# google-auth>=2.27.0
+# google-auth-oauthlib>=1.2.0
 
-# Certificado Digital / NF-e
-cryptography>=41.0.0
-pyOpenSSL>=24.0.0
-Pillow>=10.0.0
+# Certificado Digital / NF-e (OPCIONAL - para upload de certificado)
+# Instale com: pip install cryptography pyOpenSSL Pillow
+# cryptography>=41.0.0
+# pyOpenSSL>=24.0.0
+# Pillow>=10.0.0
 
 # PostgreSQL
 psycopg2-binary>=2.9.9

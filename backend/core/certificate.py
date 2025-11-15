@@ -6,11 +6,16 @@ from datetime import datetime
 from pathlib import Path
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.serialization import pkcs12
-from OpenSSL import crypto
+
+try:
+    from cryptography import x509
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.serialization import pkcs12
+    from OpenSSL import crypto
+    CRYPTO_AVAILABLE = True
+except ImportError:
+    CRYPTO_AVAILABLE = False
 
 
 class CertificateManager:
@@ -22,6 +27,9 @@ class CertificateManager:
             tenant: Instância do Tenant
         """
         self.tenant = tenant
+        
+        if not CRYPTO_AVAILABLE:
+            raise ValidationError('Bibliotecas de criptografia não instaladas. Execute: pip install cryptography pyOpenSSL')
     
     def validate_certificate(self, certificate_file, password):
         """
@@ -170,6 +178,9 @@ class CertificateManager:
         Returns:
             str: Senha descriptografada
         """
+        if not CRYPTO_AVAILABLE:
+            raise ValidationError('Bibliotecas de criptografia não instaladas')
+            
         from cryptography.fernet import Fernet
         
         key = settings.SECRET_KEY.encode()[:32].ljust(32, b'0')

@@ -1,8 +1,13 @@
 """
 Sistema de autenticação SSO com Google OAuth 2.0
 """
-from google.oauth2 import id_token
-from google.auth.transport import requests
+try:
+    from google.oauth2 import id_token
+    from google.auth.transport import requests
+    GOOGLE_AUTH_AVAILABLE = True
+except ImportError:
+    GOOGLE_AUTH_AVAILABLE = False
+    
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -17,6 +22,12 @@ class GoogleOAuthSerializer(serializers.Serializer):
     
     def validate_token(self, token):
         """Valida o token do Google e retorna as informações do usuário"""
+        if not GOOGLE_AUTH_AVAILABLE:
+            raise AuthenticationFailed('Google OAuth não está disponível (dependências não instaladas)')
+            
+        if not settings.GOOGLE_OAUTH_CLIENT_ID:
+            raise AuthenticationFailed('Google OAuth não está configurado')
+            
         try:
             # Verifica o token ID com o Google
             idinfo = id_token.verify_oauth2_token(
