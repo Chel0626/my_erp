@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Loader2, Save, Bell, Calendar, DollarSign, Palette, Clock } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 
 interface TenantSettings {
   id: number;
@@ -40,8 +40,8 @@ export function CompanySettings() {
   const loadTenantData = async () => {
     try {
       setLoading(true);
-      const response = await apiRequest('/core/tenant/');
-      setTenant(response);
+      const response = await api.get('/core/tenant/');
+      setTenant(response.data);
     } catch (error) {
       console.error('Erro ao carregar dados do tenant:', error);
       toast.error('Erro ao carregar configurações');

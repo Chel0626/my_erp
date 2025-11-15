@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2, Save, Upload, Building2, MapPin, Phone, Mail } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { api } from '@/lib/api';
 
 interface TenantData {
   id: number;
@@ -46,9 +46,9 @@ export function CompanyInfoForm() {
   const loadTenantData = async () => {
     try {
       setLoading(true);
-      const response = await apiRequest('/core/tenant/');
-      setTenant(response);
-      setFormData(response);
+      const response = await api.get('/core/tenant/');
+      setTenant(response.data);
+      setFormData(response.data);
     } catch (error) {
       console.error('Erro ao carregar dados do tenant:', error);
       toast.error('Erro ao carregar informações da empresa');
@@ -63,13 +63,10 @@ export function CompanyInfoForm() {
     try {
       setLoading(true);
       
-      const response = await apiRequest(`/core/tenant/`, {
-        method: 'PATCH',
-        body: JSON.stringify(formData),
-      });
+      const response = await api.patch('/core/tenant/', formData);
 
-      setTenant(response);
-      setFormData(response);
+      setTenant(response.data);
+      setFormData(response.data);
       toast.success('Informações atualizadas com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar tenant:', error);
