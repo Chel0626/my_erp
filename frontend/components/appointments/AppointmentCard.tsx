@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Clock, User, Scissors, Phone, Mail, CheckCircle, XCircle, PlayCircle, Pencil, Trash2, DollarSign, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import Link from 'next/link';
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -69,17 +68,7 @@ export function AppointmentCard({
           <div className="flex-1">
             <CardTitle className="text-lg flex items-center gap-2">
               <User className="h-5 w-5 text-muted-foreground" />
-              {appointment.customer_full_info?.id ? (
-                <Link 
-                  href={`/customers/${appointment.customer_full_info.id}`}
-                  className="hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {appointment.customer_name}
-                </Link>
-              ) : (
-                <span>{appointment.customer_name}</span>
-              )}
+              <span>{appointment.customer_name}</span>
             </CardTitle>
           </div>
           <div className="flex gap-2">
