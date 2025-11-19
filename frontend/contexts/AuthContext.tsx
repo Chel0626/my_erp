@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoadingUser(true);
       
-      // Verifica se há token no localStorage ou cookies
+      // Verifica se há token no localStorage
       const accessToken = localStorage.getItem('access_token');
       
       // Se não há token, não faz nenhuma requisição
@@ -71,16 +71,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTenant(null);
       }
     } catch (error: any) {
-      // Se o erro for 401, é esperado (token inválido/expirado)
-      // Não mostra erro no console pois é comportamento normal
-      if (error.response?.status === 401) {
-        // Silenciosamente limpa os tokens
-      } else {
+      // Se o erro for 401, token inválido/expirado - comportamento esperado
+      // Não mostra erro no console pois acontece naturalmente quando token expira
+      if (error.response?.status !== 401) {
         // Outros erros são inesperados e devem ser logados
         console.error('❌ Erro inesperado ao carregar usuário:', error);
       }
       
-      // Limpa tokens em qualquer caso de erro
+      // Limpa tokens em caso de erro
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       document.cookie = 'access_token=; path=/; max-age=0';

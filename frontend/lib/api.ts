@@ -40,13 +40,15 @@ api.interceptors.response.use(
     // Se erro 401 e não é retry, tenta refresh
     if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
       // Se estamos em página pública (login/signup), não tenta refresh
-      // Apenas falha silenciosamente
+      // Apenas falha silenciosamente (sem log)
       if (window.location.pathname.startsWith('/login') || window.location.pathname.startsWith('/signup')) {
         return Promise.reject(error);
       }
 
-      // Não tenta refresh se a URL já for de refresh (evita loop)
-      if (originalRequest.url?.includes('/auth/refresh/') || originalRequest.url?.includes('/auth/login/')) {
+      // Não tenta refresh se a URL já for de refresh/login (evita loop)
+      if (originalRequest.url?.includes('/auth/token/refresh/') || 
+          originalRequest.url?.includes('/auth/login/') ||
+          originalRequest.url?.includes('/auth/google/')) {
         // Limpa tokens
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
