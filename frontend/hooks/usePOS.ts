@@ -42,8 +42,9 @@ export function useSales(params?: {
   return useQuery({
     queryKey: ['sales', params],
     queryFn: async () => {
-      const { data } = await api.get<Sale[]>(POS_API.sales, { params });
-      return data;
+      const { data } = await api.get<Sale[] | { results: Sale[] }>(POS_API.sales, { params });
+      // Garante que sempre retorna um array, mesmo se a API retornar formato paginado
+      return Array.isArray(data) ? data : data.results || [];
     },
   });
 }
@@ -231,7 +232,10 @@ export async function exportSalesPDF(params?: any) {
     await import('jspdf-autotable');
     
     // Buscar dados das vendas
-    const { data: sales } = await api.get<Sale[]>(POS_API.sales, { params });
+    const { data: response } = await api.get<Sale[] | { results: Sale[] }>(POS_API.sales, { params });
+    
+    // Extrai array de sales (pode vir direto ou dentro de results se for paginado)
+    const sales = Array.isArray(response) ? response : response.results || [];
     
     if (!sales || sales.length === 0) {
       throw new Error('Nenhuma venda encontrada para exportar');
