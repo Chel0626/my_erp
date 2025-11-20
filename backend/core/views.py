@@ -322,12 +322,25 @@ class TenantCertificateView(generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        cert_manager = CertificateManager(request.user.tenant)
-        cert_info = cert_manager.get_certificate_info()
-        
-        if not cert_info:
+        try:
+            cert_manager = CertificateManager(request.user.tenant)
+            cert_info = cert_manager.get_certificate_info()
+            
+            if not cert_info:
+                return Response({
+                    'message': 'Nenhum certificado instalado'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            return Response(cert_info, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            # Log do erro para debug
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erro ao obter info do certificado: {str(e)}", exc_info=True)
+            
+            # Retorna 404 ao invés de 500 quando não há certificado
             return Response({
-                'message': 'Nenhum certificado instalado'
+                'message': 'Nenhum certificado instalado',
+                'error': str(e)
             }, status=status.HTTP_404_NOT_FOUND)
-        
-        return Response(cert_info, status=status.HTTP_200_OK)

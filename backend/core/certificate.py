@@ -146,6 +146,10 @@ class CertificateManager:
         if not self.tenant.digital_certificate:
             return None
         
+        # Verifica se há senha armazenada
+        if not self.tenant.certificate_password:
+            return None
+        
         try:
             password = self._decrypt_password()
             
@@ -153,6 +157,11 @@ class CertificateManager:
                 return self.validate_certificate(cert_file, password)
                 
         except Exception as e:
+            # Log do erro para debug
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erro ao obter info do certificado: {str(e)}", exc_info=True)
+            
             return {
                 'error': str(e),
                 'is_valid': False,
