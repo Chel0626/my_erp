@@ -318,11 +318,11 @@ export default function CommissionRulesPage() {
               <div className="space-y-2">
                 <Label htmlFor="service">Serviço (opcional)</Label>
                 <Select
-                  value={formData.service !== null && formData.service !== undefined ? formData.service.toString() : "all"}
+                  value={formData.service !== null && formData.service !== undefined ? formData.service : "all"}
                   onValueChange={(value) => {
                     setFormData((prev) => ({
                       ...prev,
-                      service: value === "all" ? null : parseInt(value),
+                      service: value === "all" ? null : value,
                     }));
                   }}
                 >
@@ -332,7 +332,7 @@ export default function CommissionRulesPage() {
                   <SelectContent>
                     <SelectItem value="all">Todos os serviços</SelectItem>
                     {services.map((service) => (
-                      <SelectItem key={service.id} value={service.id.toString()}>
+                      <SelectItem key={service.id} value={service.id}>
                         {service.name}
                       </SelectItem>
                     ))}

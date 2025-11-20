@@ -8,7 +8,7 @@ export interface CommissionRule {
   id: number;
   professional: number | null;
   professional_name: string | null;
-  service: number | null;
+  service: string | null;
   service_name: string | null;
   commission_percentage: string;
   is_active: boolean;
@@ -19,7 +19,7 @@ export interface CommissionRule {
 
 export interface CreateCommissionRuleData {
   professional?: number | null;
-  service?: number | null;
+  service?: string | null;
   commission_percentage: string;
   is_active?: boolean;
   priority?: number;
@@ -29,8 +29,8 @@ export interface Commission {
   id: number;
   professional: number;
   professional_name: string;
-  appointment: number;
-  service: number;
+  appointment: string;
+  service: string;
   service_name: string;
   rule: number | null;
   service_price: string;
@@ -49,8 +49,8 @@ export interface Commission {
 
 export interface CreateCommissionData {
   professional: number;
-  appointment: number;
-  service: number;
+  appointment: string;
+  service: string;
   rule?: number | null;
   service_price: string;
   commission_percentage: string;
