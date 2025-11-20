@@ -101,85 +101,113 @@ class GoalViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
         """Dashboard de metas - Otimizado para evitar múltiplas queries"""
-        queryset = self.get_queryset()
-        
-        # Usa aggregate e annotate para fazer tudo em uma query
-        from django.db.models import Case, When, IntegerField
-        
-        summary_data = queryset.aggregate(
-            total=Count('id'),
-            active=Count('id', filter=Q(status='active')),
-            completed=Count('id', filter=Q(status='completed')),
-            failed=Count('id', filter=Q(status='failed')),
-            individual=Count('id', filter=Q(type='individual')),
-            team=Count('id', filter=Q(type='team'))
-        )
-        
-        # Média de progresso das metas ativas (calculado em Python por causa da função percentage)
-        active_goals = queryset.filter(status='active').only('target_value', 'current_value')
-        avg_progress = 0
-        if active_goals.exists():
-            total_progress = sum(
-                (float(g.current_value) / float(g.target_value) * 100) if g.target_value > 0 else 0 
-                for g in active_goals
+        try:
+            queryset = self.get_queryset()
+            
+            # Usa aggregate e annotate para fazer tudo em uma query
+            from django.db.models import Case, When, IntegerField
+            
+            summary_data = queryset.aggregate(
+                total=Count('id'),
+                active=Count('id', filter=Q(status='active')),
+                completed=Count('id', filter=Q(status='completed')),
+                failed=Count('id', filter=Q(status='failed')),
+                individual=Count('id', filter=Q(type='individual')),
+                team=Count('id', filter=Q(type='team'))
             )
-            avg_progress = total_progress / active_goals.count()
-        
-        # Metas por tipo de objetivo - uma query com group by
-        by_target_type = {}
-        target_type_counts = queryset.values('target_type').annotate(count=Count('id'))
-        target_types_dict = dict(Goal.TARGET_TYPE_CHOICES)
-        for item in target_type_counts:
-            key = item['target_type']
-            by_target_type[key] = {
-                'label': target_types_dict.get(key, key),
-                'count': item['count']
-            }
-        
-        # Metas próximas do vencimento (próximos 7 dias)
-        today = timezone.now().date()
-        week_ahead = today + timedelta(days=7)
-        expiring_soon = queryset.filter(
-            status='active',
-            end_date__gte=today,
-            end_date__lte=week_ahead
-        ).select_related('user').values(
-            'id', 'name', 'end_date', 'user__name'
-        )[:10]  # Limita a 10 para performance
-        
-        # Top performers (metas individuais completadas) - otimizado
-        top_performers = queryset.filter(
-            type='individual',
-            status='completed',
-            user__isnull=False
-        ).values(
-            'user__name'
-        ).annotate(
-            completed_count=Count('id')
-        ).order_by('-completed_count')[:5]
-        
-        return Response({
-            'summary': {
-                'total': summary_data['total'],
-                'active': summary_data['active'],
-                'completed': summary_data['completed'],
-                'failed': summary_data['failed'],
-                'avg_progress': round(avg_progress, 2),
-            },
-            'by_type': {
-                'individual': summary_data['individual'],
-                'team': summary_data['team'],
-            },
-            'by_target_type': by_target_type,
-            'expiring_soon': list(expiring_soon),
-            'top_performers': [
-                {
-                    'name': p['user__name'],
-                    'completed': p['completed_count']
+            
+            # Média de progresso das metas ativas (calculado em Python por causa da função percentage)
+            active_goals = queryset.filter(status='active').only('target_value', 'current_value')
+            avg_progress = 0
+            if active_goals.exists():
+                try:
+                    total_progress = sum(
+                        (float(g.current_value) / float(g.target_value) * 100) if g.target_value > 0 else 0 
+                        for g in active_goals
+                    )
+                    avg_progress = total_progress / active_goals.count()
+                except (ValueError, ZeroDivisionError, TypeError) as e:
+                    # Se houver erro no cálculo, mantém avg_progress = 0
+                    pass
+            
+            # Metas por tipo de objetivo - uma query com group by
+            by_target_type = {}
+            target_type_counts = queryset.values('target_type').annotate(count=Count('id'))
+            target_types_dict = dict(Goal.TARGET_TYPE_CHOICES)
+            for item in target_type_counts:
+                key = item['target_type']
+                by_target_type[key] = {
+                    'label': target_types_dict.get(key, key),
+                    'count': item['count']
                 }
-                for p in top_performers
-            ]
-        })
+            
+            # Metas próximas do vencimento (próximos 7 dias)
+            today = timezone.now().date()
+            week_ahead = today + timedelta(days=7)
+            expiring_soon = queryset.filter(
+                status='active',
+                end_date__gte=today,
+                end_date__lte=week_ahead
+            ).select_related('user').values(
+                'id', 'name', 'end_date', 'user__name'
+            )[:10]  # Limita a 10 para performance
+            
+            # Top performers (metas individuais completadas) - otimizado
+            top_performers = queryset.filter(
+                type='individual',
+                status='completed',
+                user__isnull=False
+            ).values(
+                'user__name'
+            ).annotate(
+                completed_count=Count('id')
+            ).order_by('-completed_count')[:5]
+            
+            return Response({
+                'summary': {
+                    'total': summary_data['total'] or 0,
+                    'active': summary_data['active'] or 0,
+                    'completed': summary_data['completed'] or 0,
+                    'failed': summary_data['failed'] or 0,
+                    'avg_progress': round(avg_progress, 2),
+                },
+                'by_type': {
+                    'individual': summary_data['individual'] or 0,
+                    'team': summary_data['team'] or 0,
+                },
+                'by_target_type': by_target_type,
+                'expiring_soon': list(expiring_soon),
+                'top_performers': [
+                    {
+                        'name': p['user__name'] or 'Sem nome',
+                        'completed': p['completed_count']
+                    }
+                    for p in top_performers
+                ]
+            })
+        except Exception as e:
+            # Log do erro para debug
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erro no dashboard de metas: {str(e)}", exc_info=True)
+            
+            # Retorna estrutura vazia mas válida
+            return Response({
+                'summary': {
+                    'total': 0,
+                    'active': 0,
+                    'completed': 0,
+                    'failed': 0,
+                    'avg_progress': 0,
+                },
+                'by_type': {
+                    'individual': 0,
+                    'team': 0,
+                },
+                'by_target_type': {},
+                'expiring_soon': [],
+                'top_performers': []
+            })
     
     @action(detail=False, methods=['get'])
     def ranking(self, request):
