@@ -345,7 +345,7 @@ export async function exportCustomersCSV(filters?: CustomerFilters) {
     if (filters?.gender) params.append('gender', filters.gender);
     if (filters?.search) params.append('search', filters.search);
 
-    const response = await api.get(`/customers/customers/export_csv/?${params.toString()}`, {
+    const response = await api.get(`/customers/export_csv/?${params.toString()}`, {
       responseType: 'blob',
     });
 
@@ -384,7 +384,7 @@ export async function exportCustomersPDF(filters?: CustomerFilters) {
     if (filters?.search) params.append('search', filters.search);
 
     // Buscar dados da API
-    const response = await api.get(`/customers/customers/?${params.toString()}`);
+    const response = await api.get(`/customers/?${params.toString()}`);
     const customers = response.data.results || response.data || [];
 
     if (!customers || customers.length === 0) {
