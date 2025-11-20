@@ -60,9 +60,15 @@ class CreateCommissionRuleSerializer(serializers.ModelSerializer):
         professional = data.get("professional")
         service = data.get("service")
 
+        # Get tenant from request user
+        request = self.context.get("request")
+        if not request or not hasattr(request, 'user') or not request.user.tenant:
+            # If no request context or no tenant, skip duplicate check
+            return data
+
         # Check if rule already exists for this combination
         existing = CommissionRule.objects.filter(
-            tenant=self.context["request"].tenant,
+            tenant=request.user.tenant,
             professional=professional,
             service=service,
         )

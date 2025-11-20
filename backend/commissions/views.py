@@ -53,6 +53,10 @@ class CommissionRuleViewSet(viewsets.ModelViewSet):
             return CreateCommissionRuleSerializer
         return CommissionRuleSerializer
 
+    def perform_create(self, serializer):
+        """Set tenant when creating a commission rule."""
+        serializer.save(tenant=self.request.user.tenant)
+
     @action(detail=False, methods=["get"])
     def active(self, request):
         """Get only active commission rules."""
