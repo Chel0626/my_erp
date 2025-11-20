@@ -30,7 +30,7 @@ export function CompanySettings() {
   const [notifications, setNotifications] = useState(true);
   const [emailReminders, setEmailReminders] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
-  const [theme, setTheme] = useState('light');
+  // const [theme, setTheme] = useState('light'); // TODO: Implementar modo escuro
   const [timezone, setTimezone] = useState('America/Sao_Paulo');
   const [currency, setCurrency] = useState('BRL');
 
@@ -223,8 +223,8 @@ export function CompanySettings() {
         </CardContent>
       </Card>
 
-      {/* Aparência */}
-      <Card>
+      {/* Aparência - Comentado até implementação do modo escuro */}
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
@@ -249,7 +249,7 @@ export function CompanySettings() {
             </Select>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Botão Salvar */}
       <div className="flex justify-end">
