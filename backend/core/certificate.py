@@ -122,11 +122,13 @@ class CertificateManager:
         certificate_file.seek(0)  # Reseta o ponteiro do arquivo
         self.tenant.digital_certificate = certificate_file
         
-        # Salva a senha criptografada (em produção, usar django-encrypted-model-fields)
+        # Salva a senha criptografada
         from cryptography.fernet import Fernet
+        import base64
         
-        # Gera uma chave de criptografia (em produção, usar settings.SECRET_KEY derivado)
-        key = settings.SECRET_KEY.encode()[:32].ljust(32, b'0')
+        # Gera chave válida para Fernet (32 bytes base64url encoded)
+        key_bytes = settings.SECRET_KEY.encode()[:32].ljust(32, b'0')
+        key = base64.urlsafe_b64encode(key_bytes)
         cipher = Fernet(key)
         encrypted_password = cipher.encrypt(password.encode())
         
@@ -189,16 +191,24 @@ class CertificateManager:
         """
         if not CRYPTO_AVAILABLE:
             raise ValidationError('Bibliotecas de criptografia não instaladas')
+        
+        if not self.tenant.certificate_password:
+            raise ValidationError('Nenhuma senha de certificado armazenada')
             
         from cryptography.fernet import Fernet
+        import base64
         
-        key = settings.SECRET_KEY.encode()[:32].ljust(32, b'0')
+        # Gera chave válida para Fernet (32 bytes base64url encoded)
+        key_bytes = settings.SECRET_KEY.encode()[:32].ljust(32, b'0')
+        key = base64.urlsafe_b64encode(key_bytes)
         cipher = Fernet(key)
         
-        encrypted_password = self.tenant.certificate_password.encode()
-        password = cipher.decrypt(encrypted_password).decode()
-        
-        return password
+        try:
+            encrypted_password = self.tenant.certificate_password.encode()
+            password = cipher.decrypt(encrypted_password).decode()
+            return password
+        except Exception as e:
+            raise ValidationError(f'Erro ao descriptografar senha: {str(e)}')
     
     def is_certificate_valid(self):
         """
