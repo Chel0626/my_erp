@@ -43,6 +43,25 @@ class ServiceViewSet(viewsets.ModelViewSet):
             return Service.objects.filter(tenant=self.request.user.tenant)
         return Service.objects.none()
 
+    def destroy(self, request, *args, **kwargs):
+        """
+        Deleta serviço, mas verifica se há agendamentos vinculados
+        """
+        instance = self.get_object()
+        
+        # Verifica se há agendamentos vinculados
+        appointments_count = instance.appointments.count()
+        if appointments_count > 0:
+            return Response(
+                {
+                    'error': f'Não é possível excluir este serviço pois existem {appointments_count} agendamento(s) vinculado(s). '
+                             'Desative o serviço ao invés de excluí-lo.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=False, methods=['get'])
     def active(self, request):
         """Retorna apenas serviços ativos"""
