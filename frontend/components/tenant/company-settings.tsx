@@ -1,6 +1,7 @@
 /**
  * Company Settings Component
  * Configurações gerais do sistema e preferências do tenant
+ * Updated: 2025-11-19 - Fixed tenant endpoint URL
  */
 'use client';
 
