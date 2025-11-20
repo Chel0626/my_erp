@@ -250,42 +250,60 @@ class CustomerViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def export_csv(self, request):
         """Exporta clientes em formato CSV"""
-        queryset = self.filter_queryset(self.get_queryset())
-        
-        # Criar resposta CSV
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment; filename="clientes.csv"'
-        response.write('\ufeff')  # BOM para UTF-8
-        
-        writer = csv.writer(response)
-        writer.writerow([
-            'Nome',
-            'Telefone',
-            'E-mail',
-            'CPF',
-            'Data de Nascimento',
-            'Gênero',
-            'Tag',
-            'Endereço',
-            'Ativo',
-            'Cadastrado em'
-        ])
-        
-        for customer in queryset:
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            
+            # Criar resposta CSV
+            response = HttpResponse(content_type='text/csv; charset=utf-8')
+            response['Content-Disposition'] = 'attachment; filename="clientes.csv"'
+            response.write('\ufeff')  # BOM para UTF-8
+            
+            writer = csv.writer(response)
             writer.writerow([
-                customer.name,
-                customer.phone,
-                customer.email or '-',
-                customer.cpf or '-',
-                customer.birth_date.strftime('%d/%m/%Y') if customer.birth_date else '-',
-                customer.get_gender_display() if customer.gender else '-',
-                customer.get_tag_display(),
-                customer.address or '-',
-                'Sim' if customer.is_active else 'Não',
-                customer.created_at.strftime('%d/%m/%Y %H:%M')
+                'Nome',
+                'Telefone',
+                'E-mail',
+                'CPF',
+                'Data de Nascimento',
+                'Gênero',
+                'Tag',
+                'Endereço',
+                'Ativo',
+                'Cadastrado em'
             ])
-        
-        return response
+            
+            for customer in queryset:
+                try:
+                    writer.writerow([
+                        customer.name or '-',
+                        customer.phone or '-',
+                        customer.email or '-',
+                        customer.cpf or '-',
+                        customer.birth_date.strftime('%d/%m/%Y') if customer.birth_date else '-',
+                        customer.get_gender_display() if customer.gender else '-',
+                        customer.get_tag_display() if hasattr(customer, 'get_tag_display') else '-',
+                        customer.address or '-',
+                        'Sim' if customer.is_active else 'Não',
+                        customer.created_at.strftime('%d/%m/%Y %H:%M') if customer.created_at else '-'
+                    ])
+                except Exception as row_error:
+                    # Log do erro mas continua processando outros clientes
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Erro ao exportar cliente {customer.id}: {str(row_error)}")
+                    continue
+            
+            return response
+            
+        except Exception as e:
+            # Log do erro completo
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erro ao exportar CSV de clientes: {str(e)}", exc_info=True)
+            
+            return Response({
+                'error': f'Erro ao exportar CSV: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'])
     def export_excel(self, request):
