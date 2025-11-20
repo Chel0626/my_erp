@@ -170,7 +170,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class TenantViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet para visualização de dados do tenant
-    Apenas leitura
+    Apenas leitura para listagem, mas permite update do próprio tenant
     """
     serializer_class = TenantSerializer
     permission_classes = [IsAuthenticated]
@@ -181,19 +181,34 @@ class TenantViewSet(viewsets.ReadOnlyModelViewSet):
             return Tenant.objects.filter(id=self.request.user.tenant.id)
         return Tenant.objects.none()
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['get', 'patch', 'put'], permission_classes=[IsAuthenticated])
     def my_tenant(self, request):
         """
-        Retorna os dados do tenant do usuário autenticado
+        GET: Retorna os dados do tenant do usuário autenticado
+        PATCH/PUT: Atualiza os dados do tenant do usuário autenticado
         
-        GET /api/tenants/my_tenant/
+        GET /api/core/tenants/my_tenant/
+        PATCH /api/core/tenants/my_tenant/
         """
-        if request.user.tenant:
+        if not request.user.tenant:
+            return Response({
+                'message': 'Você não está associado a nenhuma empresa.'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.method == 'GET':
             serializer = self.get_serializer(request.user.tenant)
             return Response(serializer.data)
-        return Response({
-            'message': 'Você não está associado a nenhuma empresa.'
-        }, status=status.HTTP_404_NOT_FOUND)
+        
+        # PATCH ou PUT
+        partial = request.method == 'PATCH'
+        serializer = self.get_serializer(
+            request.user.tenant,
+            data=request.data,
+            partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class PublicTokenObtainPairView(TokenObtainPairView):

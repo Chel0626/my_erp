@@ -40,7 +40,7 @@ export function CompanySettings() {
   const loadTenantData = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/core/tenant/');
+      const response = await api.get('/core/tenants/my_tenant/');
       setTenant(response.data);
     } catch (error) {
       console.error('Erro ao carregar dados do tenant:', error);

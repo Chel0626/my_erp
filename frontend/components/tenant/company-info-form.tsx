@@ -46,7 +46,7 @@ export function CompanyInfoForm() {
   const loadTenantData = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/core/tenant/');
+      const response = await api.get('/core/tenants/my_tenant/');
       setTenant(response.data);
       setFormData(response.data);
     } catch (error) {
@@ -63,7 +63,7 @@ export function CompanyInfoForm() {
     try {
       setLoading(true);
       
-      const response = await api.patch('/core/tenant/', formData);
+      const response = await api.patch('/core/tenants/my_tenant/', formData);
 
       setTenant(response.data);
       setFormData(response.data);
@@ -98,7 +98,7 @@ export function CompanyInfoForm() {
       const formData = new FormData();
       formData.append('logo', file);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/core/tenant/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/core/tenants/my_tenant/`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
