@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -46,6 +47,7 @@ interface TeamMember {
   email: string;
   name: string;
   phone?: string;
+  role: string;
   is_staff: boolean;
   is_active: boolean;
   created_at: string;
@@ -59,6 +61,7 @@ export default function TeamPage() {
     name: '',
     phone: '',
     password: '',
+    role: 'atendente',
   });
 
   // Query para buscar membros da equipe
@@ -86,7 +89,7 @@ export default function TeamPage() {
       });
       
       setShowDialog(false);
-      setFormData({ email: '', name: '', phone: '', password: '' });
+      setFormData({ email: '', name: '', phone: '', password: '', role: 'atendente' });
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { error?: string } } };
       toast({
@@ -231,13 +234,17 @@ export default function TeamPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {member.is_staff ? (
+                      {member.role === 'admin' || member.role === 'superadmin' ? (
                         <Badge>
                           <Crown className="mr-1 h-3 w-3" />
                           Administrador
                         </Badge>
+                      ) : member.role === 'barbeiro' ? (
+                        <Badge variant="secondary">Barbeiro</Badge>
+                      ) : member.role === 'caixa' ? (
+                        <Badge variant="outline">Caixa</Badge>
                       ) : (
-                        <Badge variant="secondary">Profissional</Badge>
+                        <Badge variant="secondary">Atendente</Badge>
                       )}
                     </TableCell>
                     <TableCell>
@@ -304,6 +311,24 @@ export default function TeamPage() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="role">Ocupação/Função *</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) => setFormData({ ...formData, role: value })}
+                >
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Selecione a função" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="atendente">Atendente</SelectItem>
+                    <SelectItem value="barbeiro">Barbeiro</SelectItem>
+                    <SelectItem value="caixa">Caixa</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
