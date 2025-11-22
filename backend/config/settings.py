@@ -141,6 +141,7 @@ INSTALLED_APPS = [
     "inventory",
     "commissions",
     "notifications",
+    "payments",  # Payments & Mercado Pago Integration
     "superadmin",  # Super Admin Dashboard
     "pos",  # Point of Sale
     "goals",  # Goals and Targets
@@ -162,6 +163,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",  # Allauth middleware
     "core.middleware.TenantMiddleware",  # Middleware personalizado para Multi-Tenant
+    "core.middleware.SubscriptionMiddleware",  # Trial Guard - verifica status da assinatura
     "core.sentry_middleware.SentryContextMiddleware",  # Adiciona contexto ao Sentry
     "system_health.middleware.OnlineUsersMiddleware",  # Rastreia usuários online
 ]
@@ -440,3 +442,13 @@ GOOGLE_OAUTH_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
 # =============================================================================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# =============================================================================
+# MERCADO PAGO CONFIGURATION (for payments and subscriptions)
+# =============================================================================
+MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='')
+MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='')
+
+# URLs para redirect e notificações
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+BACKEND_URL = config('BACKEND_URL', default='http://localhost:8000')

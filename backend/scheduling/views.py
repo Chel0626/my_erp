@@ -42,6 +42,33 @@ class ServiceViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             return Service.objects.filter(tenant=self.request.user.tenant)
         return Service.objects.none()
+    
+    def perform_create(self, serializer):
+        """
+        Adiciona tenant automaticamente na criação
+        Verifica limite de serviços no plano TRIAL (4 serviços)
+        """
+        tenant = self.request.user.tenant
+        
+        # Verifica se está no TRIAL e atingiu o limite de serviços
+        if tenant.subscription_status == 'TRIAL' and tenant.has_reached_service_limit():
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied({
+                'error': 'service_limit_reached',
+                'message': 'Limite do plano gratuito atingido. '
+                          'O trial permite apenas 4 serviços. '
+                          'Faça upgrade para cadastrar serviços ilimitados.',
+                'current_count': tenant.current_services_count,
+                'limit': 4,
+                'subscription_status': tenant.subscription_status
+            })
+        
+        # Salva o serviço
+        serializer.save(tenant=tenant)
+        
+        # Incrementa o contador de serviços
+        tenant.current_services_count += 1
+        tenant.save(update_fields=['current_services_count'])
 
     def destroy(self, request, *args, **kwargs):
         """

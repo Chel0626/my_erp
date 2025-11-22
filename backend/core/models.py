@@ -15,7 +15,15 @@ class Tenant(models.Model):
     """
     PLAN_CHOICES = [
         ('basico', 'Básico'),
+        ('profissional', 'Profissional'),
         ('premium', 'Premium'),
+    ]
+    
+    SUBSCRIPTION_STATUS_CHOICES = [
+        ('TRIAL', 'Trial - Período de Teste'),
+        ('ACTIVE', 'Ativo'),
+        ('PAST_DUE', 'Pagamento Atrasado'),
+        ('CANCELED', 'Cancelado'),
     ]
 
     # Identificação Básica
@@ -83,6 +91,48 @@ class Tenant(models.Model):
         choices=PLAN_CHOICES,
         default='basico'
     )
+    
+    # Subscription & Billing (Mercado Pago Integration)
+    subscription_status = models.CharField(
+        'Status da Assinatura',
+        max_length=20,
+        choices=SUBSCRIPTION_STATUS_CHOICES,
+        default='TRIAL',
+        help_text='Status atual da assinatura do tenant'
+    )
+    trial_ends_at = models.DateTimeField(
+        'Trial termina em',
+        null=True,
+        blank=True,
+        help_text='Data/hora exata que o período de teste acaba (7 dias)'
+    )
+    plan_id = models.CharField(
+        'ID do Plano',
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text='Referência ao plano escolhido (basico/profissional/premium)'
+    )
+    mp_subscription_id = models.CharField(
+        'ID da Assinatura MP',
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text='ID da assinatura no Mercado Pago'
+    )
+    
+    # Usage Counters (para limites do trial)
+    current_clients_count = models.IntegerField(
+        'Total de Clientes',
+        default=0,
+        help_text='Contador de clientes ativos (limite: 10 no trial)'
+    )
+    current_services_count = models.IntegerField(
+        'Total de Serviços',
+        default=0,
+        help_text='Contador de serviços cadastrados (limite: 4 no trial)'
+    )
+    
     is_active = models.BooleanField('Ativo', default=True)
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
@@ -94,6 +144,42 @@ class Tenant(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def is_trial_active(self):
+        """Verifica se o trial ainda está ativo"""
+        if self.subscription_status != 'TRIAL':
+            return False
+        if not self.trial_ends_at:
+            return False
+        return timezone.now() < self.trial_ends_at
+    
+    def is_trial_expired(self):
+        """Verifica se o trial expirou"""
+        if self.subscription_status != 'TRIAL':
+            return False
+        if not self.trial_ends_at:
+            return False
+        return timezone.now() >= self.trial_ends_at
+    
+    def can_access_system(self):
+        """Verifica se o tenant pode acessar o sistema"""
+        if self.subscription_status == 'ACTIVE':
+            return True
+        if self.subscription_status == 'TRIAL':
+            return self.is_trial_active()
+        return False
+    
+    def has_reached_client_limit(self):
+        """Verifica se atingiu o limite de clientes (10 no trial)"""
+        if self.subscription_status != 'TRIAL':
+            return False
+        return self.current_clients_count >= 10
+    
+    def has_reached_service_limit(self):
+        """Verifica se atingiu o limite de serviços (4 no trial)"""
+        if self.subscription_status != 'TRIAL':
+            return False
+        return self.current_services_count >= 4
 
 
 class UserManager(BaseUserManager):

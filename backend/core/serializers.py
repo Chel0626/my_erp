@@ -10,6 +10,11 @@ from .oauth import GoogleOAuthSerializer
 
 class TenantSerializer(serializers.ModelSerializer):
     """Serializer para Tenant"""
+    is_trial_active = serializers.BooleanField(read_only=True)
+    is_trial_expired = serializers.BooleanField(read_only=True)
+    can_access_system = serializers.BooleanField(read_only=True)
+    has_reached_client_limit = serializers.BooleanField(read_only=True)
+    has_reached_service_limit = serializers.BooleanField(read_only=True)
     
     class Meta:
         model = Tenant
@@ -21,9 +26,18 @@ class TenantSerializer(serializers.ModelSerializer):
             'phone', 'whatsapp', 'email', 'website',
             'logo', 'primary_color',
             'certificate_expiry',
-            'plan', 'is_active', 'created_at'
+            'plan', 'plan_id', 'subscription_status', 'trial_ends_at',
+            'mp_subscription_id', 'current_clients_count', 'current_services_count',
+            'is_trial_active', 'is_trial_expired', 'can_access_system',
+            'has_reached_client_limit', 'has_reached_service_limit',
+            'is_active', 'created_at'
         ]
-        read_only_fields = ['id', 'created_at', 'certificate_expiry']
+        read_only_fields = [
+            'id', 'created_at', 'certificate_expiry', 'subscription_status',
+            'trial_ends_at', 'mp_subscription_id', 'current_clients_count',
+            'current_services_count', 'is_trial_active', 'is_trial_expired',
+            'can_access_system', 'has_reached_client_limit', 'has_reached_service_limit'
+        ]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -68,14 +82,22 @@ class SignUpSerializer(serializers.Serializer):
         """
         Cria tenant e usuário em uma transação atômica
         Segue o workflow do Canvas:
-        1. Criar Tenant
+        1. Criar Tenant com TRIAL automático de 7 dias
         2. Criar Usuário
         3. Atualizar Tenant com owner
         4. Retornar dados
         """
-        # AÇÃO 1: Criar Tenant
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # AÇÃO 1: Criar Tenant com TRIAL automático
         tenant = Tenant.objects.create(
-            name=validated_data['company_name']
+            name=validated_data['company_name'],
+            subscription_status='TRIAL',
+            trial_ends_at=timezone.now() + timedelta(days=7),
+            plan_id='basico',  # Inicia com plano básico por padrão
+            current_clients_count=0,
+            current_services_count=0
         )
 
         # AÇÃO 2: Criar Usuário

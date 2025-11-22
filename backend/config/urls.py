@@ -31,6 +31,8 @@ urlpatterns = [
     path("api/inventory/", include("inventory.urls")),
     path("api/commissions/", include("commissions.urls")),
     path("api/notifications/", include("notifications.urls")),
+    path("api/payments/", include("payments.urls")),  # Payments & Mercado Pago
+    path("api/webhooks/", include("webhooks_urls")),  # Webhooks (MP, etc)
     path("api/superadmin/", include("superadmin.urls")),  # Super Admin Dashboard
     path("api/pos/", include("pos.urls")),  # Point of Sale
     path("api/goals/", include("goals.urls")),  # Goals and Targets

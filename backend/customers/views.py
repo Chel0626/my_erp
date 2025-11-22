@@ -73,8 +73,31 @@ class CustomerViewSet(viewsets.ModelViewSet):
         return CustomerSerializer
     
     def perform_create(self, serializer):
-        """Adiciona tenant automaticamente na criação"""
-        serializer.save(tenant=self.request.user.tenant)
+        """
+        Adiciona tenant automaticamente na criação
+        Verifica limite de clientes no plano TRIAL (10 clientes)
+        """
+        tenant = self.request.user.tenant
+        
+        # Verifica se está no TRIAL e atingiu o limite de clientes
+        if tenant.subscription_status == 'TRIAL' and tenant.has_reached_client_limit():
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied({
+                'error': 'client_limit_reached',
+                'message': 'Parabéns! Você atingiu 10 clientes. Sua barbearia está crescendo! '
+                          'O plano gratuito permite apenas 10 clientes. '
+                          'Libere cadastros ilimitados assinando um plano.',
+                'current_count': tenant.current_clients_count,
+                'limit': 10,
+                'subscription_status': tenant.subscription_status
+            })
+        
+        # Salva o cliente
+        serializer.save(tenant=tenant)
+        
+        # Incrementa o contador de clientes
+        tenant.current_clients_count += 1
+        tenant.save(update_fields=['current_clients_count'])
     
     @action(detail=True, methods=['get'])
     def stats(self, request, pk=None):
