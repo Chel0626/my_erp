@@ -70,7 +70,7 @@ export default function DashboardLayout({
   useEffect(() => {
     const handlePaymentRequired = (event: CustomEvent<{reason: string, message: string}>) => {
       const allowedReasons = ['trial_expired', 'client_limit', 'service_limit'] as const;
-      const reason = allowedReasons.includes(event.detail.reason as any)
+      const reason = allowedReasons.includes(event.detail.reason as typeof allowedReasons[number])
         ? event.detail.reason as typeof allowedReasons[number]
         : 'trial_expired';
       setPaywallReason(reason);
