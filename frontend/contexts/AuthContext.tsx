@@ -56,19 +56,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Busca dados do usuário
       const userData = await authApi.getCurrentUser();
       setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
 
       // Busca dados do tenant (apenas se não for superadmin)
       if (userData.role !== 'superadmin') {
         try {
           const tenantData = await tenantApi.getMyTenant();
           setTenant(tenantData);
+          localStorage.setItem('tenant', JSON.stringify(tenantData));
         } catch (error) {
           // Superadmin não tem tenant, isso é normal - não loga erro
           setTenant(null);
+          localStorage.removeItem('tenant');
         }
       } else {
         // Superadmin não tem tenant
         setTenant(null);
+        localStorage.removeItem('tenant');
       }
     } catch (error: any) {
       // Se o erro for 401, token inválido/expirado - comportamento esperado
@@ -78,9 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('❌ Erro inesperado ao carregar usuário:', error);
       }
       
-      // Limpa tokens em caso de erro
+      // Limpa tokens e dados em caso de erro
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('tenant');
       document.cookie = 'access_token=; path=/; max-age=0';
       document.cookie = 'refresh_token=; path=/; max-age=0';
       setUser(null);
@@ -159,6 +165,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Define usuário e tenant
       setUser(data.user);
       setTenant(data.tenant);
+      
+      // Persiste no localStorage
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('tenant', JSON.stringify(data.tenant));
 
       // Redireciona para dashboard
       router.push('/dashboard');
@@ -172,6 +182,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Limpa tokens do localStorage
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('tenant');
     
     // Limpa cookies
     document.cookie = 'access_token=; path=/; max-age=0';
