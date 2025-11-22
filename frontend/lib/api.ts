@@ -40,7 +40,7 @@ api.interceptors.response.use(
     // Tratamento de erro 402 - Payment Required (trial expirado ou limite atingido)
     if (error.response?.status === 402 && typeof window !== 'undefined') {
       // Dispara evento customizado para o PaywallModal escutar
-      const paymentError = error.response.data as any;
+      const paymentError = error.response.data as { error?: string; message?: string };
       window.dispatchEvent(new CustomEvent('payment-required', {
         detail: {
           reason: paymentError.error || 'trial_expired',

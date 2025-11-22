@@ -34,9 +34,14 @@ export default function PlansPage() {
       // Chama a API que cria a preferência no Mercado Pago
       await subscribe.mutateAsync({ plan_id: planId });
       // O hook já redireciona automaticamente para o checkout do MP
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao criar assinatura:', error);
-      toast.error(error.response?.data?.error || 'Erro ao processar pagamento. Tente novamente.');
+      let errorMsg = 'Erro ao processar pagamento. Tente novamente.';
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const errObj = error as { response?: { data?: { error?: string } } };
+        errorMsg = errObj.response?.data?.error || errorMsg;
+      }
+      toast.error(errorMsg);
       setSelectedPlan(null);
     }
   };

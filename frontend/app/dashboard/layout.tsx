@@ -68,7 +68,7 @@ export default function DashboardLayout({
 
   // Listener para erros de pagamento (402)
   useEffect(() => {
-    const handlePaymentRequired = (event: any) => {
+    const handlePaymentRequired = (event: CustomEvent<{reason: string, message: string}>) => {
       setPaywallReason(event.detail.reason);
       setPaywallMessage(event.detail.message);
       setPaywallOpen(true);
