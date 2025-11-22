@@ -69,7 +69,11 @@ export default function DashboardLayout({
   // Listener para erros de pagamento (402)
   useEffect(() => {
     const handlePaymentRequired = (event: CustomEvent<{reason: string, message: string}>) => {
-      setPaywallReason(event.detail.reason);
+      const allowedReasons = ['trial_expired', 'client_limit', 'service_limit'] as const;
+      const reason = allowedReasons.includes(event.detail.reason as any)
+        ? event.detail.reason as typeof allowedReasons[number]
+        : 'trial_expired';
+      setPaywallReason(reason);
       setPaywallMessage(event.detail.message);
       setPaywallOpen(true);
     };
