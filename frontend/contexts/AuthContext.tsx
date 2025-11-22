@@ -106,15 +106,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Carrega dados do usuário
       await loadUser();
 
-      // Busca dados do usuário para redirecionar corretamente
+      // Busca dados do usuário e tenant para redirecionar corretamente
       const userData = await authApi.getCurrentUser();
 
       // Redireciona baseado no role
       if (userData.role === 'superadmin') {
         router.push('/superadmin');
-      } else {
-        router.push('/dashboard');
+        return;
       }
+
+      // Verifica status da assinatura para usuários normais
+      try {
+        const tenantData = await tenantApi.getMyTenant();
+        
+        // Se trial expirado ou subscription bloqueada, vai para /plans
+        if (tenantData.is_trial_expired || 
+            tenantData.subscription_status === 'PAST_DUE' ||
+            tenantData.subscription_status === 'CANCELED') {
+          router.push('/plans');
+          return;
+        }
+      } catch (error) {
+        console.error('Erro ao buscar tenant:', error);
+      }
+
+      // Se tudo ok, vai para dashboard
+      router.push('/dashboard');
+      
     } catch (error: any) {
       console.error('❌ Erro no login:', error);
       throw new Error(error.response?.data?.detail || 'Erro ao fazer login');

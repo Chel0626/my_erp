@@ -32,8 +32,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { TrialBanner } from '@/components/subscription/TrialBanner';
+import { PaywallModal } from '@/components/subscription/PaywallModal';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -60,6 +62,21 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallReason, setPaywallReason] = useState<'trial_expired' | 'client_limit' | 'service_limit'>('trial_expired');
+  const [paywallMessage, setPaywallMessage] = useState('');
+
+  // Listener para erros de pagamento (402)
+  useEffect(() => {
+    const handlePaymentRequired = (event: any) => {
+      setPaywallReason(event.detail.reason);
+      setPaywallMessage(event.detail.message);
+      setPaywallOpen(true);
+    };
+
+    window.addEventListener('payment-required', handlePaymentRequired);
+    return () => window.removeEventListener('payment-required', handlePaymentRequired);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -162,6 +179,9 @@ export default function DashboardLayout({
         </div>
       </header>
 
+      {/* Trial Banner - Mostra apenas se estiver em TRIAL */}
+      <TrialBanner />
+
       {/* Mobile Menu - Fullscreen overlay com scroll */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-white">
@@ -253,6 +273,14 @@ export default function DashboardLayout({
           })}
         </div>
       </nav>
+
+      {/* Paywall Modal - Aparece automaticamente em erros 402 */}
+      <PaywallModal
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        reason={paywallReason}
+        message={paywallMessage}
+      />
     </div>
   );
 }

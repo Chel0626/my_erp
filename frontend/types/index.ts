@@ -3,7 +3,18 @@
 export interface Tenant {
   id: string;
   name: string;
-  plan: 'basico' | 'premium';
+  plan: 'basico' | 'profissional' | 'premium';
+  plan_id?: string;
+  subscription_status: 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'CANCELED';
+  trial_ends_at?: string | null;
+  mp_subscription_id?: string | null;
+  current_clients_count: number;
+  current_services_count: number;
+  is_trial_active: boolean;
+  is_trial_expired: boolean;
+  can_access_system: boolean;
+  has_reached_client_limit: boolean;
+  has_reached_service_limit: boolean;
   is_active: boolean;
   created_at: string;
 }

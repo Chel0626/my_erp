@@ -31,11 +31,32 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor de resposta - trata refresh token
+// Interceptor de resposta - trata refresh token e erros de pagamento
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+    // Tratamento de erro 402 - Payment Required (trial expirado ou limite atingido)
+    if (error.response?.status === 402 && typeof window !== 'undefined') {
+      // Dispara evento customizado para o PaywallModal escutar
+      const paymentError = error.response.data as any;
+      window.dispatchEvent(new CustomEvent('payment-required', {
+        detail: {
+          reason: paymentError.error || 'trial_expired',
+          message: paymentError.message || 'Seu período de teste acabou.'
+        }
+      }));
+      
+      // Se for trial expirado, redireciona para /plans após um delay
+      if (paymentError.error === 'trial_expired') {
+        setTimeout(() => {
+          window.location.href = '/plans';
+        }, 2000);
+      }
+      
+      return Promise.reject(error);
+    }
 
     // Se erro 401 e não é retry, tenta refresh
     if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
