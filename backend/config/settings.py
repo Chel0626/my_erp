@@ -449,6 +449,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MERCADOPAGO_ACCESS_TOKEN = config('MERCADOPAGO_ACCESS_TOKEN', default='')
 MERCADOPAGO_PUBLIC_KEY = config('MERCADOPAGO_PUBLIC_KEY', default='')
 
+# Plan IDs criados no painel do Mercado Pago (você precisa criar e adicionar aqui)
+MERCADOPAGO_PLAN_IDS = {
+    'basico': config('MP_PLAN_BASICO', default=''),
+    'profissional': config('MP_PLAN_PROFISSIONAL', default=''),
+    'premium': config('MP_PLAN_PREMIUM', default=''),
+}
+
 # URLs para redirect e notificações
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 BACKEND_URL = config('BACKEND_URL', default='http://localhost:8000')
