@@ -2,7 +2,7 @@
  * Hook para gerenciar pagamentos e assinaturas via Mercado Pago
  */
 import { useMutation } from '@tanstack/react-query';
-import api from '@/lib/axios';
+import api from '@/lib/api';
 
 // Tipos
 export interface Plan {
